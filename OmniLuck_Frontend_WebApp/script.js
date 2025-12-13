@@ -487,6 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log("✨ 7-DAY PREDICTIVE TRAJECTORY GENERATED ✨");
 
                     if (forecastContainer && forecastList) {
+                        console.log("✅ Container found, rendering forecast...");
                         // Populate Summary
                         forecastTrend.textContent = forecast.trend_direction;
                         // Format best day nicely
