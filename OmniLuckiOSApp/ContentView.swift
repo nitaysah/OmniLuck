@@ -376,7 +376,7 @@ struct ContentView: View {
                         
                         // Logout Button (matching webapp)
                         Button(action: {
-                            userSession.logout()
+                            showLogoutAlert = true
                         }) {
                             HStack(spacing: 10) {
                                 Text("🚪")
