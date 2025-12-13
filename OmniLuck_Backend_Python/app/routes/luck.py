@@ -143,3 +143,68 @@ async def get_luck_history(uid: str, days: int = 30):
             {"date": "2025-12-09", "score": 82},
         ]
     }
+
+
+from app.models.schemas import ForecastResponse
+
+@router.post("/forecast", response_model=ForecastResponse)
+async def get_forecast(request: LuckCalculationRequest):
+    """
+    Calculate 7-day luck trajectory.
+    """
+    from app.services.astrology_service import astrology_service
+    from app.models.schemas import BirthInfo, ForecastResponse, ForecastDay
+    
+    if not request.birth_lat or not request.birth_time:
+         raise HTTPException(status_code=400, detail="Birth time and location required for forecast")
+
+    # Calculate Natal Chart ONE time
+    birth_info = BirthInfo(
+        dob=request.dob,
+        time=request.birth_time,
+        lat=request.birth_lat,
+        lon=request.birth_lon,
+        timezone=request.timezone or "UTC"
+    )
+    natal_chart = astrology_service.calculate_natal_chart(birth_info)
+    
+    # Calculate Forecast
+    # Note: We are using Transits as the primary driver for the forecast trend
+    # We map "Transit Score" to "Luck Score" roughly for now (can enhance with Weather later)
+    raw_forecast = astrology_service.calculate_weekly_forecast(natal_chart)
+    
+    trajectory = []
+    max_score = -1
+    best_date = ""
+    
+    for day in raw_forecast:
+        # Simple projection: Transit Score is the base of the Trend
+        # We can add a small random variance or personal offset if ML data was available
+        score = day['transits_score']
+        
+        trajectory.append(ForecastDay(
+            date=day['date'],
+            luck_score=score,
+            transits_score=score,
+            major_aspects=day['major_aspects']
+        ))
+        
+        if score > max_score:
+            max_score = score
+            best_date = day['date']
+            
+    # Determine trend
+    first = trajectory[0].luck_score
+    last = trajectory[-1].luck_score
+    if last > first + 5:
+        direction = "Rising"
+    elif last < first - 5:
+        direction = "Falling"
+    else:
+        direction = "Stable"
+        
+    return ForecastResponse(
+        trajectory=trajectory,
+        trend_direction=direction,
+        best_day=best_date
+    )

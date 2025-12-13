@@ -137,6 +137,20 @@ class LuckCalculationResponse(BaseModel):
     recommended_actions: List[str] = Field(default_factory=list)
 
 
+class ForecastDay(BaseModel):
+    """Single day forecast data"""
+    date: str
+    luck_score: int
+    transits_score: int
+    major_aspects: List[str] = Field(default_factory=list)
+
+class ForecastResponse(BaseModel):
+    """7-day forecast response"""
+    trajectory: List[ForecastDay]
+    trend_direction: str # "Rising", "Falling", "Stable"
+    best_day: str # Date of highest score
+
+
 # ============================================================================
 # ML / PERSONALIZATION MODELS
 # ============================================================================

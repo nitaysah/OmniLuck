@@ -474,6 +474,22 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             // === KUNDALI LOGIC END ===
 
+            // === 7-DAY FORECAST (BACKGROUND) ===
+            // Validating the new feature engine without strictly altering UI layout
+            if (birthTimeInput && birthTimeInput.value) {
+                console.log("🔮 Initiating 7-Day Trend Analysis...");
+                api.getForecast(requestData).then(forecast => {
+                    console.log("✨ 7-DAY PREDICTIVE TRAJECTORY GENERATED ✨");
+                    console.log("Trend Direction:", forecast.trend_direction);
+                    console.log("Best Day:", forecast.best_day);
+                    console.table(forecast.trajectory.map(d => ({
+                        Date: d.date,
+                        Score: d.luck_score,
+                        Aspects: d.major_aspects.join(", ")
+                    })));
+                }).catch(err => console.warn("Forecast engine offline:", err));
+            }
+
         } catch (error) {
             console.error("API Error:", error);
             alert("The stars are cloudy right now (Connection Error). Please try again.");

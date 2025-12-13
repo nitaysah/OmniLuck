@@ -282,6 +282,36 @@ class AstrologyService:
                 score += strength * 0.1
         
         return max(0, min(100, int(score)))
+    
+    def calculate_weekly_forecast(self, natal_chart: NatalChartResponse, start_date: datetime = None) -> List[Dict]:
+        """
+        Calculate luck trajectory for the next 7 days based on planetary transits.
+        """
+        if start_date is None:
+            start_date = datetime.now()
+            
+        forecast = []
+        from datetime import timedelta
+        
+        for i in range(7):
+            current_date = start_date + timedelta(days=i+1) # Start from tomorrow
+            
+            # Calculate transits for this day
+            transits = self.calculate_daily_transits(current_date, natal_chart)
+            
+            # Extract major aspects for summary
+            aspect_summaries = []
+            for aspect in transits.aspects:
+                if aspect['strength'] > 80: # Only listing strong aspects
+                    aspect_summaries.append(f"Transit {aspect['transit_planet']} {aspect['type']} Natal {aspect['natal_planet']}")
+            
+            forecast.append({
+                "date": current_date.strftime("%Y-%m-%d"),
+                "transits_score": transits.influence_score,
+                "major_aspects": aspect_summaries[:2] # Limit to top 2
+            })
+            
+        return forecast
 
 
 # Singleton instance

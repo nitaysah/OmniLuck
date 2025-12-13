@@ -141,6 +141,20 @@ class CelestialAPI {
     }
 
     /**
+     * Get 7-day luck trajectory
+     * @param {Object} request - Same request object as calculateLuck
+     * @returns {Promise<Object>} Forecast response with trajectory
+     */
+    async getForecast(request) {
+        const response = await fetch(`${this.baseURL}/api/luck/forecast`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(request)
+        });
+        return response.json();
+    }
+
+    /**
      * Get user's luck history
      * @param {string} uid - User ID
      * @param {number} days - Number of days (default 30)
