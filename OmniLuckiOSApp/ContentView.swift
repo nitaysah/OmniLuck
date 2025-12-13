@@ -18,6 +18,7 @@ struct ContentView: View {
     @State private var showTimeInfo = false
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var showLogoutAlert = false
     
     // Light Celestial Color Palette
     let accentPurple = Color(red: 0.75, green: 0.6, blue: 0.95)  // Light purple
@@ -76,7 +77,7 @@ struct ContentView: View {
                             // User Greeting / Logout Pill (Top Right)
                             if let profile = userSession.userProfile, let userName = profile.name {
                                 Button(action: {
-                                    userSession.logout()
+                                    showLogoutAlert = true
                                 }) {
                                     HStack(spacing: 6) {
                                         Text("Hi, \(userName.components(separatedBy: " ").first ?? userName)")
@@ -404,6 +405,14 @@ struct ContentView: View {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(errorMessage)
+            }
+            .alert("Log Out", isPresented: $showLogoutAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Log Out", role: .destructive) {
+                    userSession.logout()
+                }
+            } message: {
+                Text("Are you sure you want to log out?")
             }
             .onAppear {
                 // Auto-populate fields from authenticated profile
