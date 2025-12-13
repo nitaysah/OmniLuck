@@ -8,19 +8,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     gcc \
     build-essential \
-    wget \
     && rm -rf /var/lib/apt/lists/*
-
-# Download Swiss Ephemeris Data
-RUN mkdir -p /usr/share/swisseph
-WORKDIR /usr/share/swisseph
-# Download main ephemeris files (years 1800-2399 approx)
-RUN wget -q https://www.astro.com/ftp/swisseph/ephe/seas_18.se1 \
-    && wget -q https://www.astro.com/ftp/swisseph/ephe/semo_18.se1 \
-    && wget -q https://www.astro.com/ftp/swisseph/ephe/sepl_18.se1
-
-# Switch back to app directory
-WORKDIR /app
 
 # Copy requirements first to leverage Docker cache
 COPY requirements.txt .
