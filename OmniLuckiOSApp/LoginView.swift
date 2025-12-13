@@ -163,7 +163,14 @@ struct LoginView: View {
                                 let response = try await NetworkService.shared.login(email: email, password: password)
                                 await MainActor.run {
                                     isLoading = false
-                                    let profile = UserProfile(name: response.profile.name, dob: response.profile.dob, email: response.email, username: nil)
+                                    let profile = UserProfile(
+                                        name: response.profile.name,
+                                        dob: response.profile.dob,
+                                        email: response.email,
+                                        username: nil,
+                                        birth_place: response.profile.birth_place,
+                                        birth_time: response.profile.birth_time
+                                    )
                                     userSession.login(with: profile)
                                 }
                             } catch {
