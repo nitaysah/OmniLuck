@@ -16,6 +16,8 @@ struct ContentView: View {
     @FocusState private var isDateFieldFocused: Bool
     @State private var useNAForTime = false // N/A toggle for birth time
     @State private var showTimeInfo = false
+    @State private var showError = false
+    @State private var errorMessage = ""
     
     // Light Celestial Color Palette
     let accentPurple = Color(red: 0.75, green: 0.6, blue: 0.95)  // Light purple
@@ -343,9 +345,11 @@ struct ContentView: View {
                                     }
                                 } catch {
                                     print("API Error: \(error)")
-                                    isButtonPressed = false
-                                    // Fallback to offline logic if network fails?
-                                    // self.showResult = true (using offline calc)
+                                    await MainActor.run {
+                                        isButtonPressed = false
+                                        errorMessage = error.localizedDescription
+                                        showError = true
+                                    }
                                 }
                             }
                         }) {
@@ -395,6 +399,11 @@ struct ContentView: View {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text("Add exact time of birth (local time at place of birth) to get your daily Astrology insights.")
+            }
+            .alert("Error", isPresented: $showError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(errorMessage)
             }
             .onAppear {
                 // Auto-populate fields from authenticated profile
