@@ -288,8 +288,20 @@ struct SignupView: View {
                         
                         await MainActor.run {
                             isLoading = false
+                            
+                            let f = DateFormatter()
+                            f.dateFormat = "HH:mm"
+                            let timeStr = f.string(from: birthTime)
+                            
                             let fullName = "\(firstName) \(middleName.isEmpty ? "" : middleName + " ")\(lastName)"
-                            let profile = UserProfile(name: fullName, dob: formatDate(dob), email: email, username: username)
+                            let profile = UserProfile(
+                                name: fullName,
+                                dob: formatDate(dob),
+                                email: email,
+                                username: username,
+                                birth_place: birthPlace,
+                                birth_time: timeStr
+                            )
                             userSession.login(with: profile)
                             print("Signup Success: \(response.message)")
                         }
