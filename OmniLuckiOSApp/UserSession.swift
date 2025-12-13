@@ -5,6 +5,8 @@ struct UserProfile: Codable {
     let dob: String? // "YYYY-MM-DD"
     let email: String?
     let username: String?
+    let birth_place: String?
+    let birth_time: String?
 }
 
 class UserSession: ObservableObject {
