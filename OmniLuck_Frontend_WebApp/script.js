@@ -504,10 +504,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             const dayEl = document.createElement('div');
                             dayEl.className = 'forecast-day';
                             dayEl.style.cssText = `
-                                min-width: 60px;
+                                flex: 1;
+                                min-width: 0;
                                 background: rgba(255,255,255,0.4);
-                                border-radius: 12px;
-                                padding: 8px 4px;
+                                border-radius: 8px;
+                                padding: 6px 2px;
                                 display: flex;
                                 flex-direction: column;
                                 align-items: center;
@@ -521,11 +522,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             else if (score < 50) color = '#FF5722';
 
                             dayEl.innerHTML = `
-                                <span style="font-size: 0.75rem; font-weight: 600; color: #555;">${dayName}</span>
-                                <div style="width: 6px; height: 30px; background: rgba(0,0,0,0.1); border-radius: 3px; position: relative;">
-                                    <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: ${score}%; background: ${color}; border-radius: 3px;"></div>
+                                <span style="font-size: 0.65rem; font-weight: 600; color: #555;">${dayName}</span>
+                                <div style="width: 4px; height: 35px; background: rgba(0,0,0,0.1); border-radius: 2px; position: relative;">
+                                    <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: ${score}%; background: ${color}; border-radius: 2px;"></div>
                                 </div>
-                                <span style="font-size: 0.7rem; font-weight: 700; color: ${color};">${score}</span>
+                                <span style="font-size: 0.65rem; font-weight: 700; color: ${color};">${score}</span>
                             `;
                             forecastList.appendChild(dayEl);
                         });
