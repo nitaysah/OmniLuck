@@ -1,0 +1,153 @@
+::1 - - [11/Dec/2025 21:26:58] "GET /style.css HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:27:02] code 404, message File not found
+::1 - - [11/Dec/2025 21:27:02] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:27:07] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:27:07] code 404, message File not found
+::1 - - [11/Dec/2025 21:27:07] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:27:07] "GET /script.js HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:28:30] "GET / HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:28:30] "GET /style.css HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:28:30] "GET /firebase-config.js HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:28:34] code 404, message File not found
+::1 - - [11/Dec/2025 21:28:34] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:28:40] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:28:40] code 404, message File not found
+::1 - - [11/Dec/2025 21:28:40] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:28:40] "GET /script.js HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:28:40] "GET /api-client.js?v=3 HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:32:05] "GET /style.css HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:32:10] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:32:10] "GET /script.js HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:32:10] "GET /api-client.js?v=3 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:32:15] code 404, message File not found
+::1 - - [11/Dec/2025 21:32:15] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:33:29] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:33:29] "GET /style.css HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:33:29] "GET /script.js HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:33:29] code 404, message File not found
+::1 - - [11/Dec/2025 21:33:29] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:33:29] "GET /api-client.js?v=3 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:33:35] "GET /app.html HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:33:35] code 404, message File not found
+::1 - - [11/Dec/2025 21:33:35] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:33:42] "GET /index.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:33:42] code 404, message File not found
+::1 - - [11/Dec/2025 21:33:42] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:33:46] "GET /app.html HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:33:46] code 404, message File not found
+::1 - - [11/Dec/2025 21:33:46] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:33:46] "GET /script.js HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:34:36] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:34:37] "GET /style.css HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:34:37] "GET /script.js HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:34:37] code 404, message File not found
+::1 - - [11/Dec/2025 21:34:37] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:34:37] "GET /api-client.js?v=3 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:35:43] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:35:43] "GET /script.js HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:35:43] "GET /api-client.js?v=3 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:35:43] code 404, message File not found
+::1 - - [11/Dec/2025 21:35:43] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:35:48] code 404, message File not found
+::1 - - [11/Dec/2025 21:35:48] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:35:48] "GET /style.css HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:36:21] "GET /index.html HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:36:21] code 404, message File not found
+::1 - - [11/Dec/2025 21:36:21] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:36:21] "GET /style.css HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:36:26] "GET /app.html HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:36:26] code 404, message File not found
+::1 - - [11/Dec/2025 21:36:26] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:36:26] "GET /style.css HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:36:26] "GET /script.js HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:37:12] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:37:25] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:37:25] "GET /style.css HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:37:25] "GET /script.js HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:37:25] "GET /api-client.js?v=3 HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:41:03] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:41:03] "GET /script.js HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:41:03] "GET /style.css HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:41:03] code 404, message File not found
+::1 - - [11/Dec/2025 21:41:03] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:41:03] "GET /api-client.js?v=3 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:41:10] code 404, message File not found
+::1 - - [11/Dec/2025 21:41:10] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:41:10] "GET /style.css HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:41:13] code 404, message File not found
+::1 - - [11/Dec/2025 21:41:13] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:41:13] "GET /script.js HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:43:19] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:43:19] "GET /style.css HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:43:19] "GET /script.js HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:43:19] "GET /api-client.js?v=3 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:43:19] code 404, message File not found
+::1 - - [11/Dec/2025 21:43:19] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:45:33] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:45:33] "GET /style.css HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:45:33] "GET /script.js?v=4 HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:45:33] "GET /api-client.js?v=3 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:45:33] code 404, message File not found
+::1 - - [11/Dec/2025 21:45:33] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:45:37] code 404, message File not found
+::1 - - [11/Dec/2025 21:45:37] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:45:41] "GET /app.html HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:45:41] code 404, message File not found
+::1 - - [11/Dec/2025 21:45:41] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:45:41] "GET /script.js?v=4 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:51:05] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:51:05] "GET /script.js?v=4 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:51:05] "GET /style.css HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:51:05] "GET /api-client.js?v=3 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:51:06] code 404, message File not found
+::1 - - [11/Dec/2025 21:51:06] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:54:30] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 21:54:30] "GET /style.css HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:54:30] "GET /script.js?v=4 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 21:54:30] code 404, message File not found
+::1 - - [11/Dec/2025 21:54:30] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 21:54:31] "GET /api-client.js?v=3 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 22:06:36] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 22:06:36] "GET /style.css HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 22:06:36] "GET /script.js?v=4 HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 22:06:36] "GET /api-client.js?v=3 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 22:07:04] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 22:07:05] "GET /script.js?v=4 HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 22:07:05] "GET /style.css HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 22:07:05] "GET /api-client.js?v=3 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 22:07:05] code 404, message File not found
+::1 - - [11/Dec/2025 22:07:05] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 22:14:31] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 22:14:31] "GET /style.css HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 22:14:31] "GET /script.js?v=4 HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 22:14:32] code 404, message File not found
+::1 - - [11/Dec/2025 22:14:32] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 22:14:32] "GET /api-client.js?v=3 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 22:18:22] "GET /app.html HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 22:18:22] "GET /style.css HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 22:18:22] "GET /script.js?v=4 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 22:18:22] code 404, message File not found
+::1 - - [11/Dec/2025 22:18:22] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 22:20:18] "GET /app.html HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 22:20:19] "GET /script.js?v=4 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 22:20:19] "GET /style.css HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 22:20:19] code 404, message File not found
+::1 - - [11/Dec/2025 22:20:19] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 22:20:19] "GET /api-client.js?v=3 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 22:20:31] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 22:20:31] "GET /style.css HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 22:20:31] "GET /script.js?v=4 HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 22:20:31] "GET /api-client.js?v=3 HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 22:38:33] "GET / HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 22:38:33] "GET /style.css HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 22:38:33] "GET /firebase-config.js HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 22:38:41] code 404, message File not found
+::1 - - [11/Dec/2025 22:38:41] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 22:38:46] "GET /app.html HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 22:38:46] code 404, message File not found
+::1 - - [11/Dec/2025 22:38:46] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [11/Dec/2025 22:38:46] "GET /script.js?v=4 HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 22:38:46] "GET /api-client.js?v=3 HTTP/1.1" 200 -
+::1 - - [11/Dec/2025 22:40:08] "GET /app.html HTTP/1.1" 304 -
+::1 - - [11/Dec/2025 22:40:11] code 404, message File not found
+::1 - - [11/Dec/2025 22:40:11] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -

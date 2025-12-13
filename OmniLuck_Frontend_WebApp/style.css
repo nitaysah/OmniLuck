@@ -1,0 +1,1124 @@
+:root {
+    /* Light Celestial Color Palette - matching iOS app exactly */
+    --accent-purple: rgba(191, 153, 242, 1);
+    /* Color(red: 0.75, green: 0.6, blue: 0.95) */
+    --accent-purple-light: rgba(191, 153, 242, 0.3);
+    --accent-gold: rgba(255, 230, 128, 1);
+    /* Color(red: 1.0, green: 0.9, blue: 0.5) */
+    --accent-gold-light: rgba(255, 230, 128, 0.5);
+    --deep-purple: rgba(128, 77, 179, 1);
+    /* Color(red: 0.5, green: 0.3, blue: 0.7) */
+    --deep-purple-light: rgba(128, 77, 179, 0.7);
+    --deep-purple-lighter: rgba(128, 77, 179, 0.8);
+
+    /* Background colors - matching iOS LinearGradient */
+    --bg-cream: rgba(255, 250, 230, 1);
+    /* Color(red: 1.0, green: 0.98, blue: 0.9) */
+    --bg-lavender: rgba(242, 230, 255, 1);
+    /* Color(red: 0.95, green: 0.9, blue: 1.0) */
+    --bg-white: rgba(250, 243, 255, 1);
+    /* Color(red: 0.98, green: 0.95, blue: 1.0) */
+
+    --card-bg: rgba(255, 255, 255, 0.6);
+    --card-bg-solid: rgba(255, 255, 255, 0.7);
+    --card-border: rgba(191, 153, 242, 0.3);
+    --input-bg: rgba(255, 255, 255, 0.7);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background: linear-gradient(135deg, var(--bg-cream) 0%, var(--bg-lavender) 50%, var(--bg-white) 100%);
+}
+
+/* Galaxy Animation Background - matching iOS GalaxyView */
+/* Galaxy Animation Background - Two Colliding Galaxies */
+.galaxy-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+    perspective: 1000px;
+    /* Background removed to reveal body's light celestial timeline */
+}
+
+.galaxy-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    transform-style: preserve-3d;
+    animation: cameraDrift 120s ease-in-out infinite alternate;
+}
+
+/* Common Galaxy Styles */
+.galaxy {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-radius: 50%;
+    transform-style: preserve-3d;
+}
+
+.galaxy-core {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    filter: blur(20px);
+    box-shadow: 0 0 60px 20px currentColor;
+}
+
+.arm {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: left center;
+    border-radius: 50%;
+    filter: blur(2px);
+    opacity: 0.8;
+}
+
+/* === Milky Way (Purple Dominant) === */
+.milky-way {
+    width: 600px;
+    height: 600px;
+    margin-top: -300px;
+    margin-left: -300px;
+    transform: rotateX(60deg) rotateZ(0deg) translateZ(-100px);
+    animation: rotateMilkyWay 120s linear infinite;
+}
+
+.milky-way .galaxy-core {
+    width: 100px;
+    height: 100px;
+    background-color: var(--accent-gold);
+    color: var(--accent-gold);
+    box-shadow: 0 0 80px 30px rgba(255, 230, 128, 0.4);
+}
+
+.milky-way .arm {
+    width: 300px;
+    height: 160px;
+    border-top: 6px solid var(--accent-purple);
+    border-right: 2px solid transparent;
+    border-bottom: 2px solid transparent;
+    border-left: 10px solid var(--accent-purple-light);
+}
+
+.milky-way .arm:nth-child(2) {
+    transform: rotate(0deg);
+}
+
+.milky-way .arm:nth-child(3) {
+    transform: rotate(120deg);
+}
+
+.milky-way .arm:nth-child(4) {
+    transform: rotate(240deg);
+}
+
+.milky-way .arm::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 50%;
+    box-shadow: 0 -5px 20px var(--deep-purple-light);
+}
+
+/* === Andromeda (Gold/Light Purple Dominant) === */
+.andromeda {
+    width: 700px;
+    height: 700px;
+    margin-top: -350px;
+    margin-left: -350px;
+    transform: translate(200px, -200px) rotateX(-50deg) rotateY(20deg);
+    animation: rotateAndromeda 140s linear infinite reverse;
+}
+
+/* Using Gold/Light Purple to match the light theme */
+.andromeda .galaxy-core {
+    width: 120px;
+    height: 120px;
+    background-color: var(--accent-gold);
+    color: var(--accent-gold);
+    box-shadow: 0 0 90px 40px rgba(255, 230, 128, 0.3);
+}
+
+.andromeda .arm {
+    width: 350px;
+    height: 200px;
+    border-top: 5px solid var(--accent-gold-light);
+    border-right: 2px solid transparent;
+    border-bottom: 2px solid transparent;
+    border-left: 8px solid var(--accent-purple-light);
+}
+
+.andromeda .arm:nth-child(2) {
+    transform: rotate(45deg);
+}
+
+.andromeda .arm:nth-child(3) {
+    transform: rotate(165deg);
+}
+
+.andromeda .arm:nth-child(4) {
+    transform: rotate(285deg);
+}
+
+.andromeda .arm::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 50%;
+    box-shadow: 0 -8px 25px rgba(128, 77, 179, 0.2);
+}
+
+/* Stars Background - Restored Original Colored Stars */
+.stars {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-image:
+        radial-gradient(2px 2px at 20% 15%, var(--accent-gold) 100%, transparent),
+        radial-gradient(2px 2px at 40% 25%, var(--accent-purple) 100%, transparent),
+        radial-gradient(1px 1px at 60% 10%, var(--accent-gold) 100%, transparent),
+        radial-gradient(2px 2px at 80% 20%, var(--accent-purple) 100%, transparent),
+        radial-gradient(1px 1px at 10% 30%, var(--accent-gold) 100%, transparent),
+        radial-gradient(2px 2px at 90% 35%, var(--accent-purple) 100%, transparent),
+        radial-gradient(1px 1px at 30% 40%, var(--accent-gold) 100%, transparent),
+        radial-gradient(2px 2px at 70% 45%, var(--accent-purple) 100%, transparent);
+    animation: twinkle 4s ease-in-out infinite alternate;
+    opacity: 1;
+    /* Restored opacity */
+}
+
+/* Animations */
+@keyframes rotateMilkyWay {
+    from {
+        transform: rotateX(60deg) rotateZ(0deg) translateZ(-100px);
+    }
+
+    to {
+        transform: rotateX(60deg) rotateZ(360deg) translateZ(-100px);
+    }
+}
+
+@keyframes rotateAndromeda {
+    from {
+        transform: translate(200px, -200px) rotateX(-50deg) rotateY(20deg) rotateZ(0deg);
+    }
+
+    to {
+        transform: translate(150px, -150px) rotateX(-50deg) rotateY(20deg) rotateZ(360deg);
+    }
+
+    /* Slight drift closer */
+}
+
+@keyframes cameraDrift {
+    0% {
+        transform: scale(0.8) rotate(0deg);
+    }
+
+    100% {
+        transform: scale(1.1) rotate(5deg);
+    }
+}
+
+@keyframes moveStars {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(-50px);
+    }
+}
+
+@keyframes twinkle {
+
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+/* App Container */
+.app-container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Views */
+.view {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    animation: fadeIn 0.4s ease;
+}
+
+.view.active {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* Header */
+header {
+    text-align: center;
+    padding-top: 40px;
+    margin-bottom: 25px;
+    position: relative;
+    /* Added for logout button positioning */
+}
+
+.logout-pill {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--deep-purple);
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.logout-pill:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+.logo-container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-glow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: var(--accent-purple-light);
+    border-radius: 50%;
+    filter: blur(20px);
+}
+
+.sparkle-icon {
+    font-size: 60px;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 4px 8px rgba(255, 230, 128, 0.5));
+}
+
+h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--deep-purple);
+    margin-bottom: 8px;
+}
+
+header p {
+    font-size: 0.95rem;
+    color: var(--deep-purple-light);
+}
+
+
+/* Logout Pill */
+.logout-pill {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(5px);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: var(--deep-purple);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.logout-pill:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(191, 153, 242, 0.2);
+}
+
+/* Card - matching iOS glassmorphism */
+.card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+/* Input Groups */
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group:last-of-type {
+    margin-bottom: 0;
+}
+
+label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--deep-purple-lighter);
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+}
+
+.label-icon {
+    font-size: 0.85rem;
+}
+
+input {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--input-bg);
+    border: 1px solid rgba(191, 153, 242, 0.5);
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--deep-purple);
+    transition: all 0.2s ease;
+}
+
+input::placeholder {
+    color: var(--deep-purple-light);
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 0 3px var(--accent-purple-light);
+    background: white;
+}
+
+/* Info Icon & Explainer */
+.info-circle {
+    background: rgba(191, 153, 242, 0.2);
+    border: 1px solid rgba(191, 153, 242, 0.5);
+    color: var(--deep-purple);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: serif;
+    transition: all 0.2s;
+}
+
+.info-circle:hover {
+    background: var(--accent-purple);
+    color: white;
+}
+
+.explainer-text {
+    font-size: 0.85rem;
+    color: var(--deep-purple);
+    margin-top: 8px;
+    background: rgba(255, 230, 128, 0.2);
+    padding: 10px;
+    border-radius: 8px;
+    border-left: 3px solid var(--accent-gold);
+    line-height: 1.4;
+    animation: fadeIn 0.2s ease-out;
+}
+
+/* Context Section (New) */
+.context-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(191, 153, 242, 0.2);
+}
+
+.input-row-multi {
+    display: flex;
+    gap: 12px;
+}
+
+.input-group.half {
+    flex: 1;
+}
+
+/* Global normalize */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+select {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--input-bg);
+    border: 1px solid rgba(191, 153, 242, 0.5);
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--deep-purple);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    /* Hide default arrow */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a148c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+}
+
+.result-caption {
+    font-size: 1.8rem;
+    font-weight: 800;
+    text-align: center;
+    background: linear-gradient(135deg, var(--deep-purple) 0%, var(--accent-purple) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: var(--deep-purple);
+    /* Fallback */
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+.range-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+input[type="range"] {
+    flex: 1;
+    padding: 0;
+    height: 6px;
+    background: rgba(191, 153, 242, 0.3);
+    border-radius: 5px;
+    appearance: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    background: var(--deep-purple);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.range-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--deep-purple);
+    width: 30px;
+    text-align: center;
+}
+
+/* Zodiac Display - matching iOS */
+#zodiac-display {
+    margin-top: 20px;
+    padding: 16px;
+    background: rgba(255, 230, 128, 0.2);
+    border: 1px solid rgba(255, 230, 128, 0.5);
+    border-radius: 16px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+#zodiac-display.zodiac-hidden {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    margin-top: 0;
+    padding: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+.zodiac-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--deep-purple-light);
+    margin-bottom: 8px;
+}
+
+.zodiac-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+#zodiac-icon {
+    font-size: 2.5rem;
+}
+
+#zodiac-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--deep-purple);
+}
+
+/* Buttons - matching iOS */
+.primary-btn {
+    width: 100%;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, var(--accent-gold) 0%, rgba(255, 230, 128, 0.8) 100%);
+    border: none;
+    border-radius: 16px;
+    font-family: inherit;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--deep-purple);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 8px 20px rgba(255, 230, 128, 0.4);
+    transition: all 0.2s ease;
+    margin-top: auto;
+}
+
+.primary-btn:disabled {
+    background: linear-gradient(135deg, rgba(128, 128, 128, 0.5) 0%, rgba(128, 128, 128, 0.5) 100%);
+    box-shadow: none;
+    cursor: not-allowed;
+    color: #999;
+}
+
+.primary-btn:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(255, 230, 128, 0.5);
+}
+
+.primary-btn:not(:disabled):active {
+    transform: scale(0.98);
+}
+
+.btn-icon {
+    font-size: 1.2rem;
+}
+
+.secondary-btn {
+    width: 100%;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, var(--accent-gold) 0%, rgba(255, 230, 128, 0.8) 100%);
+    border: none;
+    border-radius: 16px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--deep-purple);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 8px 20px rgba(255, 230, 128, 0.3);
+    transition: all 0.2s ease;
+}
+
+.secondary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(255, 230, 128, 0.4);
+}
+
+.back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px 16px;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--deep-purple);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: white;
+}
+
+/* Result View */
+#result-view {
+    padding-top: 60px;
+    position: relative;
+}
+
+.result-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.result-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.result-header h2 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--deep-purple);
+}
+
+/* Luck Circle - matching iOS */
+.luck-circle {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin-bottom: 30px;
+    filter: drop-shadow(0 10px 20px rgba(128, 77, 179, 0.2));
+}
+
+.progress-ring {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.progress-ring-bg {
+    fill: none;
+    stroke: rgba(191, 153, 242, 0.2);
+    stroke-width: 12;
+}
+
+.progress-ring-fill {
+    fill: none;
+    stroke: var(--accent-gold);
+    stroke-width: 12;
+    stroke-linecap: round;
+    stroke-dasharray: 565.48;
+    stroke-dashoffset: 565.48;
+    transition: stroke-dashoffset 1.5s ease-out;
+}
+
+.luck-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: baseline;
+    flex-direction: column;
+    text-align: center;
+}
+
+#result-percentage {
+    font-size: 4.5rem;
+    font-weight: 700;
+    color: var(--deep-purple);
+    line-height: 1;
+}
+
+.percent-sign {
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: var(--deep-purple-light);
+}
+
+/* Fortune Card - matching iOS */
+.fortune-card {
+    width: 100%;
+    background: var(--card-bg-solid);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.fortune-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.result-caption {
+    font-size: 1.8rem;
+    font-weight: 800;
+    text-align: center;
+    background: linear-gradient(135deg, var(--deep-purple) 0%, var(--accent-purple) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+.factors-box {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(191, 153, 242, 0.1);
+    border-radius: 12px;
+    border-left: 3px solid var(--accent-gold);
+}
+
+.factors-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--deep-purple-light);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+#factors-text {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: var(--deep-purple);
+    font-style: italic;
+    margin: 0;
+}
+
+.fortune-icon {
+    font-size: 1.2rem;
+}
+
+.fortune-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--deep-purple);
+    margin: 0;
+}
+
+#fortune-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--deep-purple-lighter);
+    margin-bottom: 16px;
+}
+
+/* Traits - matching iOS trait pills */
+.traits-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.trait-tag {
+    padding: 8px 14px;
+    background: rgba(191, 153, 242, 0.5);
+    border: 1px solid rgba(255, 230, 128, 0.5);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--deep-purple);
+}
+
+/* Responsive */
+@media (max-width: 440px) {
+    .app-container {
+        padding: 16px;
+    }
+
+    h1 {
+        font-size: 1.75rem;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+    .luck-circle {
+        width: 180px;
+        height: 180px;
+    }
+
+    #result-percentage {
+        font-size: 4rem;
+    }
+}
+
+/* Add to home screen prompt styling for PWA feel */
+@media (display-mode: standalone) {
+    body {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* =========================================
+   COSMIC DASHBOARD STYLES
+   ========================================= */
+
+.cosmic-dashboard {
+    margin-top: 24px;
+    width: 100%;
+}
+
+.cosmic-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.cosmic-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+
+.cosmic-card:hover {
+    transform: translateY(-2px);
+    background: var(--card-bg-solid);
+}
+
+.cosmic-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.cosmic-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--deep-purple);
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+
+.cosmic-label {
+    font-size: 10px;
+    color: rgba(0, 0, 0, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+/* Recommended Actions Styles */
+.actions-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 24px;
+    margin-top: 24px;
+    width: 100%;
+}
+
+.actions-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    color: var(--deep-purple);
+}
+
+.actions-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-left: 10px;
+}
+
+.actions-list {
+    list-style: none;
+    padding: 0;
+}
+
+.action-item {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #333;
+    display: flex;
+    align-items: center;
+}
+
+.action-item::before {
+    content: "✨";
+    margin-right: 10px;
+    font-size: 12px;
+}
+
+/* Loading State */
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.btn-text {
+    display: inline-block;
+}
+/* Modal Background */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 100; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    backdrop-filter: blur(5px);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+/* Modal Content */
+.modal-content {
+    background: var(--bg-white); /* Use theme var */
+    margin: auto;
+    padding: 24px;
+    border: 1px solid var(--accent-purple);
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    max-height: 80vh;
+    overflow-y: auto;
+    border-radius: 20px;
+}
+
+/* The Close Button */
+.close-modal {
+    color: var(--deep-purple);
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.close-modal:hover,
+.close-modal:focus {
+    color: var(--accent-purple);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Kundali Report Styling */
+.chart-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.planet-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 8px;
+    font-size: 0.95em;
+    color: var(--deep-purple);
+}
+
+.planet-name { font-weight: 600; }
