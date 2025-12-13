@@ -210,6 +210,38 @@ struct ContentView: View {
                                 }
                             }
                             
+                            // Place Field
+                            VStack(alignment: .leading, spacing: 8) {
+                                Label("PLACE OF BIRTH", systemImage: "mappin.and.ellipse")
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(deepPurple.opacity(0.8))
+                                
+                                
+                                ZStack(alignment: .leading) {
+                                    if birthPlace.isEmpty {
+                                        Text("City, Country (e.g. Dallas, USA)")
+                                            .font(.subheadline)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(deepPurple)
+                                            .padding(.leading, 16)
+                                    }
+                                    TextField("", text: $birthPlace)
+                                        .padding()
+                                        .background(Color.white.opacity(0.9))
+                                        .cornerRadius(12)
+                                        .foregroundColor(deepPurple)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(accentPurple.opacity(0.5), lineWidth: 1)
+                                        )
+                                        .submitLabel(.done)
+                                        .onSubmit {
+                                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                        }
+                                }
+                            }
+                            
                             // Time Field
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
@@ -266,37 +298,7 @@ struct ContentView: View {
                                 }
                             }
                             
-                            // Place Field
-                            VStack(alignment: .leading, spacing: 8) {
-                                Label("PLACE OF BIRTH", systemImage: "mappin.and.ellipse")
-                                    .font(.caption)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(deepPurple.opacity(0.8))
-                                
-                                
-                                ZStack(alignment: .leading) {
-                                    if birthPlace.isEmpty {
-                                        Text("City, Country (e.g. London)")
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(deepPurple)
-                                            .padding(.leading, 16)
-                                    }
-                                    TextField("", text: $birthPlace)
-                                        .padding()
-                                        .background(Color.white.opacity(0.9))
-                                        .cornerRadius(12)
-                                        .foregroundColor(deepPurple)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(accentPurple.opacity(0.5), lineWidth: 1)
-                                        )
-                                        .submitLabel(.done)
-                                        .onSubmit {
-                                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                        }
-                                }
-                            }
+
                         }
                         .padding(20)
                         .background(
