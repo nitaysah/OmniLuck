@@ -459,6 +459,7 @@ struct ContentView: View {
             .navigationBarHidden(true)
             #endif
         }
+        .preferredColorScheme(.light)
     }
 }
 

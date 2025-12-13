@@ -205,7 +205,7 @@ struct ResultView: View {
                     Button(action: { showReport = true }) {
                         HStack(spacing: 8) {
                             Text("📜")
-                            Text("Read my Daily Luck Report")
+                            Text("Read my Daily Astro Report")
                         }
                         .font(.subheadline).fontWeight(.semibold).foregroundColor(deepPurple)
                         .padding(.vertical, 12).padding(.horizontal, 20)
@@ -309,6 +309,7 @@ struct ResultView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .preferredColorScheme(.light)
     }
     
     // Helper
