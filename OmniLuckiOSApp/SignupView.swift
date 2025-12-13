@@ -94,7 +94,7 @@ struct SignupView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Middle Name (Optional)").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
+                            Text("Middle Name (If Any)").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
                             TextField("", text: $middleName)
                                 .padding(14)
                                 .background(Color.white.opacity(0.9))
