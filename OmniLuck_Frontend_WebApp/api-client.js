@@ -8,16 +8,15 @@ class CelestialAPI {
         if (baseURL) {
             this.baseURL = baseURL;
         } else {
-            // FORCE RENDER URL
-            // TODO: REPLACE THIS WITH YOUR RENDER URL AFTER DEPLOYMENT
-            const PROD_URL = "https://antigravity-ywlj.onrender.com";
-            console.log("🚀 CelestialAPI: Using Production Backend:", PROD_URL);
-            this.baseURL = PROD_URL;
+            // Default logic: Check if local
+            const customHost = window.location.hostname;
+            const isLocal = customHost === 'localhost' || customHost === '127.0.0.1' || window.location.protocol === 'file:';
 
-            // Checking logic disabled to force Render usage
-            // const customHost = window.location.hostname;
-            // const isLocal = customHost === 'localhost' || customHost === '127.0.0.1' || window.location.protocol === 'file:';
-            // this.baseURL = isLocal ? 'http://localhost:8000' : PROD_URL;
+            // TODO: Update this URL after Render deployment if different
+            const PROD_URL = "https://omniluck-backend.onrender.com";
+
+            this.baseURL = isLocal ? 'http://localhost:8000' : PROD_URL;
+            console.log("🚀 CelestialAPI: Initialized with Base URL:", this.baseURL);
         }
     }
 
