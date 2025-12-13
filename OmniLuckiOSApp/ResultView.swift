@@ -13,7 +13,10 @@ struct ResultView: View {
     @State private var showCard = false
     @State private var showReport = false
     
-    // Chart Data State
+    // Forecast Data State
+    @State private var forecastData: ForecastResponse? = nil
+    
+    // Chart Data State (Restored)
     @State private var chartData: NatalChartResponse? = nil
     @State private var isLoadingChart = false
     
@@ -87,6 +90,23 @@ struct ResultView: View {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                         withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) { showCard = true }
                     }
+                    
+                    // Fetch Forecast
+                    if let info = birthInfo {
+                        Task {
+                            do {
+                                let forecast = try await NetworkService.shared.fetchForecast(
+                                    name: "User",
+                                    dob: info.dob,
+                                    birthTime: info.time,
+                                    birthPlace: info.place
+                                )
+                                await MainActor.run { self.forecastData = forecast }
+                            } catch {
+                                print("Forecast Error: \(error)")
+                            }
+                        }
+                    }
                 }
                 
                 // Expl Card
@@ -111,7 +131,59 @@ struct ResultView: View {
                     .padding(.horizontal)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     
-                    // Zodiac Display
+                    // NEW: 7-Day Forecast Card
+                    if let forecast = forecastData {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Text("📅").font(.title3)
+                                Text("7-Day Luck Trajectory").font(.headline).foregroundColor(deepPurple)
+                            }
+                            
+                            HStack {
+                                Text("Trend:").font(.caption).foregroundColor(deepPurple.opacity(0.7))
+                                Text(forecast.trend_direction).font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
+                                Spacer()
+                                Text("Peak:").font(.caption).foregroundColor(deepPurple.opacity(0.7))
+                                Text(formatDayMonth(forecast.best_day)).font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
+                            }
+                            
+                            HStack(alignment: .bottom, spacing: 0) {
+                                ForEach(forecast.trajectory) { day in
+                                    VStack(spacing: 4) {
+                                        Spacer()
+                                        // Bar
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(
+                                                LinearGradient(
+                                                    colors: [
+                                                        day.luck_score >= 80 ? Color.green : (day.luck_score < 50 ? Color.orange : accentGold),
+                                                        (day.luck_score >= 80 ? Color.green : (day.luck_score < 50 ? Color.orange : accentGold)).opacity(0.6)
+                                                    ],
+                                                    startPoint: .top,
+                                                    endPoint: .bottom
+                                                )
+                                            )
+                                            .frame(width: 12, height: CGFloat(day.luck_score) * 0.5) // Adjust scale
+                                            
+                                        Text("\(day.luck_score)")
+                                            .font(.system(size: 8)).bold().foregroundColor(deepPurple)
+                                        
+                                        Text(getDayName(day.date))
+                                            .font(.system(size: 9)).foregroundColor(deepPurple.opacity(0.8))
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                }
+                            }
+                            .frame(height: 80)
+                            .padding(.top, 5)
+                        }
+                        .padding(20).frame(maxWidth: .infinity, alignment: .leading)
+                        .background(RoundedRectangle(cornerRadius: 20).fill(Color.white.opacity(0.7)).overlay(RoundedRectangle(cornerRadius: 20).stroke(accentPurple.opacity(0.3), lineWidth: 1)))
+                        .padding(.horizontal)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                    
+                    // Zodiac Display (This part was correct, but I need to ensure I don't delete what follows)
                     if let info = birthInfo {
                         let zodiac = OmniLuckLogic.getZodiacSign(date: info.dob)
                         VStack(spacing: 4) {
@@ -239,6 +311,24 @@ struct ResultView: View {
     }
     
     // Helper
+    func getDayName(_ dateStr: String) -> String {
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"
+        if let d = f.date(from: dateStr) {
+            f.dateFormat = "EEE" // "Mon"
+            return f.string(from: d)
+        }
+        return "?"
+    }
+    
+    func formatDayMonth(_ dateStr: String) -> String {
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"
+        if let d = f.date(from: dateStr) {
+            f.dateFormat = "MMM d" // "Dec 14"
+            return f.string(from: d)
+        }
+        return dateStr
+    }
+    
     func getPlanetKeyword(_ planet: String) -> String {
         let keywords = [
             "Sun": "vitality & ego", "Moon": "emotional & intuitive",

@@ -83,6 +83,21 @@ struct SignupResponse: Codable {
     let message: String
 }
 
+struct ForecastResponse: Codable {
+    let trend_direction: String
+    let best_day: String
+    let trajectory: [ForecastDay]
+    // let start_date: String // Optional if needed
+}
+
+struct ForecastDay: Codable, Identifiable {
+    var id: String { date } // Use date as ID for SwiftUI ForEach
+    let date: String
+    let luck_score: Int
+    let major_aspects: [String]
+    let transits_score: Int?
+}
+
 // MARK: - Network Service
 
 class NetworkService {
@@ -166,6 +181,28 @@ class NetworkService {
         )
         
         return try await performRequest(endpoint: "/api/astrology/natal-chart", body: payload)
+    }
+    
+    // 3. Fetch 7-Day Forecast
+    func fetchForecast(name: String, dob: Date, birthTime: Date, birthPlace: String, timeIsNA: Bool = false) async throws -> ForecastResponse {
+        // Geocode
+        let coords = await getCoordinates(for: birthPlace)
+        let lat = coords?.0 ?? 0.0
+        let lon = coords?.1 ?? 0.0
+        
+        let payload = LuckRequest(
+            uid: "ios-user",
+            name: name,
+            dob: formatDate(dob),
+            birth_time: timeIsNA ? "" : formatTime(birthTime),
+            birth_place_name: birthPlace,
+            birth_lat: lat,
+            birth_lon: lon,
+            current_lat: lat,
+            current_lon: lon
+        )
+        
+        return try await performRequest(endpoint: "/api/luck/forecast", body: payload)
     }
     
     // Generic Request
