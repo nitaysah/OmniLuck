@@ -8,8 +8,10 @@ struct OmniLuckApp: App {
         WindowGroup {
             if userSession.isLoggedIn {
                 ContentView(userSession: userSession)
+                    .preferredColorScheme(.light)
             } else {
                 LoginView(userSession: userSession)
+                    .preferredColorScheme(.light)
             }
         }
     }
