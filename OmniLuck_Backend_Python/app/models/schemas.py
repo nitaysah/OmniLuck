@@ -2,7 +2,7 @@
 Pydantic models for request/response validation.
 """
 from pydantic import BaseModel, Field
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 from datetime import datetime, date
 
 
@@ -44,7 +44,7 @@ class DailyTransitsResponse(BaseModel):
     """Current planetary transits"""
     date: str
     planets: Dict[str, PlanetPosition]
-    aspects: List[Dict[str, any]]  # Major aspects to natal chart
+    aspects: List[Dict[str, Any]]  # Major aspects to natal chart
     influence_score: int = Field(..., ge=0, le=100)
 
 
