@@ -15,6 +15,9 @@ struct LoginView: View {
     @State private var showForgotPassword = false
     @State private var errorMessage = ""
     
+    // Floating Animation State
+    @State private var floatOffset: CGFloat = 0
+    
     enum Field {
         case email, password
     }
@@ -30,49 +33,80 @@ struct LoginView: View {
             ], startPoint: .topLeading, endPoint: .bottomTrailing)
             .ignoresSafeArea()
             
-            // Shared Galaxy Animation
+            // Shared Galaxy Animation (Nebula & AI Overlay included)
             GalaxyView(accentPurple: accentPurple, accentGold: accentGold)
-                .opacity(0.8)
+                .opacity(0.9) // Increased opacity for nebula visibility
             
-            VStack(spacing: 15) { // Reduced from 30
+            // Floating Cosmic Particles
+            ZStack {
+                Image(systemName: "sparkle")
+                    .foregroundColor(accentGold)
+                    .position(x: 60, y: 150)
+                    .font(.system(size: 20))
+                    .opacity(0.6)
+                    .offset(y: floatOffset)
+                
+                Image(systemName: "moon.stars.fill")
+                    .foregroundColor(accentPurple)
+                    .position(x: 340, y: 220)
+                    .font(.system(size: 24))
+                    .opacity(0.5)
+                    .offset(y: -floatOffset)
+                
+                Image(systemName: "star.fill")
+                    .foregroundColor(accentGold)
+                    .position(x: 200, y: 80)
+                    .font(.system(size: 14))
+                    .opacity(0.4)
+                    .offset(y: floatOffset * 0.5)
+            }
+            .allowsHitTesting(false)
+            
+            VStack(spacing: 15) {
                 // Logo & Title
                 VStack(spacing: 15) {
                     ZStack {
-                        Circle().fill(accentPurple.opacity(0.2)).frame(width: 80, height: 80).blur(radius: 10)
-                        Text("✨").font(.system(size: 40))
+                        Circle()
+                            .fill(accentPurple.opacity(0.2))
+                            .frame(width: 80, height: 80)
+                            .blur(radius: 10)
+                            .background(Circle().stroke(accentGold.opacity(0.5), lineWidth: 1))
+                        Text("✨")
+                            .font(.system(size: 40))
+                            .shadow(color: accentGold.opacity(0.8), radius: 10)
                     }
                     
                     Text("OmniLuck")
                         .font(.system(size: 42, weight: .heavy, design: .serif))
                         .multilineTextAlignment(.center)
                         .foregroundStyle(
-                            LinearGradient(colors: [deepPurple, deepPurple.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                            LinearGradient(colors: [deepPurple, deepPurple.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing)
                         )
-                        .shadow(color: accentPurple.opacity(0.3), radius: 10, x: 0, y: 5)
+                        .shadow(color: accentPurple.opacity(0.5), radius: 15, x: 0, y: 5)
                     
                     Text("Your daily luck, decoded by Personalized AI, Astrology and the cosmic signals")
                         .font(.footnote)
                         .multilineTextAlignment(.center)
-                        .foregroundColor(deepPurple.opacity(0.8))
+                        .foregroundColor(deepPurple.opacity(0.9))
                         .padding(.horizontal, 35)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(.top, 30) // Reduced from 60
+                .padding(.top, 30)
                 
-                // Form Fields
+                // Form Fields (Glassmorphism)
                 VStack(spacing: 20) {
                     ZStack(alignment: .leading) {
                         if email.isEmpty {
                             Text("Email or Username")
                                 .font(.subheadline)
                                 .fontWeight(.bold)
-                                .foregroundColor(deepPurple)
+                                .foregroundColor(deepPurple.opacity(0.7))
                                 .padding(.leading, 16)
                         }
                         TextField("", text: $email)
                             .padding(12)
-                            .background(Color.white.opacity(0.9))
+                            .background(Color.white.opacity(0.7)) // More transparent
                             .cornerRadius(12)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
@@ -80,12 +114,9 @@ struct LoginView: View {
                             )
                             .foregroundColor(deepPurple)
                             .tint(deepPurple)
-                            .accentColor(deepPurple)
                             .submitLabel(.next)
                             .focused($focusedField, equals: .email)
-                            .onSubmit {
-                                focusedField = .password
-                            }
+                            .onSubmit { focusedField = .password }
                     }
                     
                     ZStack(alignment: .leading) {
@@ -93,12 +124,12 @@ struct LoginView: View {
                             Text("Password")
                                 .font(.subheadline)
                                 .fontWeight(.bold)
-                                .foregroundColor(deepPurple)
+                                .foregroundColor(deepPurple.opacity(0.7))
                                 .padding(.leading, 16)
                         }
                         SecureField("", text: $password)
                             .padding(12)
-                            .background(Color.white.opacity(0.9))
+                            .background(Color.white.opacity(0.7))
                             .cornerRadius(12)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
@@ -106,7 +137,6 @@ struct LoginView: View {
                             )
                             .foregroundColor(deepPurple)
                             .tint(deepPurple)
-                            .accentColor(deepPurple)
                             .submitLabel(.done)
                             .focused($focusedField, equals: .password)
                             .onSubmit {
@@ -114,31 +144,19 @@ struct LoginView: View {
                             }
                     }
                     
-                    // Sign In Button
+                    // Sign In Button (Cosmic Glow)
                     Button(action: {
                         isLoading = true
-                        
                         Task {
                             do {
                                 let response = try await NetworkService.shared.login(email: email, password: password)
-                                
                                 await MainActor.run {
                                     isLoading = false
-                                    // Save profile to session
-                                    let profile = UserProfile(
-                                        name: response.profile.name,
-                                        dob: response.profile.dob,
-                                        email: response.email,
-                                        username: nil
-                                    )
+                                    let profile = UserProfile(name: response.profile.name, dob: response.profile.dob, email: response.email, username: nil)
                                     userSession.login(with: profile)
-                                    print("Login Success: \(response.email)")
                                 }
                             } catch {
-                                await MainActor.run {
-                                    isLoading = false
-                                    print("Login Failed: \(error.localizedDescription)")
-                                }
+                                await MainActor.run { isLoading = false }
                             }
                         }
                     }) {
@@ -151,55 +169,55 @@ struct LoginView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(deepPurple)
+                        .background(
+                            LinearGradient(colors: [deepPurple, accentPurple], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        )
                         .foregroundColor(.white)
                         .cornerRadius(24)
-                        .shadow(color: deepPurple.opacity(0.4), radius: 8, x: 0, y: 4)
+                        .shadow(color: accentPurple.opacity(0.6), radius: 10, x: 0, y: 5) // Glowing shadow
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 24)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                        )
                     }
                     .disabled(email.isEmpty || password.isEmpty)
                     .opacity((email.isEmpty || password.isEmpty) ? 0.6 : 1)
                     
                     
-                    // Create Account Button (Web App Style)
+                    // Create Account Button
                     VStack(spacing: 10) {
                         Text("Don't have an account?")
                             .font(.subheadline)
                             .foregroundColor(deepPurple)
                         
-                        Button(action: {
-                            showSignup = true
-                        }) {
+                        Button(action: { showSignup = true }) {
                             Text("Create Account")
                                 .fontWeight(.semibold)
                                 .frame(maxWidth: .infinity)
                                 .padding(12)
-                                .background(Color.white)
+                                .background(Material.thinMaterial) // Glass effect
                                 .foregroundColor(deepPurple)
                                 .cornerRadius(24)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 24)
-                                        .stroke(deepPurple, lineWidth: 1)
+                                        .stroke(deepPurple.opacity(0.5), lineWidth: 1)
                                 )
                         }
                     }
                     
-                    // Forgot Password Link
-                    Button(action: {
-                        showForgotPassword = true
-                    }) {
+                    Button(action: { showForgotPassword = true }) {
                         Text("Forgot Password?")
                             .font(.footnote)
                             .foregroundColor(deepPurple)
                             .fontWeight(.medium)
                     }
-                    .padding(.top, 0) // Reduced
+                    .padding(.top, 0)
                 }
-                .padding(24) // Reduced from 30
+                .padding(24)
                 .background(
                     RoundedRectangle(cornerRadius: 30)
-                        .fill(Color.white.opacity(0.4))
-                        .blur(radius: 0)
-                        .overlay(RoundedRectangle(cornerRadius: 30).stroke(Color.white.opacity(0.5), lineWidth: 1))
+                        .fill(Material.ultraThinMaterial) // Premium Glass
+                        .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
                 )
                 .padding(.horizontal, 20)
                 
@@ -220,7 +238,7 @@ struct LoginView: View {
                     .font(.headline)
                     .foregroundColor(deepPurple)
                 }
-                .padding(.bottom, 20) // Reduced from 40
+                .padding(.bottom, 20)
             }
         }
         .onTapGesture {
@@ -229,26 +247,10 @@ struct LoginView: View {
         .sheet(isPresented: $showSignup) {
             SignupView(userSession: userSession)
         }
-        .alert("Reset Password", isPresented: $showForgotPassword) {
-            TextField("Email or Username", text: $email)
-                .textInputAutocapitalization(.never)
-            Button("Cancel", role: .cancel) { }
-            Button("Send Reset Email") {
-                Task {
-                    // TODO: Implement password reset via backend/Firebase
-                    // For now, show a placeholder message
-                    errorMessage = "Password reset email sent to \(email.isEmpty ? "your email" : email). Please check your inbox."
-                }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
+                floatOffset = 15
             }
-        } message: {
-            Text("Enter your email or username to receive a password reset link.")
-        }
-        .alert("Notice", isPresented: .constant(!errorMessage.isEmpty)) {
-            Button("OK") {
-                errorMessage = ""
-            }
-        } message: {
-            Text(errorMessage)
         }
     }
 }

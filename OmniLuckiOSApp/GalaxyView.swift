@@ -5,26 +5,29 @@ struct GalaxyView: View {
     let accentGold: Color
     
     @State private var rotation: Double = 0
-    
-    // Pre-generate fixed star positions
-    private let starData: [(angle: Double, radius: CGFloat, size: CGFloat, isGold: Bool)] = {
-        var stars: [(Double, CGFloat, CGFloat, Bool)] = []
-        for i in 0..<30 {
-            let angle = Double(i) * (360.0 / 30.0)
-            let radius = CGFloat(20 + (i * 4) % 100)
-            let size = CGFloat(1 + (i % 4))
-            let isGold = i % 3 == 0
-            stars.append((angle, radius, size, isGold))
-        }
-        return stars
-    }()
+    @State private var cloudScale: CGFloat = 1.0
+    @State private var aiOpacity: Double = 0.3
     
     var body: some View {
         GeometryReader { geo in
             let center = CGPoint(x: geo.size.width / 2, y: geo.size.height / 3)
             
             ZStack {
-                // Outer Galaxy Glow
+                // 1. Celestial Cloud Background (Replaces Stars)
+                Image("celestial_cloud")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .scaleEffect(cloudScale)
+                    .opacity(0.8)
+                    .ignoresSafeArea()
+                    .onAppear {
+                        withAnimation(.easeInOut(duration: 20).repeatForever(autoreverses: true)) {
+                            cloudScale = 1.2
+                        }
+                    }
+                
+                // 2. Outer Galaxy Glow
                 Circle()
                     .fill(
                         RadialGradient(
@@ -38,7 +41,7 @@ struct GalaxyView: View {
                     .position(center)
                     .blur(radius: 30)
                 
-                // Galaxy Spiral Arms
+                // 3. Galaxy Spiral Arms (Existing)
                 ZStack {
                     ForEach(0..<4, id: \.self) { arm in
                         GalaxySpiralArm(armIndex: arm, accentPurple: accentPurple, accentGold: accentGold)
@@ -49,23 +52,7 @@ struct GalaxyView: View {
                 .position(center)
                 .rotationEffect(.degrees(rotation))
                 
-                // Stars
-                ZStack {
-                    ForEach(0..<starData.count, id: \.self) { i in
-                        let star = starData[i]
-                        Circle()
-                            .fill(star.isGold ? accentGold.opacity(0.6) : accentPurple.opacity(0.5))
-                            .frame(width: star.size, height: star.size)
-                            .offset(
-                                x: cos(star.angle * .pi / 180) * star.radius,
-                                y: sin(star.angle * .pi / 180) * star.radius
-                            )
-                    }
-                }
-                .position(center)
-                .rotationEffect(.degrees(rotation * 0.5))
-                
-                // Core
+                // 4. Galaxy Core
                 Circle()
                     .fill(
                         RadialGradient(
@@ -78,10 +65,25 @@ struct GalaxyView: View {
                     .frame(width: 80, height: 80)
                     .position(center)
                     .blur(radius: 8)
+                
+                // 5. AI Neural Overlay (New)
+                Image("ai_neural_overlay")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .position(x: geo.size.width/2, y: geo.size.height/2)
+                    .opacity(aiOpacity)
+                    .blendMode(.screen)
+                    .allowsHitTesting(false)
+                    .onAppear {
+                        withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
+                            aiOpacity = 0.5
+                        }
+                    }
             }
         }
         .onAppear {
-            withAnimation(.linear(duration: 30).repeatForever(autoreverses: false)) {
+            withAnimation(.linear(duration: 60).repeatForever(autoreverses: false)) {
                 rotation = 360
             }
         }

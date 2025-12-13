@@ -193,25 +193,98 @@ body {
     box-shadow: 0 -8px 25px rgba(128, 77, 179, 0.2);
 }
 
-/* Stars Background - Restored Original Colored Stars */
+/* Celestial Cloud Background - Replaces Stars */
 .stars {
     position: absolute;
     width: 100%;
     height: 100%;
     top: 0;
     left: 0;
-    background-image:
-        radial-gradient(2px 2px at 20% 15%, var(--accent-gold) 100%, transparent),
-        radial-gradient(2px 2px at 40% 25%, var(--accent-purple) 100%, transparent),
-        radial-gradient(1px 1px at 60% 10%, var(--accent-gold) 100%, transparent),
-        radial-gradient(2px 2px at 80% 20%, var(--accent-purple) 100%, transparent),
-        radial-gradient(1px 1px at 10% 30%, var(--accent-gold) 100%, transparent),
-        radial-gradient(2px 2px at 90% 35%, var(--accent-purple) 100%, transparent),
-        radial-gradient(1px 1px at 30% 40%, var(--accent-gold) 100%, transparent),
-        radial-gradient(2px 2px at 70% 45%, var(--accent-purple) 100%, transparent);
-    animation: twinkle 4s ease-in-out infinite alternate;
-    opacity: 1;
-    /* Restored opacity */
+    background-image: url('celestial_cloud.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.8;
+    mix-blend-mode: soft-light;
+    /* Blends nicely with the gradient bg */
+    animation: moveClouds 60s linear infinite alternate;
+}
+
+@keyframes moveClouds {
+    from {
+        transform: scale(1.0);
+    }
+
+    to {
+        transform: scale(1.1);
+    }
+}
+
+/* AI Neural Network Overlay */
+.ai-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-image: url('ai_neural_overlay.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.3;
+    mix-blend-mode: screen;
+    animation: pulseAI 8s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 1;
+    /* Above galaxies, below content */
+}
+
+@keyframes pulseAI {
+    0% {
+        opacity: 0.2;
+        transform: scale(1.0);
+    }
+
+    100% {
+        opacity: 0.4;
+        transform: scale(1.05);
+    }
+}
+
+/* Floating Astro Icons */
+.floating-icons {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.floating-icons span {
+    position: absolute;
+    color: rgba(255, 230, 128, 0.6);
+    font-size: 20px;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+    animation: floatParticle 8s ease-in-out infinite;
+}
+
+@keyframes floatParticle {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.4;
+    }
+
+    50% {
+        transform: translateY(-20px) rotate(10deg);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.4;
+    }
 }
 
 /* Animations */
@@ -1049,17 +1122,25 @@ input[type="range"]::-webkit-slider-thumb {
 .btn-text {
     display: inline-block;
 }
+
 /* Modal Background */
 .modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 100; /* Sit on top */
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    /* Stay in place */
+    z-index: 100;
+    /* Sit on top */
     left: 0;
     top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    width: 100%;
+    /* Full width */
+    height: 100%;
+    /* Full height */
+    overflow: auto;
+    /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.4);
+    /* Black w/ opacity */
     backdrop-filter: blur(5px);
     align-items: center;
     justify-content: center;
@@ -1071,7 +1152,8 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* Modal Content */
 .modal-content {
-    background: var(--bg-white); /* Use theme var */
+    background: var(--bg-white);
+    /* Use theme var */
     margin: auto;
     padding: 24px;
     border: 1px solid var(--accent-purple);
@@ -1115,10 +1197,12 @@ input[type="range"]::-webkit-slider-thumb {
     display: flex;
     justify-content: space-between;
     padding: 10px;
-    background: rgba(255,255,255,0.5);
+    background: rgba(255, 255, 255, 0.5);
     border-radius: 8px;
     font-size: 0.95em;
     color: var(--deep-purple);
 }
 
-.planet-name { font-weight: 600; }
+.planet-name {
+    font-weight: 600;
+}
