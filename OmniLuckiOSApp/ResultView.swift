@@ -44,8 +44,8 @@ struct ResultView: View {
             // Decorative Glow
             Circle().fill(accentPurple.opacity(0.3)).frame(width: 300, height: 300).blur(radius: 80).offset(y: -100)
             
-            VStack(spacing: 30) {
-                Spacer()
+            ScrollView {
+                VStack(spacing: 30) {
                 
                 // Result Animation
                 VStack(spacing: 20) {
@@ -295,7 +295,7 @@ struct ResultView: View {
                         .presentationDetents([.medium, .large])
                     }
                 }
-                Spacer()
+
                 
                 // Home Button
                 Button(action: { dismiss() }) {
@@ -305,6 +305,7 @@ struct ResultView: View {
                         .cornerRadius(16).shadow(color: accentGold.opacity(0.3), radius: 10, x: 0, y: 5)
                 }
                 .padding(.horizontal).padding(.bottom, 30)
+            }
             }
         }
         .navigationBarBackButtonHidden(true)
