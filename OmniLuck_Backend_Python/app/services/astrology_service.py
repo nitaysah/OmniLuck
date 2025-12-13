@@ -260,28 +260,62 @@ class AstrologyService:
         return max(0, min(100, score))
     
     def _calculate_transit_influence(self, aspects: List[Dict]) -> int:
-        """Calculate overall influence score from transits"""
-        score = 50  # Neutral base
+        """Calculate overall influence score from transits with improved weighting"""
+        score = 50.0  # Float for calculation
         
-        # Positive aspects
-        benefic_aspects = ["Trine", "Sextile"]
-        # Challenging aspects
-        malefic_aspects = ["Square", "Opposition"]
-        # Neutral but strong
-        neutral_aspects = ["Conjunction"]
+        # Planet specific weights (Benefic vs Malefic influence)
+        benefic_planets = ["Sun", "Moon", "Venus", "Jupiter"]
+        malefic_planets = ["Mars", "Saturn", "Pluto", "Uranus"] # Uranus can be disruptive
         
         for aspect in aspects:
             strength = aspect["strength"]
+            t_planet = aspect["transit_planet"]
+            n_planet = aspect["natal_planet"]
+            aspect_type = aspect["type"]
             
-            if aspect["type"] in benefic_aspects:
-                score += strength * 0.2
-            elif aspect["type"] in malefic_aspects:
-                score -= strength * 0.15
-            elif aspect["type"] in neutral_aspects:
-                # Conjunction is neutral, depends on planets involved
-                score += strength * 0.1
-        
-        return max(0, min(100, int(score)))
+            # Dampen factor based on orb strength (normalized 0-1)
+            intensity = strength / 100.0
+            
+            # Base impact value
+            impact = 0.0
+            
+            if aspect_type in ["Trine", "Sextile"]:
+                # Harmonious flow
+                impact = 8.0 * intensity
+                # Bonus if involving benefics
+                if t_planet in benefic_planets or n_planet in benefic_planets:
+                    impact *= 1.2
+                    
+            elif aspect_type in ["Square", "Opposition"]:
+                # Friction/Challenge
+                impact = -8.0 * intensity
+                # Heavier penalty if involving malefics
+                if t_planet in malefic_planets or n_planet in malefic_planets:
+                    impact *= 1.3
+                    
+            elif aspect_type == "Conjunction":
+                # Intense melding of energies
+                base_val = 10.0 * intensity
+                
+                # If transiting planet is benefic, generally good
+                if t_planet in benefic_planets:
+                    impact = base_val
+                # If transiting planet is malefic (e.g. Saturn sitting on your Sun), challenging
+                elif t_planet in malefic_planets:
+                    impact = -base_val
+                else:
+                    impact = base_val * 0.5 # Mercury/Neptune neutral-ish
+                    
+            # Weight by chart importance (Inner planets trigger 'daily' feel more)
+            # Moon moves fast, affects mood daily.
+            if t_planet == "Moon":
+                impact *= 0.8 # Moon aspects happen frequently, slightly lower weight to avoid noise
+            elif t_planet in ["Sun", "Mars", "Mercury", "Venus"]:
+                impact *= 1.2 # Core personal planets
+                
+            score += impact
+            
+        return max(10, min(100, int(score)))
     
     def calculate_weekly_forecast(self, natal_chart: NatalChartResponse, start_date: datetime = None) -> List[Dict]:
         """
