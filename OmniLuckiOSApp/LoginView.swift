@@ -145,9 +145,19 @@ struct LoginView: View {
                             }
                     }
                     
+                    // Error Message
+                    if !errorMessage.isEmpty {
+                        Text(errorMessage)
+                            .font(.caption).fontWeight(.semibold)
+                            .foregroundColor(.red)
+                            .padding(.top, 4)
+                            .transition(.opacity)
+                    }
+
                     // Sign In Button (Cosmic Glow)
                     Button(action: {
                         isLoading = true
+                        errorMessage = ""
                         Task {
                             do {
                                 let response = try await NetworkService.shared.login(email: email, password: password)
@@ -157,7 +167,10 @@ struct LoginView: View {
                                     userSession.login(with: profile)
                                 }
                             } catch {
-                                await MainActor.run { isLoading = false }
+                                await MainActor.run {
+                                    isLoading = false
+                                    errorMessage = "Invalid login ID or password."
+                                }
                             }
                         }
                     }) {
