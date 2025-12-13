@@ -205,22 +205,22 @@
                 </div>
 
                 <!-- 7-Day Forecast Container -->
-                <div id="forecast-container" class="card"
-                    style="display: none; margin-top: 5px; margin-bottom: 20px; text-align: left;">
-                    <h3
-                        style="margin-bottom: 12px; font-size: 1rem; color: var(--deep-purple); border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 8px;">
-                        📅 7-Day Luck Trajectory
-                    </h3>
+                <div id="forecast-container" class="fortune-card" style="display: none; margin-top: 0;">
+                    <div class="fortune-header">
+                        <span class="fortune-icon">📅</span>
+                        <h3>7-Day Luck Trajectory</h3>
+                    </div>
 
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem; padding: 0 4px;">
                         <span style="color: var(--deep-purple);">Trend: <strong id="forecast-trend"
                                 style="color: var(--accent-purple);">--</strong></span>
-                        <span style="color: var(--deep-purple);">Peak Day: <strong id="forecast-best"
+                        <span style="color: var(--deep-purple);">Peak: <strong id="forecast-best"
                                 style="color: var(--accent-purple);">--</strong></span>
                     </div>
 
                     <div id="forecast-list"
-                        style="display: flex; overflow-x: auto; gap: 10px; padding-bottom: 5px; scrollbar-width: none;">
+                        style="display: flex; overflow-x: auto; gap: 8px; padding-bottom: 4px; scrollbar-width: none;">
                         <!-- JS Injected Items -->
                     </div>
                 </div>
