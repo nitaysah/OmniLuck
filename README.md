@@ -1,4 +1,4 @@
-# 🌟 Celestial Fortune - AI-Powered Personalized Luck Prediction
+# 🌟 OmniLuck - AI-Powered Personalized Luck Prediction
 
 > Transform daily numerology into a sophisticated, multi-dimensional luck prediction system powered by astrology, machine learning, and cosmic signals.
 
@@ -6,6 +6,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green.svg)](https://fastapi.tiangolo.com/)
 [![Firebase](https://img.shields.io/badge/Firebase-Firestore-orange.svg)](https://firebase.google.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![SwiftUI](https://img.shields.io/badge/SwiftUI-iOS-orange.svg)](https://developer.apple.com/xcode/swiftui/)
 
 ## ✨ Features
 
@@ -36,15 +37,15 @@
 ## 🏗️ Architecture
 
 ```
-┌─────────────────┐      ┌──────────────────┐      ┌─────────────────┐
-│   Web Frontend  │ ←→   │  Python Backend  │ ←→   │  External APIs  │
-│  (HTML/CSS/JS)  │ HTTP │    (FastAPI)     │      │  (Weather, etc) │
-└─────────────────┘      └──────────────────┘      └─────────────────┘
-        ↓                         ↓                         ↓
-┌─────────────────┐      ┌──────────────────┐      ┌─────────────────┐
-│  Firebase Auth  │      │ Swiss Ephemeris  │      │   Firestore DB  │
-│   + Firestore   │      │   (Astrology)    │      │   (User Data)   │
-└─────────────────┘      └──────────────────┘      └─────────────────┘
+┌─────────────────┐      ┌───────────────────────────┐      ┌─────────────────┐
+│  Web Frontend   │ ←→   │      Python Backend       │ ←→   │  External APIs  │
+│ OmniLuck_Web... │ HTTP │ (OmniLuck_Backend_Python) │      │  (Weather, etc) │
+└─────────────────┘      └───────────────────────────┘      └─────────────────┘
+                                      ↓
+┌─────────────────┐      ┌───────────────────────────┐      ┌─────────────────┐
+│  iOS Application│ ←→   │      Swiss Ephemeris      │      │   Firestore DB  │
+│ (OmniLuckiOSApp)│ REST │        (Astrology)        │      │   (User Data)   │
+└─────────────────┘      └───────────────────────────┘      └─────────────────┘
 ```
 
 ## 🚀 Quick Start
@@ -54,14 +55,17 @@
 - **Node.js** (optional, for frontend dev server)
 - **Firebase Account** (free tier OK)
 - **OpenWeatherMap API Key** (free tier OK)
+- **Xcode** (for iOS App)
 
 ### 1. Clone the Repository
 ```bash
-cd /Users/nitaysah/Documents/Antigravity
+git clone https://github.com/nitaysah/OmniLuck.git
+cd OmniLuck
 ```
 
-### 2. Run Automated Setup
+### 2. Run Automated Setup (Backend)
 ```bash
+cd OmniLuck_Backend_Python
 ./setup.sh
 ```
 
@@ -72,7 +76,7 @@ This will:
 
 ### 3. Configure API Keys
 
-Edit `backend/.env`:
+Edit `OmniLuck_Backend_Python/.env`:
 ```bash
 OPENWEATHER_API_KEY=your_key_here  # Get from https://openweathermap.org/api
 FIREBASE_CREDENTIALS_PATH=../firebase-credentials.json
@@ -80,7 +84,7 @@ FIREBASE_CREDENTIALS_PATH=../firebase-credentials.json
 
 ### 4. Start the Backend
 ```bash
-cd backend
+# Inside OmniLuck_Backend_Python directory
 source venv/bin/activate
 uvicorn app.main:app --reload --port 8000
 ```
@@ -91,9 +95,9 @@ python test_backend.py
 ```
 
 ### 6. Open Frontend
-Open `webapp/index.html` in your browser or use a local server:
+Open `OmniLuck_Frontend_WebApp/index.html` in your browser or use a local server:
 ```bash
-cd webapp
+cd ../OmniLuck_Frontend_WebApp
 python -m http.server 8080
 # Visit http://localhost:8080
 ```
@@ -101,41 +105,34 @@ python -m http.server 8080
 ## 📁 Project Structure
 
 ```
-Antigravity/
-├── backend/                    # Python FastAPI Backend
+OmniLuck/
+├── OmniLuck_Backend_Python/    # Python FastAPI Backend
 │   ├── app/
 │   │   ├── main.py            # FastAPI app entry
 │   │   ├── config.py          # Configuration
-│   │   ├── models/
-│   │   │   └── schemas.py     # Pydantic models
+│   │   ├── models/            # Pydantic models
 │   │   ├── routes/            # API endpoints
-│   │   │   ├── astrology.py   # Natal charts, transits
-│   │   │   ├── signals.py     # Weather, lunar, geomagnetic
-│   │   │   ├── luck.py        # Luck calculation
-│   │   │   └── ml.py          # ML personalization
 │   │   └── services/          # Business logic
-│   │       ├── astrology_service.py  # Swiss Ephemeris
-│   │       └── signals_service.py    # External APIs
 │   ├── requirements.txt       # Python dependencies
-│   ├── test_backend.py        # Test suite
+│   ├── setup.sh               # Setup script
 │   └── .env.example           # Config template
 │
-├── webapp/                     # Frontend
+├── OmniLuck_Frontend_WebApp/   # Web Frontend
 │   ├── index.html             # Login page
-│   ├── signup.html            # Registration
 │   ├── app.html               # Main application
 │   ├── script.js              # Frontend logic
 │   ├── style.css              # Styling
 │   ├── firebase-config.js     # Firebase init
 │   └── api-client.js          # Backend API client
 │
-├── .agent/artifacts/          # Documentation
-│   ├── ARCHITECTURE.md        # System architecture
-│   ├── SETUP_GUIDE.md         # Detailed setup
-│   ├── enhanced_features_plan.md  # Implementation plan
-│   └── ENHANCED_FEATURES_SUMMARY.md
+├── OmniLuckiOSApp/            # iOS Application
+│   ├── OmniLuckApp.swift      # App entry point
+│   ├── ContentView.swift      # Main View
+│   ├── ResultView.swift       # Results View
+│   ├── OmniLuckLogic.swift    # Core Logic
+│   └── Assets.xcassets        # Images/Icons
 │
-└── setup.sh                   # Automated setup script
+└── README.md
 ```
 
 ## 🔑 API Endpoints
@@ -161,54 +158,10 @@ POST /api/luck/calculate               # Enhanced luck score
 GET  /api/luck/history/{uid}           # Historical scores
 ```
 
-### ML Personalization
-```
-POST /api/ml/daily-checkin             # Submit mood check-in
-GET  /api/ml/personal-trend/{uid}      # Trend analysis
-POST /api/ml/train-model/{uid}         # Train personal model
-```
-
 ### Documentation
 ```
 GET /docs                              # Interactive API docs (Swagger)
 GET /health                            # Health check
-```
-
-## 📊 Usage Example
-
-### Frontend Integration
-
-```javascript
-import CelestialAPI from './api-client.js';
-
-const api = new CelestialAPI('http://localhost:8000');
-
-// Calculate natal chart
-const chart = await api.calculateNatalChart({
-    dob: "1995-06-15",
-    time: "14:30",
-    lat: 28.6139,
-    lon: 77.2090,
-    timezone: "Asia/Kolkata"
-});
-
-console.log('Sun Sign:', chart.sun_sign);
-console.log('Moon Sign:', chart.moon_sign);
-console.log('Rising Sign:', chart.ascendant);
-
-// Get cosmic signals
-if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(async (position) => {
-        const signals = await api.getAllSignals(
-            position.coords.latitude,
-            position.coords.longitude
-        );
-        
-        console.log('Lunar Phase:', signals.lunar.phase_name);
-        console.log('Weather:', signals.weather.condition);
-        console.log('Total Influence:', signals.total_influence_score);
-    });
-}
 ```
 
 ## 🛠️ Technology Stack
@@ -216,71 +169,12 @@ if (navigator.geolocation) {
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
 | Backend Framework | FastAPI | High-performance async API |
+| iOS App | SwiftUI | Mobile Experience |
 | Astrology | Swiss Ephemeris (pyswisseph) | Professional-grade calculations |
 | ML Framework | LightGBM + scikit-learn | Personalized predictions |
-| NLP | HuggingFace Transformers | Sentiment analysis |
-| LLM | GPT4All / OpenAI | Explanations |
 | Weather API | OpenWeatherMap | Environmental data |
-| Lunar API | FarmSense | Moon phases |
-| Geomagnetic | NOAA SWPC | Space weather |
 | Database | Firebase Firestore | User data & history |
-| Frontend | Vanilla HTML/CSS/JS | Simple, fast, no frameworks |
-
-## 📈 Roadmap
-
-### ✅ Phase 1: Core Backend (Complete)
-- [x] FastAPI setup
-- [x] Swiss Ephemeris integration
-- [x] External API integrations (weather, lunar, geomagnetic)
-- [x] API routes and models
-
-### 🔄 Phase 2: ML Pipeline (In Progress)
-- [ ] Daily check-in modal UI
-- [ ] HuggingFace sentiment analysis
-- [ ] LightGBM model training
-- [ ] Personal trend visualization
-
-### 📅 Phase 3: LLM Integration (Planned)
-- [ ] Local LLM setup (GPT4All)
-- [ ] Prompt engineering
-- [ ] Lucky actions generation
-- [ ] Natural language explanations
-
-### 🎨 Phase 4: UI Enhancements (Planned)
-- [ ] Natal chart visualization
-- [ ] Historical trend charts
-- [ ] Enhanced dashboard with mini-cards
-- [ ] Mobile-responsive improvements
-
-## 📚 Documentation
-
-- **[Setup Guide](.agent/artifacts/SETUP_GUIDE.md)** - Detailed setup instructions
-- **[Architecture](.agent/artifacts/ARCHITECTURE.md)** - System architecture diagrams
-- **[Features Plan](.agent/artifacts/enhanced_features_plan.md)** - Complete implementation plan
-- **[API Docs](http://localhost:8000/docs)** - Interactive API documentation (when backend running)
-
-## 🐛 Troubleshooting
-
-### "Module not found: swisseph"
-```bash
-pip install pyswisseph
-```
-
-### "Weather API returns 401"
-Check your `OPENWEATHER_API_KEY` in `backend/.env`
-
-### "CORS error in browser"
-Ensure backend is running and CORS origins are configured in `backend/app/config.py`
-
-### "Swiss Ephemeris data files not found"
-Download ephemeris files:
-```bash
-sudo mkdir -p /usr/share/swisseph
-cd /usr/share/swisseph
-sudo wget https://www.astro.com/ftp/swisseph/ephe/seas_18.se1
-sudo wget https://www.astro.com/ftp/swisseph/ephe/semo_18.se1
-sudo wget https://www.astro.com/ftp/swisseph/ephe/sepl_18.se1
-```
+| Frontend | Vanilla HTML/CSS/JS | Simple, fast web interface |
 
 ## 🤝 Contributing
 
@@ -292,17 +186,12 @@ MIT License - feel free to use for personal or educational purposes.
 
 ## 🙏 Acknowledgments
 
-- **Swiss Ephemeris** - Astrologische Gesellschaft Zürich (Free for personal use)
-- **OpenWeatherMap** - Weather data API
-- **NOAA Space Weather** - Geomagnetic activity data
-- **FarmSense** - Lunar phase API
-
-## 📧 Support
-
-For issues or questions, check the documentation in `.agent/artifacts/` or review the API docs at `http://localhost:8000/docs`.
+- **Swiss Ephemeris**
+- **OpenWeatherMap**
+- **NOAA Space Weather**
 
 ---
 
-**Built with ✨ by Antigravity AI**
+**Built with ✨ by Nitay Sah**
 
 *Unlock the secrets of your daily luck through the cosmos!*
