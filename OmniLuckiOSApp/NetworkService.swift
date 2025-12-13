@@ -73,6 +73,10 @@ struct SignupRequest: Codable {
     let email: String
     let password: String
     let dob: String  // "YYYY-MM-DD"
+    let birth_place: String
+    let birth_time: String
+    let lat: Double
+    let lon: Double
 }
 
 struct SignupResponse: Codable {
@@ -138,8 +142,27 @@ class NetworkService {
     }
     
     // 0b. Auth: Signup
-    func signup(username: String, firstName: String, middleName: String, lastName: String, email: String, password: String, dob: String) async throws -> SignupResponse {
-        let payload = SignupRequest(username: username, firstName: firstName, middleName: middleName, lastName: lastName, email: email, password: password, dob: dob)
+    // 0b. Auth: Signup
+    func signup(username: String, firstName: String, middleName: String, lastName: String, email: String, password: String, dob: String, birthPlace: String, birthTime: Date) async throws -> SignupResponse {
+        // Geocode
+        let coords = await getCoordinates(for: birthPlace)
+        let lat = coords?.0 ?? 0.0
+        let lon = coords?.1 ?? 0.0
+        let timeStr = formatTime(birthTime)
+        
+        let payload = SignupRequest(
+            username: username,
+            firstName: firstName,
+            middleName: middleName,
+            lastName: lastName,
+            email: email,
+            password: password,
+            dob: dob,
+            birth_place: birthPlace,
+            birth_time: timeStr,
+            lat: lat,
+            lon: lon
+        )
         return try await performRequest(endpoint: "/api/auth/signup", body: payload)
     }
     

@@ -105,6 +105,8 @@ async def login(request: LoginRequest):
                     profile[key] = int(value["integerValue"])
                 elif "timestampValue" in value:
                     profile[key] = value["timestampValue"]
+                elif "doubleValue" in value:
+                    profile[key] = float(value["doubleValue"])
                 # Add other types as needed
                 
         else:
@@ -129,6 +131,10 @@ class SignupRequest(BaseModel):
     email: str
     password: str
     dob: str  # "YYYY-MM-DD"
+    birth_place: str = ""
+    birth_time: str = ""
+    lat: float = 0.0
+    lon: float = 0.0
 
 @router.post("/signup")
 async def signup(request: SignupRequest):
@@ -170,7 +176,11 @@ async def signup(request: SignupRequest):
                 "firstName": {"stringValue": request.firstName},
                 "middleName": {"stringValue": request.middleName},
                 "lastName": {"stringValue": request.lastName},
-                "dob": {"stringValue": request.dob}
+                "dob": {"stringValue": request.dob},
+                "birth_place": {"stringValue": request.birth_place},
+                "birth_time": {"stringValue": request.birth_time},
+                "lat": {"doubleValue": request.lat},
+                "lon": {"doubleValue": request.lon}
             }
         }
         

@@ -19,11 +19,13 @@ struct SignupView: View {
     @State private var dob = Date()
     @State private var useManualDate = false
     @State private var manualDateText = ""
+    @State private var birthPlace = ""
+    @State private var birthTime = Date()
     @State private var isLoading = false
     @State private var errorMessage = ""
     
     enum Field {
-        case username, firstName, middleName, lastName, email, password, confirmPassword
+        case username, firstName, middleName, lastName, email, password, confirmPassword, birthPlace
     }
     @FocusState private var focusedField: Field?
     @FocusState private var isDateFieldFocused: Bool
@@ -243,6 +245,29 @@ struct SignupView: View {
                             }
                         }
                         
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Place of Birth").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
+                            TextField("City, Country", text: $birthPlace)
+                                .padding(14)
+                                .background(Color.white.opacity(0.9))
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(accentPurple.opacity(0.5), lineWidth: 1)
+                                )
+                                .foregroundColor(deepPurple)
+                                .submitLabel(.done)
+                                .focused($focusedField, equals: .birthPlace)
+                                .onSubmit { focusedField = nil }
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Time of Birth").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
+                            DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
+                                .labelsHidden()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        
                         // Error Message
                         if !errorMessage.isEmpty {
                             Text(errorMessage)
@@ -269,9 +294,12 @@ struct SignupView: View {
                                         firstName: firstName,
                                         middleName: middleName,
                                         lastName: lastName,
+                                        lastName: lastName,
                                         email: email,
                                         password: password,
-                                        dob: formatDate(dob)
+                                        dob: formatDate(dob),
+                                        birthPlace: birthPlace,
+                                        birthTime: birthTime
                                     )
                                     
                                     await MainActor.run {
@@ -309,8 +337,9 @@ struct SignupView: View {
                             .foregroundColor(.white)
                             .cornerRadius(12)
                         }
-                        .disabled(username.isEmpty || firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty)
-                        .opacity((username.isEmpty || firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) ? 0.6 : 1)
+                        }
+                        .disabled(username.isEmpty || firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty || birthPlace.isEmpty)
+                        .opacity((username.isEmpty || firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty || birthPlace.isEmpty) ? 0.6 : 1)
                         .padding(.top, 8)
                         
                         Button("Wait, I have an account") {

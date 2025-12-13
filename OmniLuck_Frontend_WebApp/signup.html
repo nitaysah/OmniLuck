@@ -157,7 +157,17 @@
                     <input type="date" id="dob" required>
                 </div>
 
-                <button type="submit" class="submit-btn">Sign Up</button>
+                <div class="input-row">
+                    <label>Place of Birth</label>
+                    <input type="text" id="birth-place" placeholder="City, Country" required>
+                </div>
+
+                <div class="input-row">
+                    <label>Time of Birth</label>
+                    <input type="time" id="birth-time" required>
+                </div>
+
+                <button type="submit" class="submit-btn" style="margin-top: 10px;">Sign Up</button>
             </form>
 
             <a href="index.html" class="back-link">Wait, I have an account</a>
@@ -170,6 +180,26 @@
         import { doc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
         const form = document.getElementById('signup-form');
+
+        // Geocoding Helper
+        async function geocodeCity(city) {
+            if (!city) return null;
+            try {
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    return {
+                        lat: parseFloat(data[0].lat),
+                        lon: parseFloat(data[0].lon),
+                        name: data[0].display_name
+                    };
+                }
+            } catch (e) {
+                console.error("Geocoding failed", e);
+            }
+            return null;
+        }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -187,9 +217,11 @@
             const password = document.getElementById('password').value.trim();
             const confirmPassword = document.getElementById('confirm-password').value.trim();
             const dob = document.getElementById('dob').value;
+            const birthPlace = document.getElementById('birth-place').value.trim();
+            const birthTime = document.getElementById('birth-time').value;
 
             // Simple Validation
-            if (!username || !fname || !lname || !email || !password || !confirmPassword || !dob) {
+            if (!username || !fname || !lname || !email || !password || !confirmPassword || !dob || !birthPlace || !birthTime) {
                 alert('Please fill in all required fields.');
                 submitBtn.textContent = originalBtnText;
                 submitBtn.disabled = false;
@@ -205,7 +237,10 @@
             }
 
             try {
-                // 1. Check if Username is unique
+                // 1. Geocode Birth Place
+                const coords = await geocodeCity(birthPlace);
+
+                // 2. Check if Username is unique
                 const q = query(collection(db, "users"), where("username", "==", username));
                 const querySnapshot = await getDocs(q);
 
@@ -213,17 +248,17 @@
                     throw new Error("This username is already taken. Please choose another.");
                 }
 
-                // 2. Create Auth User
+                // 3. Create Auth User
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
                 const fullName = `${fname} ${mname ? mname + ' ' : ''}${lname}`;
 
-                // 3. Update Auth Profile (Display Name)
+                // 4. Update Auth Profile (Display Name)
                 await updateProfile(user, {
                     displayName: fullName
                 });
 
-                // 4. Save User Data to Firestore
+                // 5. Save User Data to Firestore
                 const userData = {
                     uid: user.uid,
                     username: username,
@@ -233,6 +268,10 @@
                     middleName: mname,
                     lastName: lname,
                     dob: dob,
+                    birth_place: birthPlace,
+                    birth_time: birthTime,
+                    lat: coords ? coords.lat : 0.0,
+                    lon: coords ? coords.lon : 0.0,
                     createdAt: new Date().toISOString()
                 };
 
