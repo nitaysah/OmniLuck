@@ -217,7 +217,7 @@ struct SignupView: View {
                                         )
                                         .keyboardType(.numbersAndPunctuation)
                                         .focused($isDateFieldFocused)
-                                        .onChange(of: manualDateText) { newValue in
+                                        .onChange(of: manualDateText) { _, newValue in
                                             let filtered = newValue.filter { "0123456789/".contains($0) }
                                             if filtered.count <= 10 {
                                                 manualDateText = filtered
