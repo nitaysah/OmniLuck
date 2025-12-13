@@ -337,7 +337,6 @@ struct SignupView: View {
                             .foregroundColor(.white)
                             .cornerRadius(12)
                         }
-                        }
                         .disabled(username.isEmpty || firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty || birthPlace.isEmpty)
                         .opacity((username.isEmpty || firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty || birthPlace.isEmpty) ? 0.6 : 1)
                         .padding(.top, 8)
