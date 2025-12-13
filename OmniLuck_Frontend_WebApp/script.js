@@ -474,20 +474,71 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             // === KUNDALI LOGIC END ===
 
-            // === 7-DAY FORECAST (BACKGROUND) ===
-            // Validating the new feature engine without strictly altering UI layout
+            // === 7-DAY FORECAST (BACKGROUND -> UI) ===
+            // Validating the new feature engine without strictly altering UI layout (but now revealing per user request)
+            const forecastContainer = document.getElementById('forecast-container');
+            const forecastList = document.getElementById('forecast-list');
+            const forecastTrend = document.getElementById('forecast-trend');
+            const forecastBest = document.getElementById('forecast-best');
+
             if (birthTimeInput && birthTimeInput.value) {
                 console.log("🔮 Initiating 7-Day Trend Analysis...");
                 api.getForecast(requestData).then(forecast => {
                     console.log("✨ 7-DAY PREDICTIVE TRAJECTORY GENERATED ✨");
-                    console.log("Trend Direction:", forecast.trend_direction);
-                    console.log("Best Day:", forecast.best_day);
-                    console.table(forecast.trajectory.map(d => ({
-                        Date: d.date,
-                        Score: d.luck_score,
-                        Aspects: d.major_aspects.join(", ")
-                    })));
-                }).catch(err => console.warn("Forecast engine offline:", err));
+
+                    if (forecastContainer && forecastList) {
+                        // Populate Summary
+                        forecastTrend.textContent = forecast.trend_direction;
+                        // Format best day nicely
+                        const bestDate = new Date(forecast.best_day);
+                        forecastBest.textContent = bestDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); // e.g. "Sat, Dec 14"
+
+                        // Populate List
+                        forecastList.innerHTML = '';
+                        forecast.trajectory.forEach(day => {
+                            const d = new Date(day.date);
+                            const dayName = d.toLocaleDateString('en-US', { weekday: 'short' }); // "Mon"
+                            const score = day.luck_score;
+
+                            const dayEl = document.createElement('div');
+                            dayEl.className = 'forecast-day';
+                            dayEl.style.cssText = `
+                                min-width: 60px;
+                                background: rgba(255,255,255,0.4);
+                                border-radius: 12px;
+                                padding: 8px 4px;
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: space-between;
+                                height: 80px;
+                            `;
+
+                            // Color code bar
+                            let color = '#FFA000';
+                            if (score >= 80) color = '#4CAF50';
+                            else if (score < 50) color = '#FF5722';
+
+                            dayEl.innerHTML = `
+                                <span style="font-size: 0.75rem; font-weight: 600; color: #555;">${dayName}</span>
+                                <div style="width: 6px; height: 30px; background: rgba(0,0,0,0.1); border-radius: 3px; position: relative;">
+                                    <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: ${score}%; background: ${color}; border-radius: 3px;"></div>
+                                </div>
+                                <span style="font-size: 0.7rem; font-weight: 700; color: ${color};">${score}</span>
+                            `;
+                            forecastList.appendChild(dayEl);
+                        });
+
+                        // Show container
+                        forecastContainer.style.display = 'block';
+                    }
+
+                }).catch(err => {
+                    console.warn("Forecast engine offline:", err);
+                    if (forecastContainer) forecastContainer.style.display = 'none';
+                });
+            } else {
+                if (forecastContainer) forecastContainer.style.display = 'none';
             }
 
         } catch (error) {
