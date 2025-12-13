@@ -114,6 +114,7 @@ struct LoginView: View {
                             )
                             .foregroundColor(deepPurple)
                             .tint(deepPurple)
+                            .textInputAutocapitalization(.never) // Disable Caps
                             .submitLabel(.next)
                             .focused($focusedField, equals: .email)
                             .onSubmit { focusedField = .password }
