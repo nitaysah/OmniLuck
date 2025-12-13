@@ -33,8 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // New Elements
     const btnText = document.querySelector('.btn-text');
     const loadingSpinner = document.querySelector('.loading-spinner');
-    const actionsCard = document.getElementById('actions-card');
-    const actionsList = document.getElementById('actions-list');
+
 
     // Populate Timezones (Removed)
 
@@ -233,21 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Update Actions List
-    function updateActions(actions) {
-        actionsList.innerHTML = ''; // Clear
 
-        if (actions && actions.length > 0) {
-            actions.forEach(action => {
-                const li = document.createElement('li');
-                li.className = 'action-item';
-                li.textContent = action;
-                actionsList.appendChild(li);
-            });
-            actionsCard.style.display = 'block';
-        } else {
-            actionsCard.style.display = 'none';
-        }
-    }
 
     // Event listeners
     function checkInputs() {
@@ -391,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             // Update Actions
-            updateActions(actions);
+            // actions logic removed
 
             // Switch Views
             inputView.classList.remove('active');
