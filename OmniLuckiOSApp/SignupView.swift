@@ -247,7 +247,7 @@ struct SignupView: View {
                         
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Place of Birth").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
-                            TextField("City, Country", text: $birthPlace)
+                            TextField("City, Country (e.g. Dallas, USA)", text: $birthPlace)
                                 .padding(14)
                                 .background(Color.white.opacity(0.9))
                                 .cornerRadius(12)

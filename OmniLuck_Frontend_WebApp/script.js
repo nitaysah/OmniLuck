@@ -294,6 +294,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (birthPlaceVal) {
                 birthLocation = await geocodeCity(birthPlaceVal);
+                if (!birthLocation) {
+                    alert("Could not find location '" + birthPlaceVal + "'. Please validate the city and country name (e.g. Dallas, USA).");
+                    revealBtn.disabled = false;
+                    btnText.style.display = 'inline-block';
+                    loadingSpinner.style.display = 'none';
+                    return;
+                }
             }
 
             // 2. Determine "Current" Location for Weather

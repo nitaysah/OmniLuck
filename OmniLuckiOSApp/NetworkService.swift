@@ -145,9 +145,11 @@ class NetworkService {
     // 0b. Auth: Signup
     func signup(username: String, firstName: String, middleName: String, lastName: String, email: String, password: String, dob: String, birthPlace: String, birthTime: Date) async throws -> SignupResponse {
         // Geocode
-        let coords = await getCoordinates(for: birthPlace)
-        let lat = coords?.0 ?? 0.0
-        let lon = coords?.1 ?? 0.0
+        guard let coords = await getCoordinates(for: birthPlace) else {
+            throw NSError(domain: "NetworkService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Could not validate location '\(birthPlace)'. Please use City, Country format (e.g. Dallas, USA)."])
+        }
+        let lat = coords.0
+        let lon = coords.1
         let timeStr = formatTime(birthTime)
         
         let payload = SignupRequest(
@@ -169,9 +171,11 @@ class NetworkService {
     // 1. Fetch Daily Luck
     func fetchLuck(name: String, dob: Date, birthTime: Date, birthPlace: String, timeIsNA: Bool = false) async throws -> LuckResponse {
         // Geocode
-        let coords = await getCoordinates(for: birthPlace)
-        let lat = coords?.0 ?? 0.0
-        let lon = coords?.1 ?? 0.0
+        guard let coords = await getCoordinates(for: birthPlace) else {
+            throw NSError(domain: "NetworkService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Could not validate location '\(birthPlace)'. Please use City, Country format (e.g. Dallas, USA)."])
+        }
+        let lat = coords.0
+        let lon = coords.1
         
         let payload = LuckRequest(
             uid: "ios-user",
@@ -191,9 +195,11 @@ class NetworkService {
     // 2. Fetch Natal Chart
     func fetchNatalChart(dob: Date, birthTime: Date, birthPlace: String) async throws -> NatalChartResponse {
         // Geocode (Redundant if cached, but safer)
-        let coords = await getCoordinates(for: birthPlace)
-        let lat = coords?.0 ?? 0.0
-        let lon = coords?.1 ?? 0.0
+        guard let coords = await getCoordinates(for: birthPlace) else {
+            throw NSError(domain: "NetworkService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Could not validate location '\(birthPlace)'. Please use City, Country format (e.g. Dallas, USA)."])
+        }
+        let lat = coords.0
+        let lon = coords.1
         
         let payload = BirthInfoRequest(
             dob: formatDate(dob),
@@ -209,9 +215,11 @@ class NetworkService {
     // 3. Fetch 7-Day Forecast
     func fetchForecast(name: String, dob: Date, birthTime: Date, birthPlace: String, timeIsNA: Bool = false) async throws -> ForecastResponse {
         // Geocode
-        let coords = await getCoordinates(for: birthPlace)
-        let lat = coords?.0 ?? 0.0
-        let lon = coords?.1 ?? 0.0
+        guard let coords = await getCoordinates(for: birthPlace) else {
+            throw NSError(domain: "NetworkService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Could not validate location '\(birthPlace)'. Please use City, Country format (e.g. Dallas, USA)."])
+        }
+        let lat = coords.0
+        let lon = coords.1
         
         let payload = LuckRequest(
             uid: "ios-user",
