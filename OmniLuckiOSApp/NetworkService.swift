@@ -106,7 +106,7 @@ class NetworkService {
     
     // NOTE: Change this to your local server IP for physical device!
     // Simulator uses localhost:8000
-    private let baseURL = "https://omniluck.onrender.com"
+    private let baseURL = "http://localhost:8000" // "https://omniluck.onrender.com"
     
     // Helper: Geocode Address
     private func getCoordinates(for place: String) async -> (Double, Double)? {
