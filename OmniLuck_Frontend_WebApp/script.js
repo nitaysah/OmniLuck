@@ -94,6 +94,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     dob = user.dob;
                 }
 
+                // Auto-fill Place and Time from Firebase/Local DB
+                const birthPlaceEl = document.getElementById('birth-place');
+                if (user.birth_place && birthPlaceEl) {
+                    birthPlaceEl.value = user.birth_place;
+                }
+                if (user.birth_time && birthTimeInput) {
+                    birthTimeInput.value = user.birth_time;
+                }
+
                 // Show User Greeting / Logout Pill
                 const userPillBtn = document.getElementById('user-pill-btn'); // Updated to button
                 const userGreeting = document.getElementById('user-greeting');

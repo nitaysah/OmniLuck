@@ -62,6 +62,7 @@ struct BackendProfile: Codable {
     let name: String?
     let dob: String?
     let birth_place: String?
+    let birth_time: String?
     // Add other fields as needed, handling potential missing keys
 }
 

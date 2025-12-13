@@ -427,6 +427,17 @@ struct ContentView: View {
                             dob = date
                         }
                     }
+                    if let place = profile.birth_place, !place.isEmpty {
+                        birthPlace = place
+                    }
+                    if let timeStr = profile.birth_time, !timeStr.isEmpty {
+                        let tFormatter = DateFormatter()
+                        tFormatter.dateFormat = "HH:mm"
+                        if let tDate = tFormatter.date(from: timeStr) {
+                            birthTime = tDate
+                            useNAForTime = false
+                        }
+                    }
                 }
             }
             .onTapGesture {
