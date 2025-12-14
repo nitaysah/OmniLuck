@@ -477,17 +477,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // === 7-DAY FORECAST (BACKGROUND -> UI) ===
             // Validating the new feature engine without strictly altering UI layout (but now revealing per user request)
-            const forecastContainer = document.getElementById('forecast-container');
+            // 4. Update Strategy Card
+            const strategyCard = document.getElementById('strategy-card');
+            if (response.strategic_advice) {
+                document.getElementById('strategy-text').textContent = response.strategic_advice;
+
+                const timeList = document.getElementById('time-slots-list');
+                timeList.innerHTML = ''; // Clear previous
+
+                if (response.lucky_time_slots && response.lucky_time_slots.length > 0) {
+                    response.lucky_time_slots.forEach(slot => {
+                        const pill = document.createElement('span');
+                        pill.className = 'trait-pill'; // Reuse trait pill styling
+                        pill.style.backgroundColor = 'var(--accent-gold)';
+                        pill.style.color = 'var(--deep-purple)';
+                        pill.style.fontWeight = 'bold';
+                        pill.textContent = slot; // "9AM - 11AM"
+                        timeList.appendChild(pill);
+                    });
+                }
+
+                strategyCard.style.display = 'block';
+            } else {
+                strategyCard.style.display = 'none';
+            }
+
+            // 5. Forecast FLIP Card
+            const forecastFlipCard = document.getElementById('forecast-flip-card');
+            const forecastFlipInner = document.getElementById('forecast-flip-inner');
             const forecastList = document.getElementById('forecast-list');
             const forecastTrend = document.getElementById('forecast-trend');
             const forecastBest = document.getElementById('forecast-best');
+
+            // Add flip handler (using class toggle for robustness)
+            if (forecastFlipCard) {
+                // Remove any previous event listeners (though usually not needed if re-run, good practice)
+                forecastFlipCard.onclick = null;
+                forecastFlipCard.onclick = function () {
+                    this.classList.toggle('flipped');
+                };
+            }
+
 
             if (birthTimeInput && birthTimeInput.value) {
                 console.log("🔮 Initiating 7-Day Trend Analysis...");
                 api.getForecast(requestData).then(forecast => {
                     console.log("✨ 7-DAY PREDICTIVE TRAJECTORY GENERATED ✨");
 
-                    if (forecastContainer && forecastList) {
+                    if (forecastFlipCard && forecastList) {
                         console.log("✅ Container found, rendering forecast...");
                         // Populate Summary
                         forecastTrend.textContent = forecast.trend_direction;
@@ -532,16 +569,16 @@ document.addEventListener('DOMContentLoaded', () => {
                             forecastList.appendChild(dayEl);
                         });
 
-                        // Show container
-                        forecastContainer.style.display = 'block';
+                        // Show flip card (starts showing front side)
+                        forecastFlipCard.style.display = 'block';
                     }
 
                 }).catch(err => {
                     console.warn("Forecast engine offline:", err);
-                    if (forecastContainer) forecastContainer.style.display = 'none';
+                    if (forecastFlipCard) forecastFlipCard.style.display = 'none';
                 });
             } else {
-                if (forecastContainer) forecastContainer.style.display = 'none';
+                if (forecastFlipCard) forecastFlipCard.style.display = 'none';
             }
 
         } catch (error) {

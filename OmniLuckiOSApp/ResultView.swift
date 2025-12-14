@@ -1,10 +1,13 @@
 import SwiftUI
 
-struct ResultView: View {
     let percentage: Int
     let explanation: OmniLuckLogic.LuckExplanation
     // Birth Info for fetching chart
     var birthInfo: (dob: Date, time: Date, place: String)? = nil
+    
+    // NEW: Strategic Data
+    var strategicAdvice: String? = nil
+    var luckyTimeSlots: [String]? = nil
     
     @Environment(\.dismiss) var dismiss
     
@@ -15,6 +18,7 @@ struct ResultView: View {
     
     // Forecast Data State
     @State private var forecastData: ForecastResponse? = nil
+    @State private var isForecastFlipped = false  // For flip card animation
     
     // Chart Data State (Restored)
     @State private var chartData: NatalChartResponse? = nil
@@ -131,74 +135,152 @@ struct ResultView: View {
                     .padding(.horizontal)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     
-                    // NEW: 7-Day Forecast Card
-                    if let forecast = forecastData {
-                        VStack(alignment: .leading, spacing: 12) {
+                    // NEW: Cosmic Strategy Protocol Card
+                    if let strategy = strategicAdvice {
+                        VStack(alignment: .leading, spacing: 16) {
                             HStack {
-                                Text("📅").font(.title3)
-                                Text("7-Day Luck Trajectory").font(.headline).foregroundColor(deepPurple)
+                                Image(systemName: "safari").foregroundColor(deepPurple) // Compass icon
+                                Text("Cosmic Strategy").font(.headline).foregroundColor(deepPurple)
                             }
                             
-                            HStack {
-                                Text("Trend:").font(.caption).foregroundColor(deepPurple.opacity(0.7))
-                                Text(forecast.trend_direction).font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
-                                Spacer()
-                                Text("Peak:").font(.caption).foregroundColor(deepPurple.opacity(0.7))
-                                Text(formatDayMonth(forecast.best_day)).font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
-                            }
+                            Text(strategy)
+                                .font(.system(size: 15, weight: .regular, design: .serif)) // Distinct serif for strategy
+                                .italic()
+                                .foregroundColor(deepPurple.opacity(0.9))
+                                .lineSpacing(4)
                             
-                            HStack(alignment: .bottom, spacing: 0) {
-                                ForEach(forecast.trajectory) { day in
-                                    VStack(spacing: 4) {
-                                        Spacer()
-                                        // Bar
-                                        RoundedRectangle(cornerRadius: 4)
-                                            .fill(
-                                                LinearGradient(
-                                                    colors: [
-                                                        day.luck_score >= 80 ? Color.green : (day.luck_score < 50 ? Color.orange : accentGold),
-                                                        (day.luck_score >= 80 ? Color.green : (day.luck_score < 50 ? Color.orange : accentGold)).opacity(0.6)
-                                                    ],
-                                                    startPoint: .top,
-                                                    endPoint: .bottom
-                                                )
-                                            )
-                                            .frame(width: 12, height: CGFloat(day.luck_score) * 0.5) // Adjust scale
-                                            
-                                        Text("\(day.luck_score)")
-                                            .font(.system(size: 8)).bold().foregroundColor(deepPurple)
-                                        
-                                        Text(getDayName(day.date))
-                                            .font(.system(size: 9)).foregroundColor(deepPurple.opacity(0.8))
+                            if let slots = luckyTimeSlots, !slots.isEmpty {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("POWER HOURS").font(.caption).fontWeight(.bold).foregroundColor(accentPurple).tracking(1)
+                                    
+                                    // Simple flow replacement using HSAck/ScrollView for now (safer than lazy grid)
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack(spacing: 8) {
+                                            ForEach(slots, id: \.self) { slot in
+                                                Text(slot)
+                                                    .font(.caption).fontWeight(.bold)
+                                                    .padding(.horizontal, 12).padding(.vertical, 6)
+                                                    .background(Color.white)
+                                                    .cornerRadius(8)
+                                                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(accentGold, lineWidth: 1))
+                                                    .foregroundColor(deepPurple)
+                                            }
+                                        }
                                     }
-                                    .frame(maxWidth: .infinity)
                                 }
                             }
-                            .frame(height: 80)
-                            .padding(.top, 5)
                         }
                         .padding(20).frame(maxWidth: .infinity, alignment: .leading)
-                        .background(RoundedRectangle(cornerRadius: 20).fill(Color.white.opacity(0.7)).overlay(RoundedRectangle(cornerRadius: 20).stroke(accentPurple.opacity(0.3), lineWidth: 1)))
+                        .background(RoundedRectangle(cornerRadius: 20).fill(Color.white.opacity(0.85)).overlay(RoundedRectangle(cornerRadius: 20).stroke(accentPurple, lineWidth: 1))) // Slightly more opaque
                         .padding(.horizontal)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                     
-                    // Zodiac Display (This part was correct, but I need to ensure I don't delete what follows)
-                    if let info = birthInfo {
-                        let zodiac = OmniLuckLogic.getZodiacSign(date: info.dob)
-                        VStack(spacing: 4) {
-                            Text("Your Zodiac Sign")
-                                .font(.caption2)
-                                .fontWeight(.semibold)
-                                .textCase(.uppercase)
-                                .foregroundColor(deepPurple.opacity(0.6))
-                            HStack(spacing: 8) {
-                                Text(zodiac.icon).font(.largeTitle)
-                                Text(zodiac.name).font(.title3).fontWeight(.bold).foregroundColor(deepPurple)
+                    // 7-Day Forecast FLIP Card
+                    // 7-Day Forecast FLIP Card
+                    if let forecast = forecastData {
+                        ZStack {
+                            // BACK SIDE (The Chart)
+                            VStack(alignment: .leading, spacing: 10) {
+                                // Header with close hint
+                                HStack {
+                                    Text("�").font(.title3)
+                                    Text("7-Day Luck Trajectory").font(.headline).foregroundColor(deepPurple)
+                                    Spacer()
+                                    Image(systemName: "arrow.uturn.backward.circle.fill")
+                                        .foregroundColor(accentPurple.opacity(0.6))
+                                }
+                                
+                                // Trend and Peak Row
+                                HStack {
+                                    Text("Trend:").font(.caption).foregroundColor(deepPurple.opacity(0.7))
+                                    Text(forecast.trend_direction).font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
+                                    Spacer()
+                                    Text("Peak:").font(.caption).foregroundColor(deepPurple.opacity(0.7))
+                                    Text(formatDayMonth(forecast.best_day)).font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
+                                }
+                                
+                                // Bar Chart
+                                HStack(alignment: .bottom, spacing: 4) {
+                                    ForEach(forecast.trajectory) { day in
+                                        VStack(spacing: 2) {
+                                            Text("\(day.luck_score)")
+                                                .font(.system(size: 9, weight: .bold))
+                                                .foregroundColor(deepPurple)
+                                            
+                                            RoundedRectangle(cornerRadius: 3)
+                                                .fill(
+                                                    LinearGradient(
+                                                        colors: [
+                                                            day.luck_score >= 80 ? Color.green : (day.luck_score < 50 ? Color.orange : accentGold),
+                                                            (day.luck_score >= 80 ? Color.green : (day.luck_score < 50 ? Color.orange : accentGold)).opacity(0.5)
+                                                        ],
+                                                        startPoint: .top,
+                                                        endPoint: .bottom
+                                                    )
+                                                )
+                                                .frame(height: max(10, CGFloat(day.luck_score) * 0.7))
+                                            
+                                            Text(getDayName(day.date))
+                                                .font(.system(size: 10, weight: .medium))
+                                                .foregroundColor(deepPurple.opacity(0.8))
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                    }
+                                }
+                                .frame(height: 90)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(Color.white.opacity(0.95))
+                                    .overlay(RoundedRectangle(cornerRadius: 20).stroke(accentPurple.opacity(0.3), lineWidth: 1))
+                            )
+                            .rotation3DEffect(.degrees(isForecastFlipped ? 0 : -180), axis: (x: 0, y: 1, z: 0))
+                            .opacity(isForecastFlipped ? 1 : 0) // Hide when not flipped to prevent hit testing issues
+                            
+                            // FRONT SIDE (The Teaser)
+                            VStack(spacing: 16) {
+                                Text("🔮").font(.system(size: 44))
+                                
+                                Text("7-Day Cosmic Forecast")
+                                    .font(.title3)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(deepPurple)
+                                
+                                Text("Tap to reveal your luck trajectory")
+                                    .font(.subheadline)
+                                    .foregroundColor(deepPurple.opacity(0.7))
+                                
+                                HStack(spacing: 8) {
+                                    Image(systemName: "hand.tap.fill")
+                                        .foregroundColor(accentPurple)
+                                    Text("Tap to flip")
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(accentPurple)
+                                }
+                                .padding(.top, 4)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 200) // Match height of back side approx
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(LinearGradient(colors: [Color.white.opacity(0.9), accentPurple.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                    .overlay(RoundedRectangle(cornerRadius: 20).stroke(accentPurple.opacity(0.4), lineWidth: 1))
+                            )
+                            .rotation3DEffect(.degrees(isForecastFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
+                            .opacity(isForecastFlipped ? 0 : 1)
+                        }
+                        .frame(height: 200) // Fixed height container
+                        .padding(.horizontal)
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                                isForecastFlipped.toggle()
                             }
                         }
-                        .padding(.top, 10)
-                        .frame(maxWidth: .infinity) // Center align
+                        .transition(.scale.combined(with: .opacity))
                     }
                     
                     // Daily Report Button

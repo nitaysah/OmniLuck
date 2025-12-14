@@ -122,6 +122,7 @@ class LuckComponents(BaseModel):
     """Breakdown of luck score components"""
     base_numerology: int = Field(..., ge=0, le=100)
     astrology_score: int = Field(..., ge=0, le=100)
+    natal_potential: Optional[int] = Field(50, ge=0, le=100, description="Birth chart strength")
     cosmic_weather: int = Field(..., ge=0, le=100) # Updated range
     personal_trend: int = Field(..., ge=-100, le=100, description="ML adjustment")
     total: int = Field(..., ge=0, le=100)
@@ -135,6 +136,8 @@ class LuckCalculationResponse(BaseModel):
     summary: Optional[str] = Field(None, description="Simple factor explanation")
     explanation: str = Field(..., description="LLM-generated explanation")
     recommended_actions: List[str] = Field(default_factory=list)
+    strategic_advice: Optional[str] = Field(None, description="Detailed strategy for conflicting energies")
+    lucky_time_slots: List[str] = Field(default_factory=list, description="Best times of day based on astro-numerology")
 
 
 class ForecastDay(BaseModel):

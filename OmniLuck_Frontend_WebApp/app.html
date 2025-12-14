@@ -4,6 +4,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        /* Flip Card Styles */
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 220px;
+            perspective: 1000px;
+            cursor: pointer;
+            margin-top: 16px;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front,
+        .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            box-sizing: border-box;
+        }
+
+        .flip-card-back {
+            transform: rotateY(180deg);
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid var(--accent-purple);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
     <title>Discover Your Luck - OmniLuck</title>
     <meta name="description"
         content="Discover your daily luck percentage powered by celestial alignment and numerology">
@@ -192,37 +236,73 @@
                     <div id="traits-list" class="traits-list"></div>
                 </div>
 
-                <!-- Zodiac Display (Moved here) -->
-                <div id="zodiac-display-result"
-                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px; margin-top: 20px;">
-                    <span
-                        style="font-size: 0.85rem; color: var(--deep-purple); opacity: 0.8; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">ZODIAC
-                        SIGN</span>
-                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
-                        <span id="zodiac-icon-result"
-                            style="font-size: 1.8rem; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));"></span>
-                        <span id="zodiac-name-result"
-                            style="font-size: 1.4rem; font-weight: 700; background: linear-gradient(135deg, var(--deep-purple), #8B5CF6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;"></span>
+                <!-- NEW: Cosmic Strategy Protocol Card -->
+                <div id="strategy-card" class="fortune-card"
+                    style="display: none; background: rgba(255, 255, 255, 0.9); border-color: var(--accent-purple);">
+                    <div class="fortune-header">
+                        <span class="fortune-icon">🧭</span>
+                        <h3>Cosmic Strategy</h3>
+                    </div>
+
+                    <p id="strategy-text"
+                        style="font-style: italic; color: var(--deep-purple); opacity: 0.9; margin-bottom: 16px;"></p>
+
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <span
+                            style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--accent-purple); letter-spacing: 1px;">POWER
+                            HOURS</span>
+                        <div id="time-slots-list" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            <!-- Injected Time Pills -->
+                        </div>
                     </div>
                 </div>
 
-                <!-- 7-Day Forecast Container -->
-                <div id="forecast-container" class="fortune-card" style="display: none; margin-top: 0;">
-                    <div class="fortune-header">
-                        <span class="fortune-icon">📅</span>
-                        <h3>7-Day Luck Trajectory</h3>
-                    </div>
 
-                    <div
-                        style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem; padding: 0 4px;">
-                        <span style="color: var(--deep-purple);">Trend: <strong id="forecast-trend"
-                                style="color: var(--accent-purple);">--</strong></span>
-                        <span style="color: var(--deep-purple);">Peak: <strong id="forecast-best"
-                                style="color: var(--accent-purple);">--</strong></span>
-                    </div>
+                <!-- 7-Day Forecast FLIP Card -->
+                <div id="forecast-flip-card" class="flip-card" style="display: none;">
+                    <div class="flip-card-inner" id="forecast-flip-inner">
 
-                    <div id="forecast-list" style="display: flex; gap: 4px; padding-bottom: 0; width: 100%;">
-                        <!-- JS Injected Items -->
+                        <!-- FRONT SIDE - Teaser -->
+                        <div class="flip-card-front"
+                            style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(192, 153, 240, 0.25)); border: 1px solid var(--accent-purple);">
+                            <span style="font-size: 3rem; margin-bottom: 12px;">🔮</span>
+                            <h3 style="color: var(--deep-purple); font-weight: 700; margin: 0;">7-Day Cosmic Forecast
+                            </h3>
+                            <p style="color: var(--deep-purple); opacity: 0.7; margin: 8px 0 0 0;">Tap to reveal your
+                                luck trajectory</p>
+                            <div
+                                style="display: flex; align-items: center; gap: 8px; margin-top: 16px; color: var(--accent-purple);">
+                                <span style="font-size: 1.2rem;">👆</span>
+                                <span style="font-size: 0.85rem; font-weight: 600;">Click to flip</span>
+                            </div>
+                        </div>
+
+                        <!-- BACK SIDE - Full Chart -->
+                        <div class="flip-card-back">
+
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 1.3rem;">📅</span>
+                                    <h3 style="margin: 0; font-size: 1rem; color: var(--deep-purple);">7-Day Luck
+                                        Trajectory</h3>
+                                </div>
+                                <span style="font-size: 1.1rem; opacity: 0.5;">↩️</span>
+                            </div>
+
+                            <div
+                                style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.8rem; padding: 0 4px;">
+                                <span style="color: var(--deep-purple);">Trend: <strong id="forecast-trend"
+                                        style="color: var(--accent-purple);">--</strong></span>
+                                <span style="color: var(--deep-purple);">Peak: <strong id="forecast-best"
+                                        style="color: var(--accent-purple);">--</strong></span>
+                            </div>
+
+                            <div id="forecast-list"
+                                style="display: flex; gap: 4px; flex: 1; width: 100%; align-items: flex-end;">
+                                <!-- JS Injected Items -->
+                            </div>
+                        </div>
                     </div>
                 </div>
 

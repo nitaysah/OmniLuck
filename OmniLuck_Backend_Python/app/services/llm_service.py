@@ -3,6 +3,7 @@ LLM Service for generating personalized fortune explanations.
 Uses Google Gemini API (free tier).
 """
 import os
+from datetime import datetime
 from typing import Dict, List
 from app.config import settings
 
@@ -13,26 +14,24 @@ class LLMService:
     def __init__(self):
         self.use_local = settings.USE_LOCAL_LLM
         self.gemini_key = settings.GEMINI_API_KEY
+        self.model = None
         
         print(f"🔧 LLM Service: use_local={self.use_local}, has_key={bool(self.gemini_key)}")
         
         if not self.use_local and self.gemini_key:
             try:
-                # Use REST API directly to avoid v1beta issues
-                self.api_key = self.gemini_key
-                self.model = "gemini-1.5-flash"  # Store model name
-                print("✅ Google Gemini 1.5 Flash configured (REST API)")
+                import google.generativeai as genai
+                genai.configure(api_key=self.gemini_key)
+                self.model = genai.GenerativeModel('models/gemini-2.0-flash')
+                print("✅ Google Gemini 2.0 Flash configured (SDK)")
             except Exception as e:
                 print(f"❌ Gemini configuration failed: {e}")
-                self.api_key = None
                 self.model = None
         else:
             if self.use_local:
                 print("ℹ️  Using local LLM mode (fallback templates)")
             elif not self.gemini_key:
                 print("⚠️  No Gemini API key found - using fallback templates")
-            self.api_key = None
-            self.model = None
     
     def generate_fortune_explanation(
         self,
@@ -56,26 +55,11 @@ class LLMService:
         # Build context prompt
         prompt = self._build_fortune_prompt(luck_score, user_data, cosmic_signals, astrology_data)
         
-        # Generate using Gemini REST API if available
-        if self.api_key and self.model:
+        # Generate using Gemini SDK if available
+        if self.model:
             try:
-                import requests
-                
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
-                headers = {"Content-Type": "application/json"}
-                data = {
-                    "contents": [{
-                        "parts": [{"text": prompt}]
-                    }]
-                }
-                
-                response = requests.post(url, headers=headers, json=data, timeout=10)
-                response.raise_for_status()
-                result = response.json()
-                
-                # Extract text from response
-                text = result['candidates'][0]['content']['parts'][0]['text']
-                return text.strip()
+                response = self.model.generate_content(prompt)
+                return response.text.strip()
                 
             except Exception as e:
                 print(f"❌ LLM generation error: {e}")
@@ -89,92 +73,101 @@ class LLMService:
         luck_score: int,
         user_data: Dict,
         cosmic_signals: Dict = None,
-        astrology_data: Dict = None
+        astrology_data: Dict = None,
+        numerology_data: Dict = None
     ) -> str:
         """Build prompt for LLM"""
         
         name = user_data.get("name", "friend")
         zodiac = user_data.get("zodiac", "your sign")
         
-        prompt = f"""You are a mystical astrologer creating a personalized daily fortune reading.
+        prompt = f"""You are a mystical astrologer explaining a scientifically calculated daily fortune.
 
-USER PROFILE:
-- Name: {name}
-- Zodiac Sign: {zodiac}
-- Today's Luck Score: {luck_score}/100
+DATA INPUTS:
+- User: {name} ({zodiac})
+- Total OmniLuck Score: {luck_score}/100
 
 """
-        
+        if numerology_data:
+            prompt += f"""NUMEROLOGY FACTORS:
+- Life Path Number: {numerology_data.get('life_path_number')}
+- Destiny Number: {numerology_data.get('destiny_number')}
+- Personal Day Cycle: {numerology_data.get('personal_day_number')}
+(Note: The score is high because their Core Numbers harmonize with today's cycle.)
+
+"""
+
+        if astrology_data:
+            transits = astrology_data.get('transits_score', 50)
+            prompt += f"""ASTROLOGY FACTORS (Transit Score: {transits}):
+- Sun Sign: {astrology_data.get('sun_sign')}
+- Moon Sign: {astrology_data.get('moon_sign')}
+- Rising Sign: {astrology_data.get('ascendant')}
+
+"""
+
         if cosmic_signals:
             lunar = cosmic_signals.get("lunar", {})
             weather = cosmic_signals.get("weather", {})
-            geo = cosmic_signals.get("geomagnetic", {})
-            
-            prompt += f"""COSMIC CONDITIONS:
-- Moon Phase: {lunar.get('phase_name', 'Unknown')} ({lunar.get('illumination', 0)}% illuminated)
-- Weather: {weather.get('condition', 'clear')}, {weather.get('temp_c', 20)}°C
-- Geomagnetic Activity: {geo.get('activity_level', 'quiet')} (Kp {geo.get('kp_index', 2)})
+            prompt += f"""ENVIRONMENTAL FACTORS:
+- Moon Phase: {lunar.get('phase_name')}
+- Weather: {weather.get('condition')}
 
 """
         
-        if astrology_data:
-            prompt += f"""ASTROLOGICAL DATA:
-- Sun Sign: {astrology_data.get('sun_sign', zodiac)}
-- Moon Sign: {astrology_data.get('moon_sign', 'Unknown')}
-- Rising Sign: {astrology_data.get('ascendant', 'Unknown')}
-
-"""
-        
-        prompt += f"""Write a warm, encouraging fortune message (2-3 paragraphs, ~150 words) that:
-1. Acknowledges the luck score ({luck_score}/100)
-2. References relevant cosmic conditions
-3. Provides actionable advice or insight
-4. Maintains a mystical yet authentic tone
-5. Is personalized to {name} as a {zodiac}
+        prompt += f"""Write a warm, insightful fortune message (150 words) that:
+1. Explains WHY the score is {luck_score} based on the overlapping factors above.
+2. Specifically mention their Numerology ("Your Personal Day X...") and Astrology ("Moon in Y...").
+3. Give specific advice for this combination of energy.
+4. Tone: Mystical but grounded in the data provided.
 
 Fortune message:"""
         
         return prompt
     
-    def _fallback_template(self, luck_score: int, user_data: Dict) -> str:
-        """Fallback templates when LLM is unavailable"""
-        
-        zodiac = user_data.get("zodiac", "your sign")
-        name = user_data.get("name", "friend")
-        
-        if luck_score >= 85:
-            return f"✨ {name}, the stars shine brilliantly for you today! As a {zodiac}, you're experiencing exceptional cosmic alignment. Fortune favors the bold—embrace opportunities with confidence and trust your intuition."
-        
-        elif luck_score >= 70:
-            return f"🌟 {name}, your {zodiac} energy is harmonizing beautifully with today's celestial movements. Great things await! Now is an excellent time to pursue your goals and connect with others."
-        
-        elif luck_score >= 50:
-            return f"🌙 {name}, as a {zodiac}, you're navigating steady cosmic currents today. Balance is your superpower. Trust the journey you're on and stay grounded in your wisdom."
-        
-        elif luck_score >= 30:
-            return f"🌾 {name}, the cosmic energy asks you to slow down and reflect. As a {zodiac}, use this time for inner growth and self-care. Tomorrow's fortunes are built on today's rest."
-        
-        else:
-            return f"🕊️ {name}, the celestial bodies are in a protective formation. Remember your resilience as a {zodiac}. This too shall pass, and your inner strength remains unshakable."
+    def _get_zodiac_sign(self, dob: str = None) -> str:
+        """Helper to get zodiac sign from DOB string (YYYY-MM-DD)"""
+        if not dob: return "Traveler"
+        try:
+            date = datetime.strptime(dob, "%Y-%m-%d")
+            day = date.day; month = date.month
+            signs = [(1, 20, "Capricorn"), (2, 19, "Aquarius"), (3, 20, "Pisces"), (4, 20, "Aries"),
+                     (5, 21, "Taurus"), (6, 21, "Gemini"), (7, 22, "Cancer"), (8, 23, "Leo"),
+                     (9, 23, "Virgo"), (10, 23, "Libra"), (11, 22, "Scorpio"), (12, 22, "Sagittarius"),
+                     (12, 31, "Capricorn")]
+            for m, d, sign in signs:
+                if (month == m and day <= d) or (month < m): return sign
+            return "Capricorn"
+        except: return "Traveler"
+
+    def _fallback_response(self, user_name: str, luck_score: int, zodiac: str = "Traveler") -> Dict:
+        """Generate static fallback response if AI fails"""
+        sign = zodiac if zodiac else "Traveler"
+
+        return {
+            "score": luck_score,
+            "explanation": f"🌙 {user_name}, as a {sign}, you're navigating steady cosmic currents today. Balance is your superpower. Trust the journey you're on and stay grounded in your wisdom.",
+            "actions": ["Focus on your goals", "Rest well", "Connect with nature"],
+            "strategic_advice": "Focus on consolidating your gains today. The energy supports steady progress rather than bold leaps. Review your recent wins and plan the next phase carefully.",
+            "lucky_time_slots": ["10:00 AM - 12:00 PM", "4:00 PM - 6:00 PM"],
+            "archetype": "The Steady Navigator",
+            "caption": "Cosmic Alignment",
+            "summary": "Your numbers align for steady progress."
+        }
     
     def analyze_luck_and_generate_content(
         self,
         user_data: Dict,
         cosmic_signals: Dict = None,
-        astrology_data: Dict = None
+        astrology_data: Dict = None,
+        numerology_data: Dict = None
     ) -> Dict:
         """
-        Analyze user's profile and cosmic data to generate an Intuitive Luck Score and content.
-        This provides the 'AI Pillar' of the luck calculation (replacing simple numerology).
-        
-        Returns:
-            Dict containing:
-            - score (int): 0-100
-            - explanation (str)
-            - actions (List[str])
+        Analyze user's profile and cosmic data to generate content.
+        Note: AI no longer calculates the score; it explains the provided data.
         """
-        # If no API key, return deterministic fallback immediately
-        if not self.api_key:
+        # If no model configured, return deterministic fallback immediately
+        if not self.model:
             score = self._calculate_numerology_fallback(user_data)
             return {
                 "score": score,
@@ -183,30 +176,21 @@ Fortune message:"""
             }
 
         # Build comprehensive analysis prompt
-        prompt = self._build_analysis_prompt(user_data, cosmic_signals, astrology_data)
+        prompt = self._build_analysis_prompt(user_data, cosmic_signals, astrology_data, numerology_data)
         
         try:
-            import requests
             import json
             
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
-            headers = {"Content-Type": "application/json"}
-            data = {
-                "contents": [{
-                    "parts": [{"text": prompt}]
-                }],
-                # We ask for JSON-like structure, but Gemini 1.5 Flash is smart enough with just text prompt too
-                "generationConfig": {
+            # Use SDK to generate content
+            response = self.model.generate_content(
+                prompt,
+                generation_config={
                     "temperature": 0.7,
-                    "maxOutputTokens": 500,
+                    "max_output_tokens": 500,
                 }
-            }
+            )
             
-            response = requests.post(url, headers=headers, json=data, timeout=12)
-            response.raise_for_status()
-            result = response.json()
-            
-            text_response = result['candidates'][0]['content']['parts'][0]['text']
+            text_response = response.text
             
             # Clean and parse JSON from Markdown response
             clean_json = text_response.replace("```json", "").replace("```", "").strip()
@@ -215,20 +199,24 @@ Fortune message:"""
             return {
                 "score": max(0, min(100, parsed_data.get("score", 75))),
                 "explanation": parsed_data.get("explanation", "The stars are aligning for you."),
-                "actions": parsed_data.get("actions", ["Seize the day", "Reflect inward", "Smile often"])
+                "actions": parsed_data.get("actions", ["Seize the day", "Reflect inward", "Smile often"]),
+                "caption": f"{parsed_data.get('archetype', 'Cosmic Traveler')} | {parsed_data.get('caption', 'Cosmic Alignment')}",
+                "summary": parsed_data.get("summary", "Your chart is balanced today."),
+                "strategic_advice": parsed_data.get("strategy", "Balance your internal drive with external patience."),
+                "lucky_time_slots": parsed_data.get("schedule", [])
             }
             
         except Exception as e:
             print(f"❌ AI Analysis error: {e}")
             # Fallback
             score = self._calculate_numerology_fallback(user_data)
-            return {
-                "score": score,
-                "explanation": self._fallback_template(score, user_data),
-                "actions": ["Focus on your goals", "Rest well", "Connect with nature"]
-            }
+            return self._fallback_response(
+                user_data.get("name", "Traveler"), 
+                score, 
+                user_data.get("zodiac", "Traveler")
+            )
 
-    def _build_analysis_prompt(self, user, cosmic, astro) -> str:
+    def _build_analysis_prompt(self, user, cosmic, astro, numero) -> str:
         name = user.get("name", "User")
         dob = user.get("dob", "Unknown")
         birth_place = user.get("birth_place", "Unknown")
@@ -237,19 +225,21 @@ Fortune message:"""
         
         # Personalization Data
         intention = user.get("intention", "General Luck")
-        sleep = user.get("sleep", "Unknown")
-        energy = user.get("energy", "Unknown")
-        past_rating = user.get("yesterday_luck", "Unknown")
         
-        # History
-        hist_lotto = user.get("history_lottery", "Unknown")
-        hist_games = user.get("history_games", "Unknown")
-        hist_sports = user.get("history_sports", "Unknown")
-        
+        # Environmental
         lunar_phase = cosmic.get("lunar", {}).get("phase_name", "Unknown") if cosmic else "Unknown"
         weather = cosmic.get("weather", {}).get("condition", "Unknown") if cosmic else "Unknown"
-        kp_index = cosmic.get("geomagnetic", {}).get("kp_index", 0) if cosmic else 0
         
+        # Numerology Data (Pre-calculated)
+        num_str = "Unknown"
+        if numero:
+            num_str = f"""
+            - Life Path: {numero.get('life_path_number')}
+            - Destiny: {numero.get('destiny_number')}
+            - Personal Day: {numero.get('personal_day_number')}
+            - Numerology Harmony Score: {numero.get('numerology_score')}
+            """
+
         transit_info = "Unknown"
         if astro and "aspects" in astro:
             aspects = astro["aspects"]
@@ -258,37 +248,34 @@ Fortune message:"""
                 transit_info = f"{top_aspect.get('type')} between {top_aspect.get('transit_planet')} and {top_aspect.get('natal_planet')}"
 
         return f"""
-        You are an expert Astrologer, Nucleophysicist, and AI combined.
-        User Profile:
-        - Name: {name}
-        - Born: {dob} at {birth_time} ({timezone}) in {birth_place}
-        - Intention/Focus: {intention}
-        - Current State: Sleep={sleep}, Energy={energy}
-        - Yesterday's Luck: {past_rating}/10
+        You are an expert Astrologer and Numerologist.
         
-        Cosmic Signals:
-        - Moon: {lunar_phase}
-        - Weather: {weather}
-        - Geomagnetic Kp: {kp_index}
-        - Major Transit: {transit_info}
+        USER CONTEXT:
+        - Name: {name}
+        - Born: {dob}
+        - Intention: {intention}
+        
+        SCIENTIFIC FACTORS (Already Calculated):
+        1. NUMEROLOGY: {num_str}
+        2. ASTROLOGY: Major Transit: {transit_info}
+        3. ENVIRONMENT: Moon: {lunar_phase}, Weather: {weather}
 
         **TASK:**
-        1. synthesize their "Historical Luck Type" (if inferred) with today's Astrology.
-        2. Calculate today's "Intuitive Luck Score" (0-100).
-        3. Create a short, punchy **Caption** (e.g. "Cosmic Jackpot!", "Build Your Foundation").
-        4. Write a **"Why this score?"** summary in simple terms.
-        5. **Vedic Analysis (Kundali):** 
-           - IF Birth Time is provided ({birth_time}): Estimate Ascendant/Nakshatra.
-           - Include a **"Kundali Insight"** but translate it into **simple, plain English**.
-           - (e.g. Instead of "Jupiter in 10th house", say "A major planet is boosting your career sector today").
-        6. Write the detailed Daily Analysis incorporating the Vedic Insight if possible.
+        1. Explain the User's Fortune based on the overlapping Numerology and Astrology data.
+        2. Specifically, compare their Personal Day Number ({numero.get('personal_day_number') if numero else '?'}) with the Transit info.
+        3. Create a unique "Luck Archetype" title for them today (e.g. "The Empire Builder", "The Mystic").
+        4. Develop a "Strategy" to resolve any conflict between their Numbers (Internal) and Transits (External).
+        5. Suggest 2-3 specific time blocks for action (e.g. "9AM-11AM: Focus").
 
         Output ONLY valid JSON:
         {{
-            "score": <integer 0-100>,
+            "score": <integer 0-100 (Suggestion based on explanation)>,
             "caption": "<short headline>",
-            "summary": "<simple explanation of factors used>",
-            "explanation": "<detailed reading with Vedic Insight if applicable>",
+            "summary": "<simple explanation of why numbers+stars matter today>",
+            "explanation": "<detailed reading blending the Life Path and Transits>",
+            "archetype": "<Today's Persona Title>",
+            "strategy": "<Strategic advice paragraph for handling conflicting energies>",
+            "schedule": ["<Time Block 1>", "<Time Block 2>"],
             "actions": ["<action 1>", "<action 2>", "<action 3>"]
         }}
         """
@@ -309,10 +296,8 @@ Fortune message:"""
     ) -> List[str]:
         """Generate 3 personalized lucky actions"""
         
-        if self.api_key and self.model:
+        if self.model:
             try:
-                import requests
-                
                 zodiac = user_data.get("zodiac", "your sign")
                 prompt = f"""Generate 3 short, specific lucky actions for someone with {luck_score}/100 luck score as a {zodiac}.
 
@@ -323,19 +308,8 @@ Format as a simple list, each action 5-10 words maximum. Examples:
 
 Lucky actions:"""
                 
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
-                headers = {"Content-Type": "application/json"}
-                data = {
-                    "contents": [{
-                        "parts": [{"text": prompt}]
-                    }]
-                }
-                
-                response = requests.post(url, headers=headers, json=data, timeout=10)
-                response.raise_for_status()
-                result = response.json()
-                
-                text = result['candidates'][0]['content']['parts'][0]['text']
+                response = self.model.generate_content(prompt)
+                text = response.text
                 actions = [line.strip("- ").strip() for line in text.strip().split("\n") if line.strip()]
                 return actions[:3]
             except:

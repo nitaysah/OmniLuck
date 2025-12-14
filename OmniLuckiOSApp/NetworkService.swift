@@ -20,6 +20,8 @@ struct LuckResponse: Codable {
     let explanation: String
     let caption: String?
     let summary: String?
+    let strategic_advice: String?
+    let lucky_time_slots: [String]?
 }
 
 struct BirthInfoRequest: Codable {

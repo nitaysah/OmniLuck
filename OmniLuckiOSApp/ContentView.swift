@@ -96,7 +96,9 @@ struct ContentView: View {
                              text: result.explanation,
                              traits: ["Cosmic", "Aligned", "Lucky"]
                         ),
-                        birthInfo: (dob: dob, time: birthTime, place: birthPlace)
+                        birthInfo: (dob: dob, time: birthTime, place: birthPlace),
+                        strategicAdvice: result.strategic_advice,
+                        luckyTimeSlots: result.lucky_time_slots
                     )
                 } else {
                     // Fallback to Offline
