@@ -4,8 +4,9 @@ Integrates external APIs to provide environmental context for luck predictions.
 """
 import httpx
 import asyncio
-from datetime import datetime, date
-from typing import Dict, Optional
+from datetime import datetime, date, timedelta
+import math
+import swisseph as swe
 from app.config import settings
 from app.models.schemas import (
     LunarPhaseResponse,
@@ -20,7 +21,14 @@ class SignalsService:
     
     def __init__(self):
         self.openweather_key = settings.OPENWEATHER_API_KEY
+        self.openweather_key = settings.OPENWEATHER_API_KEY
         self.client = httpx.AsyncClient(timeout=10.0)
+        
+        # Initialize Swiss Ephemeris
+        try:
+            swe.set_ephe_path("/usr/share/swisseph")
+        except:
+            swe.set_ephe_path(".")
     
     async def get_lunar_phase(self, target_date: Optional[date] = None) -> LunarPhaseResponse:
         """
@@ -35,48 +43,59 @@ class SignalsService:
         if target_date is None:
             target_date = date.today()
         
-        # FarmSense API endpoint
-        url = "https://api.farmsense.net/v1/moonphases/"
-        params = {
-            "d": target_date.strftime("%Y%m%d")
-        }
-        
         try:
-            response = await self.client.get(url, params=params)
-            response.raise_for_status()
-            data = response.json()
+            # Use local Swiss Ephemeris calculation
+            # Convert date to Julian Day (noon UTC)
+            jd = swe.julday(target_date.year, target_date.month, target_date.day, 12.0)
             
-            # Parse response
-            if not data:
-                raise ValueError("No moon phase data received")
+            # Calculate Moon position
+            # Result: longitude, latitude, distance, speed, etc.
+            moon_res, _ = swe.calc_ut(jd, swe.MOON)
+            moon_lon = moon_res[0]
             
-            phase_data = data[0]
+            # Calculate Sun position
+            sun_res, _ = swe.calc_ut(jd, swe.SUN)
+            sun_lon = sun_res[0]
             
-            # Phase as decimal (0 = New Moon, 0.5 = Full Moon, 1 = New Moon again)
-            phase_pct = phase_data.get("Phase", 0.0)
+            # Calculate phase angle (0-360)
+            # 0=New, 90=First Quarter, 180=Full, 270=Last Quarter
+            phase_angle = (moon_lon - sun_lon) % 360
+            
+            # Convert to percentage (0.0 - 1.0) where 0=New, 0.5=Full, 1.0=New
+            # This matches the previous API's format roughly, but continuous
+            # Note: API might have used 0->1 cycling through all phases
+            # Let's verify standard: 0=New, 0.5=Full is standard "age"/phase
+            phase_pct = phase_angle / 360.0
             
             # Determine phase name
             phase_name = self._get_moon_phase_name(phase_pct)
             
-            # Calculate influence (Full Moon and New Moon have highest influence)
+            # Calculate influence
             influence_score = self._calculate_lunar_influence(phase_pct)
             
-            # TODO: Calculate next full/new moon dates (simplified for now)
-            next_full = date(2025, 12, 15)  # Placeholder
-            next_new = date(2025, 12, 30)   # Placeholder
+            # Estimate next Full/New Moon (simplified)
+            # Synodic month is ~29.53 days
+            days_to_new = (360 - phase_angle) / (360/29.53)
+            days_to_full = (180 - phase_angle) % 360 / (360/29.53)
+            
+            next_new = target_date + timedelta(days=round(days_to_new))
+            next_full = target_date + timedelta(days=round(days_to_full))
+            
+            # Illumination percentage (0-100)
+            # 100 * (1 - cos(radians(phase_angle))) / 2
+            illumination = 50 * (1 - math.cos(math.radians(phase_angle)))
             
             return LunarPhaseResponse(
                 phase_name=phase_name,
                 phase_percentage=round(phase_pct, 3),
-                illumination=round(phase_pct * 100, 1),
+                illumination=round(illumination, 1),
                 next_full_moon=next_full,
                 next_new_moon=next_new,
                 influence_score=influence_score
             )
             
         except Exception as e:
-            print(f"❌ Lunar phase API error: {e}")
-            # Fallback: calculate lunar phase mathematically
+            print(f"❌ Lunar calculation error: {e}")
             return self._calculate_lunar_phase_fallback(target_date)
     
     def _get_moon_phase_name(self, phase: float) -> str:
