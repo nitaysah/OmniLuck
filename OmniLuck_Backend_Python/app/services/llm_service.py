@@ -244,7 +244,52 @@ Fortune message:"""
             }
             
         except Exception as e:
-            print(f"❌ AI Analysis error: {e}")
+            print(f"⚠️ Gemini Analysis error: {e}")
+            
+            # Try Groq Fallback
+            if self.groq_client:
+                try:
+                    import json
+                    print("🔄 Falling back to Groq (Analysis)...")
+                    
+                    chat_completion = self.groq_client.chat.completions.create(
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": "You are a mystical astrologer. Output strictly valid JSON."
+                            },
+                            {
+                                "role": "user",
+                                "content": prompt,
+                            }
+                        ],
+                        model="llama-3.1-8b-instant",
+                        temperature=0.7,
+                    )
+                    
+                    text_response = chat_completion.choices[0].message.content.strip()
+                    
+                    # Extract JSON if wrapped in markdown
+                    if "```" in text_response:
+                        text_response = text_response.split("```json")[-1].split("```")[0]
+                    elif "{" not in text_response:
+                        raise ValueError("No JSON found in response")
+                        
+                    clean_json = text_response.strip()
+                    parsed_data = json.loads(clean_json)
+                    
+                    return {
+                        "score": max(0, min(100, parsed_data.get("score", 75))),
+                        "explanation": parsed_data.get("explanation", "The stars are aligning for you."),
+                        "actions": parsed_data.get("actions", ["Seize the day", "Reflect inward", "Smile often"]),
+                        "caption": f"{parsed_data.get('archetype', 'Cosmic Traveler')} | {parsed_data.get('caption', 'Cosmic Alignment')}",
+                        "summary": parsed_data.get("summary", "Your chart is balanced today."),
+                        "strategic_advice": parsed_data.get("strategy", "Balance your internal drive with external patience."),
+                        "lucky_time_slots": parsed_data.get("schedule", [])
+                    }
+                except Exception as groq_e:
+                    print(f"❌ Groq Analysis error: {groq_e}")
+
             # Fallback
             score = self._calculate_numerology_fallback(user_data)
             return self._fallback_response(
@@ -349,8 +394,29 @@ Lucky actions:"""
                 text = response.text
                 actions = [line.strip("- ").strip() for line in text.strip().split("\n") if line.strip()]
                 return actions[:3]
-            except:
-                pass
+            except Exception as e:
+                print(f"⚠️ Gemini Actions error: {e}")
+                
+                # Try Groq Fallback
+                if self.groq_client:
+                    try:
+                        print("🔄 Falling back to Groq (Actions)...")
+                        chat_completion = self.groq_client.chat.completions.create(
+                            messages=[
+                                {
+                                    "role": "user",
+                                    "content": prompt,
+                                }
+                            ],
+                            model="llama3-70b-8192",
+                            temperature=0.7,
+                        )
+                        text = chat_completion.choices[0].message.content
+                        actions = [line.strip("- ").strip() for line in text.strip().split("\n") if line.strip()]
+                        return actions[:3]
+                    except Exception as ge:
+                        print(f"❌ Groq Actions error: {ge}")
+                        pass
         
         # Fallback actions
         return [
