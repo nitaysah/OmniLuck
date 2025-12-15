@@ -14,18 +14,23 @@ struct GalaxyView: View {
             
             ZStack {
                 // 1. Celestial Cloud Background (Replaces Stars)
+                // 1. Celestial Cloud Background (REMOVED)
+                /*
                 Image("celestial_cloud")
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: geo.size.width, height: geo.size.height)
                     .scaleEffect(cloudScale)
-                    .opacity(0.8)
+                    .opacity(0.3)
+                    .colorInvert()
+                    .blendMode(.multiply)
                     .ignoresSafeArea()
                     .onAppear {
                         withAnimation(.easeInOut(duration: 20).repeatForever(autoreverses: true)) {
                             cloudScale = 1.2
                         }
                     }
+                */
                 
                 // 2. Outer Galaxy Glow
                 Circle()

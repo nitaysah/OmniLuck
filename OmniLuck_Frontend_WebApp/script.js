@@ -535,36 +535,45 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Populate List
                         forecastList.innerHTML = '';
                         forecast.trajectory.forEach(day => {
-                            const d = new Date(day.date);
+                            const d = new Date(day.date + 'T00:00:00'); // Ensure parsed as local date
                             const dayName = d.toLocaleDateString('en-US', { weekday: 'short' }); // "Mon"
                             const score = day.luck_score;
 
                             const dayEl = document.createElement('div');
                             dayEl.className = 'forecast-day';
+                            // Container style
                             dayEl.style.cssText = `
                                 flex: 1;
-                                min-width: 0;
-                                background: rgba(255,255,255,0.4);
-                                border-radius: 8px;
-                                padding: 6px 2px;
+                                min-width: 0; 
                                 display: flex;
                                 flex-direction: column;
                                 align-items: center;
-                                justify-content: space-between;
-                                height: 80px;
+                                justify-content: flex-end;
+                                height: 100px; /* Fixed height for alignment */
                             `;
 
-                            // Color code bar
-                            let color = '#FFA000';
-                            if (score >= 80) color = '#4CAF50';
-                            else if (score < 50) color = '#FF5722';
+                            // Color Logic (Matching iOS)
+                            let colorStart, colorEnd;
+                            if (score >= 80) { colorStart = '#4CAF50'; colorEnd = 'rgba(76, 175, 80, 0.5)'; } // Green
+                            else if (score < 50) { colorStart = '#FF9800'; colorEnd = 'rgba(255, 152, 0, 0.5)'; } // Orange
+                            else { colorStart = '#FFD700'; colorEnd = 'rgba(255, 215, 0, 0.5)'; } // Gold
+
+                            // Bar Height Calculation (Max 60px approx)
+                            const barHeight = Math.max(10, score * 0.6);
 
                             dayEl.innerHTML = `
-                                <span style="font-size: 0.65rem; font-weight: 600; color: #555;">${dayName}</span>
-                                <div style="width: 4px; height: 35px; background: rgba(0,0,0,0.1); border-radius: 2px; position: relative;">
-                                    <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: ${score}%; background: ${color}; border-radius: 2px;"></div>
-                                </div>
-                                <span style="font-size: 0.65rem; font-weight: 700; color: ${color};">${score}</span>
+                                <span style="font-size: 0.65rem; font-weight: 700; color: #555; margin-bottom: 2px;">${score}</span>
+                                
+                                <div style="
+                                    width: 16px; 
+                                    height: ${barHeight}px; 
+                                    background: linear-gradient(to bottom, ${colorStart}, ${colorEnd}); 
+                                    border-radius: 4px; 
+                                    margin-bottom: 4px;
+                                    transition: height 0.5s ease-out;
+                                "></div>
+                                
+                                <span style="font-size: 0.65rem; font-weight: 600; color: #777;">${dayName}</span>
                             `;
                             forecastList.appendChild(dayEl);
                         });

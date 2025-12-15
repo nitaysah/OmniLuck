@@ -1,7 +1,21 @@
 import SwiftUI
 
+struct ResultView: View {
     let percentage: Int
     let explanation: OmniLuckLogic.LuckExplanation
+    var caption: String? = nil
+    var summary: String? = nil // Why this score?
+
+    
+    // Computed property for caption with fallback to match Web App logic
+    var displayCaption: String {
+        if let c = caption, !c.isEmpty { return c }
+        if percentage >= 80 { return "🚀 Cosmic Jackpot!" }
+        else if percentage >= 60 { return "✨ Strong Vibes" }
+        else if percentage >= 40 { return "⚖️ Balanced Energy" }
+        else { return "🛡️ Stay Grounded" }
+    }
+
     // Birth Info for fetching chart
     var birthInfo: (dob: Date, time: Date, place: String)? = nil
     
@@ -113,6 +127,15 @@ import SwiftUI
                     }
                 }
                 
+                // Caption (Web App Match)
+                if showCard {
+                    Text(displayCaption)
+                        .font(.title) // Larger title font
+                        .fontWeight(.bold)
+                        .foregroundColor(deepPurple)
+                        .transition(.opacity)
+                }
+
                 // Expl Card
                 if showCard {
                     VStack(alignment: .leading, spacing: 16) {
@@ -128,6 +151,15 @@ import SwiftUI
                                     .background(Capsule().fill(accentPurple.opacity(0.5)).overlay(Capsule().stroke(accentGold.opacity(0.5), lineWidth: 1)))
                                     .foregroundColor(deepPurple)
                             }
+                        }
+                        
+                        // Why this score?
+                        if let sum = summary {
+                            Divider().padding(.vertical, 4)
+                            Text("Why this score?").font(.caption).fontWeight(.bold).foregroundColor(deepPurple)
+                            Text(sum)
+                                .font(.caption2)
+                                .foregroundColor(deepPurple.opacity(0.8))
                         }
                     }
                     .padding(20).frame(maxWidth: .infinity, alignment: .leading)
@@ -389,6 +421,7 @@ import SwiftUI
                 .padding(.horizontal).padding(.bottom, 30)
             }
             }
+
         }
         .navigationBarBackButtonHidden(true)
         .preferredColorScheme(.light)
@@ -396,18 +429,22 @@ import SwiftUI
     
     // Helper
     func getDayName(_ dateStr: String) -> String {
-        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.locale = Locale(identifier: "en_US_POSIX") // Ensure fixed format parsing
         if let d = f.date(from: dateStr) {
             f.dateFormat = "EEE" // "Mon"
             return f.string(from: d)
         }
-        return "?"
+        return dateStr.prefix(3).capitalized // Fallback to string slicing if parse fails? Or just return "?"
     }
     
     func formatDayMonth(_ dateStr: String) -> String {
-        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.locale = Locale(identifier: "en_US_POSIX")
         if let d = f.date(from: dateStr) {
-            f.dateFormat = "MMM d" // "Dec 14"
+            f.dateFormat = "EEE, MMM d" // "Sun, Dec 15"
             return f.string(from: d)
         }
         return dateStr

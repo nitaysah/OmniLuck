@@ -94,8 +94,10 @@ struct ContentView: View {
                         percentage: result.luck_score,
                         explanation: OmniLuckLogic.LuckExplanation(
                              text: result.explanation,
-                             traits: ["Cosmic", "Aligned", "Lucky"]
+                             traits: ["Cosmic", "Aligned", "Lucky"] // Fallback if no traits?
                         ),
+                        caption: result.caption,
+                        summary: result.summary,
                         birthInfo: (dob: dob, time: birthTime, place: birthPlace),
                         strategicAdvice: result.strategic_advice,
                         luckyTimeSlots: result.lucky_time_slots
