@@ -5,6 +5,7 @@ Integrates external APIs to provide environmental context for luck predictions.
 import httpx
 import asyncio
 from datetime import datetime, date, timedelta
+from typing import Optional
 import math
 import swisseph as swe
 from app.config import settings
