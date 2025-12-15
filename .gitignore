@@ -1,8 +1,3 @@
-# General
-.DS_Store
-.AppleDouble
-.LSOverride
-
 # Environment Variables
 .env
 .env.local
@@ -13,29 +8,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 venv/
-env/
 .venv/
-build/
-dist/
-*.egg-info/
+env/
+.env/
 
-# Node / Web
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.cache/
-dist/
+# Mac
+.DS_Store
 
-# Swift / Xcode
-build/
-DerivedData/
-*.xcodeproj/project.pbxproj
-*.xcodeproj/xcuserdata/
-*.xcworkspace/contents.xcworkspacedata
-*.xcworkspace/xcuserdata/
-.swiftpm/
-
-# IDEs
+# IDE
 .vscode/
 .idea/

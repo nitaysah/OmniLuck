@@ -1,4 +1,4 @@
-#!/Users/nitaysah/Documents/Antigravity/backend/venv/bin/python3
+#!/Users/nitaysah/Documents/Antigravity/OmniLuck/OmniLuck_Backend_Python/venv/bin/python3.10
 # -*- coding: utf-8 -*-
 # Copyright 2025 Google LLC
 #

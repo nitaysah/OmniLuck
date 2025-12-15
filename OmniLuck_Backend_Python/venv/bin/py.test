@@ -1,4 +1,4 @@
-#!/Users/nitaysah/Documents/Antigravity/backend/venv/bin/python3
+#!/Users/nitaysah/Documents/Antigravity/OmniLuck/OmniLuck_Backend_Python/venv/bin/python3.10
 import sys
 from pytest import console_main
 if __name__ == '__main__':
