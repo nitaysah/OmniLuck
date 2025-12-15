@@ -4,7 +4,9 @@ Uses Google Gemini API (free tier).
 """
 import os
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
+import requests
+import json
 from app.config import settings
 
 
@@ -42,6 +44,12 @@ class LLMService:
                 except Exception as e:
                     print(f"❌ Groq configuration failed: {e}")
                     self.groq_client = None
+        
+        # Setup for Local LLM (Ollama)
+        if self.use_local:
+             self.ollama_url = "http://localhost:11434/api/generate"
+             self.local_model = "llama3" # Default, user might need 'mistral' or 'llama2'
+             print(f"ℹ️  Local LLM enabled. pointing to {self.ollama_url}")
         else:
             if self.use_local:
                 print("ℹ️  Using local LLM mode (fallback templates)")
@@ -70,6 +78,9 @@ class LLMService:
         # Build context prompt
         prompt = self._build_fortune_prompt(luck_score, user_data, cosmic_signals, astrology_data)
         
+        if self.use_local:
+            return self._call_local_llm(prompt) or self._fallback_template(luck_score, user_data)
+
             # Try Gemini first
         if self.model:
             try:
@@ -177,6 +188,12 @@ Fortune message:"""
             return "Capricorn"
         except: return "Traveler"
 
+    def _fallback_template(self, luck_score: int, user_data: Dict) -> str:
+        """Generate static fallback text"""
+        name = user_data.get("name", "Traveler")
+        zodiac = user_data.get("zodiac", "Traveler")
+        return f"🌙 {name}, as a {zodiac}, you're navigating steady cosmic currents today. Balance is your superpower. Trust the journey you're on and stay grounded in your wisdom."
+
     def _fallback_response(self, user_name: str, luck_score: int, zodiac: str = "Traveler") -> Dict:
         """Generate static fallback response if AI fails"""
         sign = zodiac if zodiac else "Traveler"
@@ -203,8 +220,29 @@ Fortune message:"""
         Analyze user's profile and cosmic data to generate content.
         Note: AI no longer calculates the score; it explains the provided data.
         """
-        # If no model configured, return deterministic fallback immediately
-        if not self.model:
+        # Build comprehensive analysis prompt
+        prompt = self._build_analysis_prompt(user_data, cosmic_signals, astrology_data, numerology_data)
+
+        # If using local LLM
+        if self.use_local:
+            try:
+                print("🔄 Using Local LLM (Ollama)...")
+                response_text = self._call_local_llm(prompt, json_mode=True)
+                if response_text:
+                    parsed_data = json.loads(response_text)
+                    return {
+                        "score": max(0, min(100, parsed_data.get("score", 75))),
+                        "explanation": parsed_data.get("explanation", "The stars are aligning locally."),
+                        "actions": parsed_data.get("actions", ["Trust yourself", "Look within", "Act locally"]),
+                        "caption": f"{parsed_data.get('archetype', 'Local Sage')} | {parsed_data.get('caption', 'Inner Wisdom')}",
+                        "summary": parsed_data.get("summary", "Your local energy is strong."),
+                        "strategic_advice": parsed_data.get("strategy", "Rely on your internal compass."),
+                        "lucky_time_slots": parsed_data.get("schedule", [])
+                    }
+            except Exception as e:
+                print(f"❌ Local LLM error: {e}")
+            
+            # Fallback if local fails
             score = self._calculate_numerology_fallback(user_data)
             return {
                 "score": score,
@@ -212,8 +250,17 @@ Fortune message:"""
                 "actions": ["Stay positive", "Trust your intuition", "Help others today"]
             }
 
-        # Build comprehensive analysis prompt
-        prompt = self._build_analysis_prompt(user_data, cosmic_signals, astrology_data, numerology_data)
+        # If no model configured, return deterministic fallback immediately
+        if not self.model and not self.groq_client and not self.use_local:
+             score = self._calculate_numerology_fallback(user_data)
+             return self._fallback_response(
+                user_data.get("name", "Traveler"), 
+                score, 
+                user_data.get("zodiac", "Traveler")
+            )
+
+        
+
         
         try:
             import json
@@ -424,6 +471,29 @@ Lucky actions:"""
             "Wear purple or gold for enhanced luck",
             "Best time for key activities: afternoon"
         ]
+
+
+    
+    def _call_local_llm(self, prompt: str, json_mode: bool = False) -> Optional[str]:
+        """Call local Ollama instance"""
+        try:
+            payload = {
+                "model": self.local_model,
+                "prompt": prompt,
+                "stream": False,
+                "temperature": 0.7
+            }
+            if json_mode:
+                payload["format"] = "json"
+                
+            response = requests.post(self.ollama_url, json=payload, timeout=30)
+            response.raise_for_status()
+            
+            data = response.json()
+            return data.get("response", "").strip()
+        except Exception as e:
+            print(f"⚠️ Failed to call Local LLM (Ollama): {e}")
+            return None
 
 
 # Singleton instance

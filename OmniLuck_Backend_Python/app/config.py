@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     EPHEMERIS_PATH: str = "/usr/share/swisseph"  # Default Linux path
     
     # LLM Settings
-    USE_LOCAL_LLM: bool = True  # Set to False to use OpenAI
+    USE_LOCAL_LLM: bool = False  # Set to False to use OpenAI/Cloud APIs
     LOCAL_LLM_MODEL: str = "orca-mini-3b-gguf2-q4_0.gguf"
     
     class Config:
