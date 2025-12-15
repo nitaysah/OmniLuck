@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     # External APIs
     OPENWEATHER_API_KEY: str = ""
     GEMINI_API_KEY: str = ""  # Google Gemini for AI fortune generation
+    GROQ_API_KEY: str = ""    # Groq API Key (Fallback for Gemini)
     OPENAI_API_KEY: str = ""  # Optional
     
     # Firebase

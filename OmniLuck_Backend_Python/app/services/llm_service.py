@@ -14,19 +14,34 @@ class LLMService:
     def __init__(self):
         self.use_local = settings.USE_LOCAL_LLM
         self.gemini_key = settings.GEMINI_API_KEY
+        self.groq_key = settings.GROQ_API_KEY
         self.model = None
+        self.groq_client = None
         
-        print(f"🔧 LLM Service: use_local={self.use_local}, has_key={bool(self.gemini_key)}")
+        print(f"🔧 LLM Service: use_local={self.use_local}, has_gemini={bool(self.gemini_key)}, has_groq={bool(self.groq_key)}")
         
-        if not self.use_local and self.gemini_key:
-            try:
-                import google.generativeai as genai
-                genai.configure(api_key=self.gemini_key)
-                self.model = genai.GenerativeModel('models/gemini-2.0-flash')
-                print("✅ Google Gemini 2.0 Flash configured (SDK)")
-            except Exception as e:
-                print(f"❌ Gemini configuration failed: {e}")
-                self.model = None
+        if not self.use_local:
+            # Initialize Gemini
+            if self.gemini_key:
+                try:
+                    import google.generativeai as genai
+                    genai.configure(api_key=self.gemini_key)
+                    self.model = genai.GenerativeModel('models/gemini-2.0-flash')
+                    # Test connection validity quickly? No, lazy load.
+                    print("✅ Google Gemini 2.0 Flash configured (SDK)")
+                except Exception as e:
+                    print(f"❌ Gemini configuration failed: {e}")
+                    self.model = None
+
+            # Initialize Groq as fallback
+            if self.groq_key:
+                try:
+                    from groq import Groq
+                    self.groq_client = Groq(api_key=self.groq_key)
+                    print("✅ Groq (Llama 3) configured as fallback")
+                except Exception as e:
+                    print(f"❌ Groq configuration failed: {e}")
+                    self.groq_client = None
         else:
             if self.use_local:
                 print("ℹ️  Using local LLM mode (fallback templates)")
@@ -55,18 +70,40 @@ class LLMService:
         # Build context prompt
         prompt = self._build_fortune_prompt(luck_score, user_data, cosmic_signals, astrology_data)
         
-        # Generate using Gemini SDK if available
+            # Try Gemini first
         if self.model:
             try:
                 response = self.model.generate_content(prompt)
                 return response.text.strip()
-                
             except Exception as e:
-                print(f"❌ LLM generation error: {e}")
+                print(f"⚠️ Gemini API error: {e}")
+                # Fall through to Groq
+        
+        # Try Groq (Llama 3) fallback
+        if self.groq_client:
+            try:
+                print("🔄 Falling back to Groq (Llama 3)...")
+                chat_completion = self.groq_client.chat.completions.create(
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are a mystical and wise astrologer. Give personalized daily fortune readings."
+                        },
+                        {
+                            "role": "user",
+                            "content": prompt,
+                        }
+                    ],
+                    model="llama3-70b-8192",
+                    temperature=0.7,
+                )
+                return chat_completion.choices[0].message.content.strip()
+            except Exception as e:
+                print(f"❌ Groq API error: {e}")
                 return self._fallback_template(luck_score, user_data)
-        else:
-            # Fallback to templates
-            return self._fallback_template(luck_score, user_data)
+                
+        # Fallback to templates
+        return self._fallback_template(luck_score, user_data)
     
     def _build_fortune_prompt(
         self,
