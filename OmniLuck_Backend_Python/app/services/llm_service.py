@@ -17,23 +17,27 @@ class LLMService:
         self.use_local = settings.USE_LOCAL_LLM
         self.gemini_key = settings.GEMINI_API_KEY
         self.groq_key = settings.GROQ_API_KEY
-        self.model = None
+        self.gemini_client = None
+        self.gemini_model_id = None
         self.groq_client = None
         
         print(f"🔧 LLM Service: use_local={self.use_local}, has_gemini={bool(self.gemini_key)}, has_groq={bool(self.groq_key)}")
         
+        # Circuit Breaker defaults
+        self.gemini_cooldown_until = 0
+        self.cooldown_duration = 60
+
         if not self.use_local:
             # Initialize Gemini
             if self.gemini_key:
                 try:
-                    import google.generativeai as genai
-                    genai.configure(api_key=self.gemini_key)
-                    self.model = genai.GenerativeModel('models/gemini-2.0-flash')
-                    # Test connection validity quickly? No, lazy load.
-                    print("✅ Google Gemini 2.0 Flash configured (SDK)")
+                    from google import genai
+                    self.gemini_client = genai.Client(api_key=self.gemini_key)
+                    self.gemini_model_id = 'gemini-2.0-flash'
+                    print("✅ Google Gemini 2.0 Flash configured (v1 SDK)")
                 except Exception as e:
                     print(f"❌ Gemini configuration failed: {e}")
-                    self.model = None
+                    self.gemini_client = None
 
             # Initialize Groq as fallback
             if self.groq_key:
@@ -44,17 +48,15 @@ class LLMService:
                 except Exception as e:
                     print(f"❌ Groq configuration failed: {e}")
                     self.groq_client = None
-        
-        # Setup for Local LLM (Ollama)
-        if self.use_local:
-             self.ollama_url = "http://localhost:11434/api/generate"
-             self.local_model = "llama3" # Default, user might need 'mistral' or 'llama2'
-             print(f"ℹ️  Local LLM enabled. pointing to {self.ollama_url}")
+            
+            if not self.gemini_key and not self.groq_key:
+                 print("⚠️  No cloud API keys found - using fallback templates")
+
         else:
-            if self.use_local:
-                print("ℹ️  Using local LLM mode (fallback templates)")
-            elif not self.gemini_key:
-                print("⚠️  No Gemini API key found - using fallback templates")
+             # Setup for Local LLM (Ollama)
+             self.ollama_url = "http://localhost:11434/api/generate"
+             self.local_model = "llama3"
+             print(f"ℹ️  Local LLM enabled. pointing to {self.ollama_url}")
     
     def generate_fortune_explanation(
         self,
@@ -82,9 +84,12 @@ class LLMService:
             return self._call_local_llm(prompt) or self._fallback_template(luck_score, user_data)
 
             # Try Gemini first
-        if self.model:
+        if self.gemini_client:
             try:
-                response = self.model.generate_content(prompt)
+                response = self.gemini_client.models.generate_content(
+                    model=self.gemini_model_id,
+                    contents=prompt
+                )
                 return response.text.strip()
             except Exception as e:
                 print(f"⚠️ Gemini API error: {e}")
@@ -251,7 +256,7 @@ Fortune message:"""
             }
 
         # If no model configured, return deterministic fallback immediately
-        if not self.model and not self.groq_client and not self.use_local:
+        if not self.gemini_client and not self.groq_client and not self.use_local:
              score = self._calculate_numerology_fallback(user_data)
              return self._fallback_response(
                 user_data.get("name", "Traveler"), 
@@ -264,11 +269,18 @@ Fortune message:"""
         
         try:
             import json
+            import time
+            
+            # Circuit Breaker Check
+            if time.time() < self.gemini_cooldown_until:
+                 raise Exception(f"Gemini Cooling Down ({int(self.gemini_cooldown_until - time.time())}s)")
+
             
             # Use SDK to generate content
-            response = self.model.generate_content(
-                prompt,
-                generation_config={
+            response = self.gemini_client.models.generate_content(
+                model=self.gemini_model_id,
+                contents=prompt,
+                config={
                     "temperature": 0.7,
                     "max_output_tokens": 500,
                 }
@@ -291,6 +303,13 @@ Fortune message:"""
             }
             
         except Exception as e:
+            # Check for Quota Error to set cooldown
+            error_str = str(e).lower()
+            if "429" in error_str or "quota" in error_str or "resource exhausted" in error_str:
+                 import time
+                 self.gemini_cooldown_until = time.time() + self.cooldown_duration
+                 print(f"⚠️ Gemini Quota Exceeded. Cooldown set for {self.cooldown_duration}s.")
+
             print(f"⚠️ Gemini Analysis error: {e}")
             
             # Try Groq Fallback
@@ -425,7 +444,7 @@ Fortune message:"""
     ) -> List[str]:
         """Generate 3 personalized lucky actions"""
         
-        if self.model:
+        if self.gemini_client:
             try:
                 zodiac = user_data.get("zodiac", "your sign")
                 prompt = f"""Generate 3 short, specific lucky actions for someone with {luck_score}/100 luck score as a {zodiac}.
@@ -437,7 +456,10 @@ Format as a simple list, each action 5-10 words maximum. Examples:
 
 Lucky actions:"""
                 
-                response = self.model.generate_content(prompt)
+                response = self.gemini_client.models.generate_content(
+                    model=self.gemini_model_id,
+                    contents=prompt
+                )
                 text = response.text
                 actions = [line.strip("- ").strip() for line in text.strip().split("\n") if line.strip()]
                 return actions[:3]
