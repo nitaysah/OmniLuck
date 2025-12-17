@@ -191,18 +191,18 @@
                 Sign In
             </button>
 
+            <div style="text-align: center; margin-bottom: 20px;">
+                <a href="#" id="forgot-password-link"
+                    style="color: var(--deep-purple); font-size: 0.9rem; text-decoration: none; font-weight: 500;">Forgot
+                    Password?</a>
+            </div>
+
             <div style="text-align: center; margin-bottom: 15px;">
                 <p style="color: var(--deep-purple); margin-bottom: 10px;">Don't have an account?</p>
                 <a href="signup.html" class="google-btn"
                     style="background: white; color: var(--deep-purple); border: 1px solid var(--deep-purple); justify-content: center; text-decoration: none; display: flex; box-sizing: border-box;">
-                    Create Account
+                    Get Started
                 </a>
-            </div>
-
-            <div style="text-align: center;">
-                <a href="#" id="forgot-password-link"
-                    style="color: var(--deep-purple); font-size: 0.9rem; text-decoration: none; font-weight: 500;">Forgot
-                    Password?</a>
             </div>
         </div>
 
@@ -341,28 +341,28 @@
         });
 
         if (forgotCancelBtn) forgotCancelBtn.addEventListener('click', () => {
-             forgotModal.style.display = 'none';
+            forgotModal.style.display = 'none';
         });
 
         if (forgotSendBtn) forgotSendBtn.addEventListener('click', async () => {
-             const email = forgotEmailInput.value.trim();
-             if (!email) { alert("Please enter your email."); return; }
+            const email = forgotEmailInput.value.trim();
+            if (!email) { alert("Please enter your email."); return; }
 
-             try {
-                 forgotSendBtn.textContent = "Sending...";
-                 forgotSendBtn.disabled = true;
-                 await sendPasswordResetEmail(auth, email);
-                 alert(`Password reset link sent to: ${email}\nPlease check your inbox/spam.`);
-                 forgotModal.style.display = 'none';
-                 forgotEmailInput.value = ''; // Clear
-             } catch (error) {
-                 console.error("Reset Error:", error);
-                 let msg = error.code === 'auth/user-not-found' ? "No account found with this email." : error.message;
-                 alert(msg);
-             } finally {
-                 forgotSendBtn.textContent = "Send Link";
-                 forgotSendBtn.disabled = false;
-             }
+            try {
+                forgotSendBtn.textContent = "Sending...";
+                forgotSendBtn.disabled = true;
+                await sendPasswordResetEmail(auth, email);
+                alert(`Password reset link sent to: ${email}\nPlease check your inbox/spam.`);
+                forgotModal.style.display = 'none';
+                forgotEmailInput.value = ''; // Clear
+            } catch (error) {
+                console.error("Reset Error:", error);
+                let msg = error.code === 'auth/user-not-found' ? "No account found with this email." : error.message;
+                alert(msg);
+            } finally {
+                forgotSendBtn.textContent = "Send Link";
+                forgotSendBtn.disabled = false;
+            }
         });
 
         if (guestBtn) guestBtn.addEventListener('click', () => {

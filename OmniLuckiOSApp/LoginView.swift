@@ -206,6 +206,14 @@ struct LoginView: View {
                     .disabled(email.isEmpty || password.isEmpty)
                     .opacity((email.isEmpty || password.isEmpty) ? 0.6 : 1)
                     
+                    Button(action: { showForgotPassword = true }) {
+                        Text("Forgot Password?")
+                            .font(.footnote)
+                            .foregroundColor(deepPurple)
+                            .fontWeight(.medium)
+                    }
+                    .padding(.top, 5)
+                    
                     
                     // Create Account Button
                     VStack(spacing: 10) {
@@ -214,7 +222,7 @@ struct LoginView: View {
                             .foregroundColor(deepPurple)
                         
                         Button(action: { showSignup = true }) {
-                            Text("Create Account")
+                            Text("Get Started")
                                 .fontWeight(.semibold)
                                 .frame(maxWidth: .infinity)
                                 .padding(12)
@@ -228,13 +236,6 @@ struct LoginView: View {
                         }
                     }
                     
-                    Button(action: { showForgotPassword = true }) {
-                        Text("Forgot Password?")
-                            .font(.footnote)
-                            .foregroundColor(deepPurple)
-                            .fontWeight(.medium)
-                    }
-                    .padding(.top, 0)
                 }
                 .padding(24)
                 .background(
