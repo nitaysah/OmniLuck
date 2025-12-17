@@ -61,8 +61,8 @@ async def calculate_luck(request: LuckCalculationRequest):
                 "sun_sign": natal_chart.sun_sign,
                 "moon_sign": natal_chart.moon_sign,
                 "ascendant": natal_chart.ascendant,
-                "transits_score": transits.influence_score,
-                "aspects": transits.aspects
+                "transits_score": transits_result.influence_score,
+                "aspects": transits_result.aspects
             }
         except Exception as e:
             print(f"⚠️ Astrology Error: {e}")

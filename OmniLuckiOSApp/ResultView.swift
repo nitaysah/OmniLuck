@@ -64,6 +64,7 @@ struct ResultView: View {
             
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 20) {
+                    // Prevent horizontal overflow
                 
                 // Result Animation
                 VStack(spacing: 20) {
@@ -427,8 +428,11 @@ struct ResultView: View {
                 }
                 .padding(.horizontal).padding(.bottom, 60) // Increased bottom padding for safe scroll area
             }
+            .frame(maxWidth: UIScreen.main.bounds.width) // Hard constrain to screen width
+            .clipped() // Prevent horizontal overflow
             .padding(.top, 20) // Add some top padding inside scroll
             }
+            .scrollBounceBehavior(.basedOnSize) // iOS 16.4+ only bounces when content overflows
 
 
         }
