@@ -103,12 +103,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (userMenuContainer) userMenuContainer.style.display = 'block';
 
         // Populate User Info
+        // Populate User Info
+        const dName = document.getElementById('dashboard-name-display');
+        const dPlace = document.getElementById('dashboard-place-display');
+        const dTime = document.getElementById('dashboard-time-display');
+
         if (user.name) {
             nameInput.value = user.name;
             name = user.name;
             // Update Dashboard & Menu
             document.getElementById('user-greeting').textContent = `Hi, ${user.name.split(' ')[0]}`;
             if (dashboardUserName) dashboardUserName.textContent = user.name.split(' ')[0];
+            if (dName) dName.textContent = user.name;
         }
 
         if (user.dob) {
@@ -125,17 +131,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Zodiac Icon
                 const z = getZodiacSign(d, m);
                 if (dashboardZodiacIcon) dashboardZodiacIcon.textContent = z.icon;
+                const dashboardZodiacName = document.getElementById('dashboard-zodiac-name');
+                if (dashboardZodiacName) dashboardZodiacName.textContent = z.name;
             }
         }
 
         // Auto-fill Place and Time from Firebase/Local DB
         const birthPlaceEl = document.getElementById('birth-place');
-        if (user.birth_place && birthPlaceEl) {
-            birthPlaceEl.value = user.birth_place;
-            if (dashboardPlace) dashboardPlace.textContent = user.birth_place;
+        if (user.birth_place) {
+            if (birthPlaceEl) birthPlaceEl.value = user.birth_place;
+            if (dPlace) dPlace.textContent = user.birth_place;
         }
-        if (user.birth_time && birthTimeInput) {
-            birthTimeInput.value = user.birth_time;
+        if (user.birth_time) {
+            if (birthTimeInput) birthTimeInput.value = user.birth_time;
+            if (dTime) {
+                // Format 14:30 -> 2:30 PM
+                try {
+                    const [h, m] = user.birth_time.split(':');
+                    const d = new Date(); d.setHours(h); d.setMinutes(m);
+                    dTime.textContent = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                } catch (e) { dTime.textContent = user.birth_time; }
+            }
+        } else {
+            if (dTime) dTime.textContent = "Unknown (12:00 PM)";
         }
     } else {
         // === GUEST FLOW ===
@@ -157,6 +175,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (revealBtn) revealBtn.click();
         });
     }
+
+    // Connect Menu Items
+    const menuAboutBtn = document.getElementById('menu-about-btn');
+    const menuContactBtn = document.getElementById('menu-contact-btn');
+    const menuSettingsBtn = document.getElementById('menu-settings-btn');
+
+    // Navigate to respective pages
+    if (menuAboutBtn) menuAboutBtn.addEventListener('click', () => window.location.href = 'about.html');
+    if (menuContactBtn) menuContactBtn.addEventListener('click', () => window.location.href = 'contact.html');
+    if (menuSettingsBtn) menuSettingsBtn.addEventListener('click', () => window.location.href = 'settings.html');
 
     // Connect Logouts
     function handleLogout() {
@@ -347,53 +375,40 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // 2. Determine "Current" Location for Weather
-            // Logic: Use birth location as proxy if no current location is available (common for simple apps)
-            // Ideally: We would ask for navigator.geolocation here
-            let currentLat = birthLocation ? birthLocation.lat : 28.6139; // Default to New Delhi if unknown
+            let currentLat = birthLocation ? birthLocation.lat : 28.6139;
             let currentLon = birthLocation ? birthLocation.lon : 77.2090;
 
-            // Capture Personal Context
-
-
-
-            // Update request with "current" location so backend uses it for signals too
+            // Update request
             const requestData = {
                 uid: localStorage.getItem('currentUser') ? JSON.parse(localStorage.getItem('currentUser')).uid : "guest",
                 name: name,
                 dob: dob,
-                birth_time: (tobNaCheckbox && tobNaCheckbox.checked) ? "12:00" : (birthTimeInput ? birthTimeInput.value : ""),
-                // Add Birth Location Data
+                birth_time: (tobNaCheckbox && tobNaCheckbox.checked) ? "" : (birthTimeInput ? birthTimeInput.value : ""),
                 birth_place_name: birthPlaceVal || null,
                 birth_lat: birthLocation ? birthLocation.lat : null,
                 birth_lon: birthLocation ? birthLocation.lon : null,
-                // Pass current location to backend
                 current_lat: currentLat,
                 current_lon: currentLon,
-                // Personalization
-
-
             };
 
-            console.log("Sending Request:", requestData); // Debug log
+            console.log("Sending Request:", requestData);
 
-            const response = await api.calculateLuck(requestData);
-
-            // 3. Fetch Cosmic Signals (Removed from UI)
-            // const cosmicPromise = api.getAllSignals(currentLat, currentLon);
+            // Fetch Luck and Forecast in parallel
+            const [response, forecastResponse] = await Promise.all([
+                api.calculateLuck(requestData),
+                api.getForecast(requestData).catch(e => null) // Fail silently for forecast
+            ]);
 
             // Process Luck Response
             const percentage = response.luck_score || 0;
             const explanation = response.explanation || "The stars are silent today...";
-            const actions = response.recommended_actions || [];
 
-            // Display Zodiac on Result
+            // Display Zodiac
             displayZodiacResult();
 
-            // New Fields
+            // Caption
             let caption = response.caption;
             const summary = response.summary;
-
-            // Fallback Caption Logic if backend didn't return one
             if (!caption) {
                 if (percentage >= 80) caption = "🚀 Cosmic Jackpot!";
                 else if (percentage >= 60) caption = "✨ Strong Vibes";
@@ -403,9 +418,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update UI Elements
             document.getElementById('result-caption').textContent = caption;
-
             fortuneText.innerHTML = explanation.replace(/\n/g, '<br>');
 
+            // Summary
             if (summary) {
                 document.getElementById('factors-text').textContent = summary;
                 document.getElementById('factors-box').style.display = 'block';
@@ -413,24 +428,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('factors-box').style.display = 'none';
             }
 
-            // Update Traits
-            traitsList.innerHTML = '';
-            // Zodiac Logic - EXACT match from OmniLuckLogic.swift or use defaults if not in API response yet
-            // Note: Current API endpoint returns 'explanation' string.
-            // We can parse traits or use a random selection for now if API doesn't return list
-            // For MVP, if API strictly returns text, we can hide traits or generate local ones.
-            // Let's generate simple local traits based on percentage for visual flare
-            // Basic traits mapping just for visual (since API doesn't return distinct list yet)
-            // In future, update backend to return "traits": ["Bold", "Lucky"]
+            // Render Traits (Visual Flair)
+            renderTraits(percentage);
 
+            // Render Strategy Card
+            renderStrategy(response.strategic_advice, response.lucky_time_slots);
 
-            // Update Actions
-            // actions logic removed
+            // Render Forecast Card
+            if (forecastResponse && forecastResponse.trajectory) {
+                renderForecast(forecastResponse);
+            } else {
+                document.getElementById('forecast-flip-card').style.display = 'none';
+            }
 
             // Switch Views
             inputView.classList.remove('active');
-            if (dashboardView) dashboardView.classList.remove('active'); // Hide dashboard if active
+            if (dashboardView) dashboardView.classList.remove('active');
             resultView.classList.add('active');
+
+            // Hide User Menu on Result Page (Focus on Result)
+            const userMenuContainer = document.getElementById('user-menu-container');
+            if (userMenuContainer) userMenuContainer.style.display = 'none';
 
             // Animate
             setTimeout(() => {
@@ -448,18 +466,128 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- Helper Functions ---
+
+    function renderTraits(score) {
+        // Simple logic to generate trait pills based on score if backend doesn't provide them
+        const traitsList = document.getElementById('traits-list');
+        traitsList.innerHTML = '';
+
+        let tags = [];
+        if (score >= 90) tags = ["Cosmic", "Unstoppable", "Lucky"];
+        else if (score >= 75) tags = ["Bold", "Positive", "Radiant"];
+        else if (score >= 50) tags = ["Steady", "Balanced", "Calm"];
+        else tags = ["Grounded", "Caution", "Introspective"];
+
+        tags.forEach(tag => {
+            const span = document.createElement('span');
+            span.className = 'trait-pill'; // Defined in style.css hopefully, or use inline
+            span.style.cssText = "display: inline-block; background: rgba(124, 77, 255, 0.15); color: var(--deep-purple); padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1px solid rgba(124, 77, 255, 0.3);";
+            span.textContent = tag;
+            traitsList.appendChild(span);
+        });
+    }
+
+    function renderStrategy(strategy, slots) {
+        const card = document.getElementById('strategy-card');
+        if (!strategy) {
+            card.style.display = 'none';
+            return;
+        }
+
+        card.style.display = 'block';
+        document.getElementById('strategy-text').textContent = strategy;
+
+        const slotsList = document.getElementById('time-slots-list');
+        slotsList.innerHTML = '';
+
+        if (slots && slots.length > 0) {
+            slots.forEach(slot => {
+                const div = document.createElement('div');
+                div.style.cssText = "background: white; border: 1px solid var(--accent-gold); color: var(--deep-purple); font-size: 0.75rem; font-weight: 700; padding: 6px 10px; border-radius: 8px;";
+                div.textContent = slot;
+                slotsList.appendChild(div);
+            });
+        }
+    }
+
+    function renderForecast(data) {
+        const card = document.getElementById('forecast-flip-card');
+        card.style.display = 'block';
+
+        // Listeners for Flip
+        const inner = document.getElementById('forecast-flip-inner');
+        card.onclick = (e) => {
+            // Prevent drag/select issues
+            e.preventDefault();
+            card.classList.toggle('flipped');
+        };
+
+        // Populate Top Stats
+        // Find best day
+        let best = data.trajectory[0];
+        data.trajectory.forEach(d => { if (d.luck_score > best.luck_score) best = d; });
+
+        document.getElementById('forecast-trend').textContent = data.trend_direction;
+
+        // Format date: YYYY-MM-DD -> MMM DD
+        const formatDate = (ds) => {
+            const d = new Date(ds);
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }); // Force UTC to avoid shift
+        };
+
+        document.getElementById('forecast-best').textContent = `${formatDate(best.date)} (${best.luck_score}%)`;
+
+        // Render Bar Chart
+        const list = document.getElementById('forecast-list');
+        list.innerHTML = '';
+
+        data.trajectory.forEach(day => {
+            // Day Name
+            const dateObj = new Date(day.date);
+            const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
+
+            const container = document.createElement('div');
+            container.style.cssText = "display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0;";
+
+            const scoreLabel = document.createElement('span');
+            scoreLabel.textContent = day.luck_score;
+            scoreLabel.style.cssText = "font-size: 9px; font-weight: bold; color: var(--deep-purple); margin-bottom: 2px;";
+
+            const barHeight = Math.max(10, day.luck_score * 0.7); // scale
+            const bar = document.createElement('div');
+            // Gradient based on score
+            let colorStart = day.luck_score >= 80 ? '#4CAF50' : (day.luck_score < 50 ? '#FF9800' : '#FFD700');
+
+            bar.style.cssText = `width: 100%; height: ${barHeight}px; background: linear-gradient(to bottom, ${colorStart}, rgba(255,255,255,0.5)); border-radius: 4px 4px 0 0; opacity: 0.8;`;
+
+            const dateLabel = document.createElement('span');
+            dateLabel.textContent = dayName;
+            dateLabel.style.cssText = "font-size: 9px; color: var(--deep-purple); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;";
+
+            container.appendChild(scoreLabel);
+            container.appendChild(bar);
+            container.appendChild(dateLabel);
+            list.appendChild(container);
+        });
+    }
+
     function goBack() {
         resultView.classList.remove('active');
 
-        // Determine where to go back to
         const currentUser = localStorage.getItem('currentUser');
         if (currentUser && dashboardView) {
             dashboardView.classList.add('active');
+            // Show Menu again if logged in
+            const userMenuContainer = document.getElementById('user-menu-container');
+            if (userMenuContainer) userMenuContainer.style.display = 'block';
         } else {
             inputView.classList.add('active');
+            // Hide Menu if guest (should be handled by initUserSession but safe to ensure)
+            const userMenuContainer = document.getElementById('user-menu-container');
+            if (userMenuContainer) userMenuContainer.style.display = 'none';
         }
 
-        // Reset progress ring
         const progressRing = document.querySelector('.progress-ring-fill');
         if (progressRing) {
             progressRing.style.strokeDashoffset = 565.48; // Circumference
@@ -467,7 +595,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultPercentage.textContent = '0';
     }
 
-    backBtn.addEventListener('click', goBack);
+    if (backBtn) backBtn.addEventListener('click', goBack);
     tryAgainBtn.addEventListener('click', goBack);
 
     // Guest Home Button Logic

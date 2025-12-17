@@ -21,9 +21,12 @@ struct ContentView: View {
     @State private var showError = false
     @State private var errorMessage = ""
     @State private var showLogoutAlert = false
-    @State private var showAbout = false
-    @State private var showContact = false
-    @State private var showSettings = false
+    @State private var activeSheet: SheetType?
+
+    enum SheetType: Identifiable {
+        case about, contact, settings
+        var id: Int { hashValue }
+    }
     
     // Light Celestial Color Palette
     let accentPurple = Color(red: 0.75, green: 0.6, blue: 0.95)  // Light purple
@@ -37,7 +40,7 @@ struct ContentView: View {
                 
                 if let profile = userSession.userProfile {
                     // === LOGGED IN DASHBOARD ===
-                    dashboardView(profile: profile)
+                    dashboardViewV3(profile: profile)
                 } else {
                     // === GUEST / INPUT MODE ===
                     ScrollView {
@@ -104,9 +107,13 @@ struct ContentView: View {
                     )
                 }
             }
-            .navigationDestination(isPresented: $showAbout) { AboutView() }
-            .navigationDestination(isPresented: $showContact) { ContactView() }
-            .navigationDestination(isPresented: $showSettings) { SettingsView() }
+            .sheet(item: $activeSheet) { item in
+                switch item {
+                case .about: AboutView()
+                case .contact: ContactView()
+                case .settings: SettingsView()
+                }
+            }
             #if os(iOS)
             .navigationBarHidden(true)
             #endif
@@ -152,19 +159,33 @@ struct ContentView: View {
             HStack {
                 Spacer()
                 Menu {
+                    Button(action: { activeSheet = .about }) { Label("About Us", systemImage: "info.circle") }
+                    Button(action: { activeSheet = .contact }) { Label("Contact Us", systemImage: "envelope") }
+                    Button(action: { activeSheet = .settings }) { Label("Settings", systemImage: "gearshape") }
+                    Divider()
                     Button(action: { showLogoutAlert = true }) {
                         Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right")
                     }
                 } label: {
-                    Image(systemName: "line.3.horizontal")
-                        .font(.title2)
-                        .foregroundColor(deepPurple)
-                        .padding()
+                    HStack(spacing: 8) {
+                        Text("Hi, \(profile.name?.components(separatedBy: " ").first ?? "User")")
+                            .font(.system(size: 16, weight: .semibold))
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 11, weight: .bold))
+                    }
+                    .foregroundColor(deepPurple)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 24)
+                            .fill(Color.white.opacity(0.4))
+                            .overlay(RoundedRectangle(cornerRadius: 24).stroke(Color.white.opacity(0.5), lineWidth: 1))
+                    )
+                    .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
                 }
+                .padding(.top, 55)
+                .padding(.trailing, 20)
             }
-            
-            // Welcome Section
-            Spacer()
             
             VStack(spacing: 20) {
                 ZStack {
@@ -195,27 +216,43 @@ struct ContentView: View {
                         .tracking(2)
                         .foregroundColor(deepPurple.opacity(0.6))
                     
-                    HStack(spacing: 20) {
-                        // Zodiac / DOB
-                        VStack {
-                            if let d = profile.dob {
-                                Text(formatDateForDisplay(d))
-                                    .font(.headline)
-                                    .foregroundColor(deepPurple)
-                            }
+                    VStack(alignment: .leading, spacing: 15) {
+                        // Name
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("My Full Name:").font(.caption).fontWeight(.bold).opacity(0.6).textCase(.uppercase).foregroundColor(deepPurple)
+                            Text(profile.name ?? "--").font(.title3).fontWeight(.bold).foregroundColor(deepPurple)
                         }
                         
-                        Divider().frame(height: 30)
+                        // Zodiac
+                        if let d = profile.dob {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("My Zodiac Sign:").font(.caption).fontWeight(.bold).opacity(0.6).textCase(.uppercase).foregroundColor(deepPurple)
+                                Text(getZodiacSign(from: d)).font(.title3).fontWeight(.bold).foregroundColor(deepPurple)
+                            }
+                        }
+
+                        // DOB
+                        if let d = profile.dob {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("My Date of Birth:").font(.caption).fontWeight(.bold).opacity(0.6).textCase(.uppercase).foregroundColor(deepPurple)
+                                Text(formatDateForDisplay(d)).font(.title3).fontWeight(.bold).foregroundColor(deepPurple)
+                            }
+                        }
                         
                         // Place
-                        VStack {
-                            if let p = profile.birth_place {
-                                Text(p)
-                                    .font(.subheadline)
-                                    .foregroundColor(deepPurple)
-                            }
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("My Place of Birth:").font(.caption).fontWeight(.bold).opacity(0.6).textCase(.uppercase).foregroundColor(deepPurple)
+                            Text(profile.birth_place ?? "--").font(.title3).fontWeight(.bold).foregroundColor(deepPurple)
+                        }
+                        
+                        // Time
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("My Time of Birth:").font(.caption).fontWeight(.bold).opacity(0.6).textCase(.uppercase).foregroundColor(deepPurple)
+                            Text(formatTime(profile.birth_time)).font(.title3).fontWeight(.bold).foregroundColor(deepPurple)
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 5)
                 }
                 .padding(25)
                 .background(Material.thinMaterial)
@@ -252,6 +289,26 @@ struct ContentView: View {
                     .padding(.top, 20)
                 }
                 .disabled(isButtonPressed)
+                
+                // Log Out Button
+                Button(action: {
+                    showLogoutAlert = true
+                }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "door.left.hand.open")
+                        Text("Log Out")
+                    }
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(deepPurple)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.white.opacity(0.4))
+                    .cornerRadius(16)
+                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.6), lineWidth: 1))
+                    .padding(.horizontal, 50)
+                    .padding(.top, 5)
+                }
             }
             
             Spacer()
@@ -276,6 +333,43 @@ struct ContentView: View {
             }
         }
         return dateStr // Fallback
+    }
+
+    private func formatTime(_ timeStr: String?) -> String {
+        guard let timeStr = timeStr, !timeStr.isEmpty else { return "Unknown (12:00 PM)" }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        if let date = formatter.date(from: timeStr) {
+            formatter.dateFormat = "h:mm a"
+            return formatter.string(from: date)
+        }
+        return timeStr
+    }
+
+    private func getZodiacSign(from dateStr: String) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        guard let date = formatter.date(from: dateStr) else { return "--" }
+        
+        let calendar = Calendar.current
+        let day = calendar.component(.day, from: date)
+        let month = calendar.component(.month, from: date)
+        
+        switch month {
+        case 1:  return day >= 20 ? "♒️ Aquarius" : "♑️ Capricorn"
+        case 2:  return day >= 19 ? "♓️ Pisces" : "♒️ Aquarius"
+        case 3:  return day >= 21 ? "♈️ Aries" : "♓️ Pisces"
+        case 4:  return day >= 20 ? "♉️ Taurus" : "♈️ Aries"
+        case 5:  return day >= 21 ? "♊️ Gemini" : "♉️ Taurus"
+        case 6:  return day >= 21 ? "♋️ Cancer" : "♊️ Gemini"
+        case 7:  return day >= 23 ? "♌️ Leo" : "♋️ Cancer"
+        case 8:  return day >= 23 ? "♍️ Virgo" : "♌️ Leo"
+        case 9:  return day >= 23 ? "♎️ Libra" : "♍️ Virgo"
+        case 10: return day >= 23 ? "♏️ Scorpio" : "♎️ Libra"
+        case 11: return day >= 22 ? "♐️ Sagittarius" : "♏️ Scorpio"
+        case 12: return day >= 22 ? "♑️ Capricorn" : "♐️ Sagittarius"
+        default: return "✨ Star Child"
+        }
     }
 
     private func triggerForecast() {
@@ -367,44 +461,7 @@ struct ContentView: View {
             }
             .padding(.top, 40)
             
-            if let profile = userSession.userProfile, let userName = profile.name {
-                Menu {
-                    Button(action: { showAbout = true }) {
-                        Label("About Us", systemImage: "info.circle")
-                    }
-                    Button(action: { showContact = true }) {
-                        Label("Contact Us", systemImage: "envelope")
-                    }
-                    Button(action: { showSettings = true }) {
-                        Label("Settings", systemImage: "gearshape")
-                    }
-                    Divider()
-                    Button(role: .destructive, action: { showLogoutAlert = true }) {
-                        Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right")
-                    }
-                } label: {
-                    HStack(spacing: 6) {
-                        Text("Hi, \(userName.components(separatedBy: " ").first ?? userName)")
-                            .font(.system(size: 14, weight: .semibold))
-                        Image(systemName: "chevron.down") // Changed to chevron for menu indication
-                            .font(.system(size: 10, weight: .bold)) // Smaller chevron
-                    }
-                    .foregroundColor(deepPurple)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.white.opacity(0.4))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color.white.opacity(0.5), lineWidth: 1)
-                            )
-                    )
-                    .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
-                }
-                .padding(.top, 0)
-                .padding(.trailing, 20)
-            }
+
         }
     }
 }
@@ -686,6 +743,208 @@ struct ContentView: View {
             .padding(.bottom, 30)
         }
     }
+    // MARK: - Dashboard Layout V3 (Responsive, Non-Scrolling)
+    private func dashboardViewV3(profile: UserProfile) -> some View {
+        ZStack(alignment: .top) {
+            
+            // Top Menu Overlay (ZIndex Higher)
+            HStack {
+                Spacer()
+                Menu {
+                    Button(action: { activeSheet = .about }) { Label("About Us", systemImage: "info.circle") }
+                    Button(action: { activeSheet = .contact }) { Label("Contact Us", systemImage: "envelope") }
+                    Button(action: { activeSheet = .settings }) { Label("Settings", systemImage: "gearshape") }
+                    Divider()
+                    Button(action: { showLogoutAlert = true }) { Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right") }
+                } label: {
+                    HStack(spacing: 8) {
+                        Text("Hi, \(profile.name?.components(separatedBy: " ").first ?? "User")")
+                            .font(.system(size: 16, weight: .semibold))
+                            .minimumScaleFactor(0.8)
+                            .lineLimit(1)
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 11, weight: .bold))
+                    }
+                    .foregroundColor(deepPurple)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 24)
+                            .fill(Color.white.opacity(0.4))
+                            .overlay(RoundedRectangle(cornerRadius: 24).stroke(Color.white.opacity(0.5), lineWidth: 1))
+                    )
+                    .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                }
+                .padding(.top, 50)
+                .padding(.trailing, 20)
+            }
+            .zIndex(10)
+            
+            // Main Content Layer
+            VStack(spacing: 0) {
+                // Header Region (Max 15-20% height)
+                VStack(spacing: 2) {
+                    Text("Welcome back,")
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundColor(deepPurple)
+                        .minimumScaleFactor(0.8)
+                    
+                    Text(profile.name?.components(separatedBy: " ").first ?? "Traveler")
+                        .font(.system(size: 44, weight: .bold, design: .rounded))
+                        .foregroundColor(Color(red: 0.85, green: 0.8, blue: 1.0))
+                        .shadow(color: Color.white.opacity(0.8), radius: 2, x: 0, y: 0)
+                        .minimumScaleFactor(0.6)
+                        .lineLimit(1)
+                    
+                    Text("The cosmos awaits your query.")
+                        .font(.caption)
+                        .foregroundColor(deepPurple.opacity(0.6))
+                        .padding(.top, 4)
+                }
+                .padding(.top, 100) // Spacing to clear the Menu
+                .padding(.bottom, 10)
+                
+                Spacer(minLength: 10)
+                
+                // Content Card (Flexible Height)
+                VStack(spacing: 0) {
+                    Text("YOUR COSMIC PROFILE")
+                        .font(.system(size: 11, weight: .bold))
+                        .tracking(2)
+                        .foregroundColor(deepPurple.opacity(0.5))
+                        .padding(.bottom, 20)
+                    
+                    // Vertical Stacked Data Points (Tight Spacing)
+                    VStack(alignment: .leading, spacing: 14) {
+                        
+                        // Name
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("MY FULL NAME:")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(deepPurple.opacity(0.5))
+                            Text(profile.name ?? "--")
+                                .font(.system(size: 18, weight: .bold, design: .rounded))
+                                .foregroundColor(deepPurple)
+                                .minimumScaleFactor(0.8)
+                                .lineLimit(1)
+                        }
+                        
+                        // Zodiac
+                        if let d = profile.dob {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("MY ZODIAC SIGN:")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(deepPurple.opacity(0.5))
+                                Text(getZodiacSign(from: d))
+                                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                                    .foregroundColor(deepPurple)
+                            }
+                        }
+                        
+                        // DOB
+                        if let d = profile.dob {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("MY DATE OF BIRTH:")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(deepPurple.opacity(0.5))
+                                Text(formatDateForDisplay(d))
+                                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                                    .foregroundColor(deepPurple)
+                            }
+                        }
+                        
+                        // Place
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("MY PLACE OF BIRTH:")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(deepPurple.opacity(0.5))
+                            Text(profile.birth_place ?? "--")
+                                .font(.system(size: 18, weight: .bold, design: .rounded))
+                                .foregroundColor(deepPurple)
+                                .minimumScaleFactor(0.8)
+                                .lineLimit(1)
+                        }
+                        
+                        // Time
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("MY TIME OF BIRTH:")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(deepPurple.opacity(0.5))
+                            Text(formatTime(profile.birth_time))
+                                .font(.system(size: 18, weight: .bold, design: .rounded))
+                                .foregroundColor(deepPurple)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(25)
+                .background(Color.white.opacity(0.95))
+                .cornerRadius(30)
+                .shadow(color: accentPurple.opacity(0.15), radius: 10, x: 0, y: 8)
+                .padding(.horizontal, 30)
+                
+                Spacer(minLength: 20)
+                
+                // Footer Buttons (Pinned Bottom)
+                VStack(spacing: 12) {
+                    Button(action: {
+                        triggerForecast()
+                    }) {
+                        HStack(spacing: 8) {
+                            Text("Forecast my Luck")
+                                .fontWeight(.bold)
+                            Image(systemName: "wand.and.stars")
+                        }
+                        .font(.title3)
+                        .foregroundColor(deepPurple)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(accentGold)
+                        .cornerRadius(22)
+                        .shadow(color: accentGold.opacity(0.5), radius: 8, x: 0, y: 4)
+                    }
+                    .disabled(isButtonPressed)
+                    .scaleEffect(isButtonPressed ? 0.98 : 1.0)
+                    
+                    Button(action: {
+                        showLogoutAlert = true
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "door.left.hand.open")
+                            Text("Logout")
+                        }
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(deepPurple)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Color.white)
+                        .cornerRadius(22)
+                        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+                    }
+                }
+                .padding(.horizontal, 30)
+                .padding(.bottom, 20) // Base padding
+            }
+        }
+        .ignoresSafeArea(.keyboard, edges: .bottom) // Avoid keyboard shift if any
+    }
+    
+    // Helper View for Compact Row
+    private func profileRow(label: String, value: String) -> some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(deepPurple.opacity(0.5))
+            Spacer()
+            Text(value)
+                .font(.system(size: 15, weight: .bold))
+                .foregroundColor(deepPurple)
+                .multilineTextAlignment(.trailing)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+    }
 }
 
 struct ContentView_Previews: PreviewProvider {
@@ -693,6 +952,10 @@ struct ContentView_Previews: PreviewProvider {
         ContentView(userSession: UserSession())
     }
 }
+
+// MARK: - Placeholder Views Removed (Using SideMenuViews.swift)
+
+// (Views defined in SideMenuViews.swift)
 
 
 // Galaxy Animation moved to GalaxyView.swift

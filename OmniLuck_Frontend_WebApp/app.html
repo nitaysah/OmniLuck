@@ -96,54 +96,103 @@
                 </svg>
             </button>
             <div id="user-dropdown" class="user-menu-dropdown">
+                <div id="menu-about-btn" class="menu-item">ℹ️ About Us</div>
+                <div id="menu-contact-btn" class="menu-item">📧 Contact Us</div>
+                <div id="menu-settings-btn" class="menu-item">⚙️ Settings</div>
+                <div style="height: 1px; background: rgba(0,0,0,0.1); margin: 4px 0;"></div>
                 <div id="menu-logout-btn" class="menu-item" style="color: #d32f2f;">🚪 Logout</div>
             </div>
         </div>
 
         <!-- Dashboard View (Logged In Landing) -->
         <div id="dashboard-view" class="view">
-            <header style="margin-top: 60px; margin-bottom: 30px;">
-                <div class="logo-container" style="margin-bottom: 20px;">
-                    <div class="logo-glow"></div>
-                    <span class="sparkle-icon">✨</span>
+            <header style="margin-top: 40px; margin-bottom: 15px;">
+                <!-- Welcome Text Stack (No Icon) -->
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 0px;">
+                    <span style="font-size: 1.5rem; font-weight: 700; color: var(--deep-purple);">Welcome back,</span>
+                    <span id="dashboard-user-name"
+                        style="font-size: 2.8rem; font-weight: 800; color: #D8CCFF; text-shadow: 0 2px 8px rgba(255,255,255,0.8); line-height: 1.1;">User</span>
                 </div>
-                <h1 style="font-size: 2.2rem; margin-bottom: 10px; line-height: 1.2;">Welcome back, <br><span
-                        id="dashboard-user-name" style="color: var(--accent-purple);">User</span></h1>
-                <p style="opacity: 0.8; font-size: 1rem;">The cosmos awaits your query.</p>
+                <p style="opacity: 0.6; font-size: 0.9rem; margin-top: 6px; color: var(--deep-purple);">The cosmos
+                    awaits your query.</p>
             </header>
 
             <div class="card"
                 style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.6); padding: 30px 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.05);">
                 <div style="text-align: center;">
-                    <div style="margin-bottom: 24px; color: var(--deep-purple);">
+                    <div style="text-align: left; margin-bottom: 24px; color: var(--deep-purple);">
                         <p
-                            style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; margin-bottom: 8px;">
-                            Your Profile</p>
+                            style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; margin-bottom: 12px; text-align: center;">
+                            Your Cosmic Profile</p>
+
                         <div
-                            style="font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                            <span id="dashboard-zodiac-icon" style="font-size: 1.4rem;"></span>
-                            <span id="dashboard-dob-display"></span>
+                            style="display: flex; flex-direction: column; gap: 16px; padding: 0 10px; text-align: left;">
+                            <!-- Name -->
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <span
+                                    style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.6; font-weight: 700;">My
+                                    Full Name:</span>
+                                <span id="dashboard-name-display"
+                                    style="font-weight: 800; font-size: 1.5rem; color: var(--deep-purple); line-height: 1.2;">--</span>
+                            </div>
+
+                            <!-- Zodiac -->
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <span
+                                    style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.6; font-weight: 700;">My
+                                    Zodiac Sign:</span>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 1.5rem;" id="dashboard-zodiac-icon">✨</span>
+                                    <span id="dashboard-zodiac-name"
+                                        style="font-weight: 800; font-size: 1.5rem; color: var(--deep-purple);">--</span>
+                                </div>
+                            </div>
+
+                            <!-- Date of Birth -->
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <span
+                                    style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.6; font-weight: 700;">My
+                                    Date of Birth:</span>
+                                <span id="dashboard-dob-display"
+                                    style="font-weight: 800; font-size: 1.5rem; color: var(--deep-purple);">--</span>
+                            </div>
+
+                            <!-- Place -->
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <span
+                                    style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.6; font-weight: 700;">My
+                                    Place of Birth:</span>
+                                <span id="dashboard-place-display"
+                                    style="font-weight: 800; font-size: 1.5rem; color: var(--deep-purple);">--</span>
+                            </div>
+
+                            <!-- Time -->
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <span
+                                    style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.6; font-weight: 700;">My
+                                    Time of Birth:</span>
+                                <span id="dashboard-time-display"
+                                    style="font-weight: 800; font-size: 1.5rem; color: var(--deep-purple);">--</span>
+                            </div>
                         </div>
-                        <div style="font-size: 0.95rem; opacity: 0.8; margin-top: 4px;"
-                            id="dashboard-birthplace-display"></div>
                     </div>
 
                     <button id="dashboard-reveal-btn" class="primary-btn"
-                        style="box-shadow: 0 10px 25px rgba(124, 77, 255, 0.3); width: 100%;">
+                        style="box-shadow: 0 10px 25px rgba(124, 77, 255, 0.3); width: 100%; margin-bottom: 16px;">
                         <span class="btn-text">Forecast my Luck</span>
                         <span class="btn-icon">🪄</span>
                     </button>
+
+                    <button id="dashboard-logout-main-btn" class="secondary-btn"
+                        style="width: 100%; background: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.5);">
+                        <span>🚪</span> Logout
+                    </button>
                 </div>
             </div>
-
-            <button id="dashboard-logout-main-btn" class="secondary-btn"
-                style="margin-top: 24px; background: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.5);">
-                <span>🚪</span> Logout
-            </button>
         </div>
 
         <!-- Input View -->
-        <div id="input-view" class="input-view">
+        <div id="input-view" class="view input-view">
             <div style="position: absolute; top: 20px; left: 20px; z-index: 10;">
                 <button id="guest-home-btn"
                     style="background: white; border: 1px solid rgba(128, 77, 179, 0.3); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--deep-purple); cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.2s ease;">
@@ -252,160 +301,168 @@
                 </button>
             </div>
 
-            <!-- Result View -->
-            <div id="result-view" class="view">
-                <button id="back-btn" class="back-btn">
-                    <span>←</span> Back
-                </button>
+        </div>
+        <!-- Result View -->
+        <div id="result-view" class="view">
+            <!-- Back button removed to focus on result display -->
 
-                <div class="result-content">
-                    <div class="result-header">
-                        <h2>Your Daily Luck</h2>
-                        <!-- Zodiac Moved -->
-                    </div>
-
-                    <div class="luck-circle">
-                        <svg class="progress-ring" viewBox="0 0 200 200">
-                            <circle class="progress-ring-bg" cx="100" cy="100" r="90" />
-                            <circle class="progress-ring-fill" cx="100" cy="100" r="90" />
-                        </svg>
-                        <div class="luck-value">
-                            <span id="result-percentage">0</span>
-                            <span class="percent-sign">%</span>
-                        </div>
-                    </div>
-
-                    <!-- NEW: Daily Report Button -->
-                    <!-- Buttons Moved -->
-
-                    <!-- Cosmic Dashboard Removed -->
-
-                    <div class="fortune-card">
-                        <!-- New Caption: "Cosmic Jackpot!" -->
-                        <h2 id="result-caption" class="result-caption"></h2>
-
-                        <div class="fortune-header">
-                            <span class="fortune-icon">✨</span>
-                            <h3>Daily Luck Analysis</h3>
-                        </div>
-
-                        <p id="fortune-text"></p>
-
-                        <!-- Factors Summary -->
-                        <div id="factors-box" class="factors-box">
-                            <span class="factors-label">WHY THIS SCORE:</span>
-                            <p id="factors-text"></p>
-                        </div>
-
-                        <!-- Trait Pills -->
-                        <div id="traits-list" class="traits-list"></div>
-                    </div>
-
-                    <!-- NEW: Cosmic Strategy Protocol Card -->
-                    <div id="strategy-card" class="fortune-card"
-                        style="display: none; background: rgba(255, 255, 255, 0.9); border-color: var(--accent-purple);">
-                        <div class="fortune-header">
-                            <span class="fortune-icon">🧭</span>
-                            <h3>Cosmic Strategy</h3>
-                        </div>
-
-                        <p id="strategy-text"
-                            style="font-style: italic; color: var(--deep-purple); opacity: 0.9; margin-bottom: 16px;">
-                        </p>
-
-                        <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <span
-                                style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--accent-purple); letter-spacing: 1px;">POWER
-                                HOURS</span>
-                            <div id="time-slots-list" style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                <!-- Injected Time Pills -->
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <!-- 7-Day Forecast FLIP Card -->
-                    <div id="forecast-flip-card" class="flip-card" style="display: none;">
-                        <div class="flip-card-inner" id="forecast-flip-inner">
-
-                            <!-- FRONT SIDE - Teaser -->
-                            <div class="flip-card-front"
-                                style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(192, 153, 240, 0.25)); border: 1px solid var(--accent-purple);">
-                                <span style="font-size: 3rem; margin-bottom: 12px;">🔮</span>
-                                <h3 style="color: var(--deep-purple); font-weight: 700; margin: 0;">7-Day Cosmic
-                                    Forecast
-                                </h3>
-                                <p style="color: var(--deep-purple); opacity: 0.7; margin: 8px 0 0 0;">Tap to reveal
-                                    your
-                                    luck trajectory</p>
-                                <div
-                                    style="display: flex; align-items: center; gap: 8px; margin-top: 16px; color: var(--accent-purple);">
-                                    <span style="font-size: 1.2rem;">👆</span>
-                                    <span style="font-size: 0.85rem; font-weight: 600;">Click to flip</span>
-                                </div>
-                            </div>
-
-                            <!-- BACK SIDE - Full Chart -->
-                            <div class="flip-card-back">
-
-                                <div
-                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span style="font-size: 1.3rem;">📅</span>
-                                        <h3 style="margin: 0; font-size: 1rem; color: var(--deep-purple);">7-Day Luck
-                                            Trajectory</h3>
-                                    </div>
-                                    <span style="font-size: 1.1rem; opacity: 0.5;">↩️</span>
-                                </div>
-
-                                <div
-                                    style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.8rem; padding: 0 4px;">
-                                    <span style="color: var(--deep-purple);">Trend: <strong id="forecast-trend"
-                                            style="color: var(--accent-purple);">--</strong></span>
-                                    <span style="color: var(--deep-purple);">Peak: <strong id="forecast-best"
-                                            style="color: var(--accent-purple);">--</strong></span>
-                                </div>
-
-                                <div id="forecast-list"
-                                    style="display: flex; gap: 4px; flex: 1; width: 100%; align-items: flex-end;">
-                                    <!-- JS Injected Items -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Daily Report Button (Moved here) -->
-                    <button id="kundali-btn" class="secondary-btn"
-                        style="margin-bottom: 24px; background: rgba(255,255,255,0.3); border: 1px solid var(--accent-purple);">
-                        <span>📜</span> Read my Daily Astro Report
-                    </button>
-
-                    <!-- NEW: Report Modal (Hidden by default) -->
-                    <div id="kundali-modal" class="modal" style="display: none;">
-                        <div class="modal-content card">
-                            <span class="close-modal">&times;</span>
-                            <h3>Daily Cosmic Report</h3>
-                            <div id="kundali-report-content" class="report-text">
-                                <p>Loading report...</p>
-                            </div>
-                        </div>
-                    </div>
-
-
+            <div class="result-content">
+                <div class="result-header">
+                    <h2>Your Daily Luck</h2>
+                    <!-- Zodiac Moved -->
                 </div>
 
-                <button id="try-again-btn" class="secondary-btn">
-                    <span>🏠</span> Home
-                </button>
-            </div>
-        </div>
+                <div class="luck-circle">
+                    <svg class="progress-ring" viewBox="0 0 200 200">
+                        <circle class="progress-ring-bg" cx="100" cy="100" r="90" />
+                        <circle class="progress-ring-fill" cx="100" cy="100" r="90" />
+                    </svg>
+                    <div class="luck-value">
+                        <span id="result-percentage">0</span>
+                        <span class="percent-sign">%</span>
+                    </div>
+                </div>
 
-        <!-- Firebase Config -->
-        <script type="module" src="firebase-config.js?v=5"></script>
-        <!-- API Client -->
-        <script type="module" src="api-client.js?v=5"></script>
-        <!-- Main Logic -->
-        <script type="module" src="script.js?v=5"></script>
+                <!-- NEW: Daily Report Button -->
+                <!-- Buttons Moved -->
+
+                <!-- Cosmic Dashboard Removed -->
+
+                <div class="fortune-card">
+                    <!-- New Caption: "Cosmic Jackpot!" -->
+                    <h2 id="result-caption" class="result-caption"></h2>
+
+                    <div class="fortune-header">
+                        <span class="fortune-icon">✨</span>
+                        <h3>Daily Luck Analysis</h3>
+                    </div>
+
+                    <p id="fortune-text"></p>
+
+                    <!-- Factors Summary -->
+                    <div id="factors-box" class="factors-box">
+                        <span class="factors-label">WHY THIS SCORE:</span>
+                        <p id="factors-text"></p>
+                    </div>
+
+                    <!-- Trait Pills -->
+                    <div id="traits-list" class="traits-list"></div>
+                </div>
+
+                <!-- NEW: Cosmic Strategy Protocol Card -->
+                <div id="strategy-card" class="fortune-card"
+                    style="display: none; background: rgba(255, 255, 255, 0.9); border-color: var(--accent-purple);">
+                    <div class="fortune-header">
+                        <span class="fortune-icon">🧭</span>
+                        <h3>Cosmic Strategy</h3>
+                    </div>
+
+                    <p id="strategy-text"
+                        style="font-style: italic; color: var(--deep-purple); opacity: 0.9; margin-bottom: 16px;">
+                    </p>
+
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <span
+                            style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--accent-purple); letter-spacing: 1px;">POWER
+                            HOURS</span>
+                        <div id="time-slots-list" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            <!-- Injected Time Pills -->
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- 7-Day Forecast FLIP Card -->
+                <div id="forecast-flip-card" class="flip-card" style="display: none;">
+                    <div class="flip-card-inner" id="forecast-flip-inner">
+
+                        <!-- FRONT SIDE - Teaser -->
+                        <div class="flip-card-front"
+                            style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(192, 153, 240, 0.25)); border: 1px solid var(--accent-purple);">
+                            <span style="font-size: 3rem; margin-bottom: 12px;">🔮</span>
+                            <h3 style="color: var(--deep-purple); font-weight: 700; margin: 0;">7-Day Cosmic
+                                Forecast
+                            </h3>
+                            <p style="color: var(--deep-purple); opacity: 0.7; margin: 8px 0 0 0;">Tap to reveal
+                                your
+                                luck trajectory</p>
+                            <div
+                                style="display: flex; align-items: center; gap: 8px; margin-top: 16px; color: var(--accent-purple);">
+                                <span style="font-size: 1.2rem;">👆</span>
+                                <span style="font-size: 0.85rem; font-weight: 600;">Click to flip</span>
+                            </div>
+                        </div>
+
+                        <!-- BACK SIDE - Full Chart -->
+                        <div class="flip-card-back">
+
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 1.3rem;">📅</span>
+                                    <h3 style="margin: 0; font-size: 1rem; color: var(--deep-purple);">7-Day Luck
+                                        Trajectory</h3>
+                                </div>
+                                <span style="font-size: 1.1rem; opacity: 0.5;">↩️</span>
+                            </div>
+
+                            <div
+                                style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.8rem; padding: 0 4px;">
+                                <span style="color: var(--deep-purple);">Trend: <strong id="forecast-trend"
+                                        style="color: var(--accent-purple);">--</strong></span>
+                                <span style="color: var(--deep-purple);">Peak: <strong id="forecast-best"
+                                        style="color: var(--accent-purple);">--</strong></span>
+                            </div>
+
+                            <div id="forecast-list"
+                                style="display: flex; gap: 4px; flex: 1; width: 100%; align-items: flex-end;">
+                                <!-- JS Injected Items -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Report Button (Moved here) -->
+                <button id="kundali-btn" class="secondary-btn"
+                    style="margin-bottom: 24px; background: rgba(255,255,255,0.3); border: 1px solid var(--accent-purple);">
+                    <span>📜</span> Read my Daily Astro Report
+                </button>
+
+                <!-- NEW: Report Modal (Hidden by default) -->
+                <div id="kundali-modal" class="modal" style="display: none;">
+                    <div class="modal-content card">
+                        <span class="close-modal">&times;</span>
+                        <h3>Daily Cosmic Report</h3>
+                        <div id="kundali-report-content" class="report-text">
+                            <p>Loading report...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Modal -->
+                <div id="info-modal" class="modal" style="display: none;">
+                    <div class="modal-content card" style="text-align: center;">
+                        <span class="close-modal" id="close-info-modal">&times;</span>
+                        <h3 id="info-modal-title" style="color: var(--deep-purple); margin-bottom: 15px;">--</h3>
+                        <p id="info-modal-text" style="color: var(--deep-purple); opacity: 0.8;">--</p>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <button id="try-again-btn" class="secondary-btn">
+                <span>🏠</span> Home
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase Config -->
+    <script type="module" src="firebase-config.js?v=5"></script>
+    <!-- API Client -->
+    <script type="module" src="api-client.js?v=5"></script>
+    <!-- Main Logic -->
+    <script type="module" src="script.js?v=5"></script>
 </body>
 
 </html>
