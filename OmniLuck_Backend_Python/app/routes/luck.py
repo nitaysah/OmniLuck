@@ -51,8 +51,10 @@ async def calculate_luck(request: LuckCalculationRequest):
                 timezone="UTC"
             )
             natal_chart = astrology_service.calculate_natal_chart(birth_info)
-            transits = astrology_service.calculate_daily_transits(datetime.now(), natal_chart)
-            astro_score = transits.influence_score
+            # Use current time but round to minute (no seconds) for consistency
+            current_time = datetime.now().replace(second=0, microsecond=0)
+            transits_result = astrology_service.calculate_daily_transits(current_time, natal_chart)
+            astro_score = transits_result.influence_score
             natal_score = natal_chart.strength_score
             
             astro_data = {
