@@ -17,12 +17,14 @@ struct SignupView: View {
     @State private var password = ""
     @State private var confirmPassword = ""
     @State private var dob = Date()
-    @State private var useManualDate = false
+    @State private var showDatePicker = false
     @State private var manualDateText = ""
     @State private var birthPlace = ""
     @State private var birthTime = Date()
     @State private var isLoading = false
     @State private var errorMessage = ""
+    @State private var useNAForTime = false
+    @State private var showTimeInfo = false
     
     enum Field {
         case username, firstName, middleName, lastName, email, password, confirmPassword, birthPlace
@@ -77,6 +79,17 @@ struct SignupView: View {
             .onTapGesture {
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             }
+        }
+        .onChange(of: focusedField) { _, field in
+            if field != nil { showDatePicker = false }
+        }
+        .onChange(of: isDateFieldFocused) { _, focused in
+            if focused { showDatePicker = false }
+        }
+        .alert("Time of Birth", isPresented: $showTimeInfo) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Add your exact local time of birth for full precision. This data acts as your cosmic GPS, identifying the precise degrees of your Rising Sign and the 12 Life Houses that shift every few minutes. These details are vital for accurate daily insights and a truly personalized Luck Score. If unknown, we apply the 12:00 PM Astrology standard to maximize planetary accuracy and provide reliable guidance.")
         }
         .preferredColorScheme(.light)
     }
@@ -192,50 +205,73 @@ struct SignupView: View {
         VStack(spacing: 16) {
             // DOB
             VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text("Date of Birth").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
-                    Spacer()
-                    Button(action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { useManualDate.toggle() }
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: useManualDate ? "slider.horizontal.3" : "keyboard")
-                            Text(useManualDate ? "Picker" : "Manual")
-                        }
-                        .font(.caption).foregroundColor(deepPurple)
-                    }
-                }
+                Text("Date of Birth").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
                 
-                if useManualDate {
+                VStack(spacing: 0) {
+                    // Manual Input with Calendar Icon
                     ZStack(alignment: .leading) {
                         if manualDateText.isEmpty {
-                            Text("MM/DD/YYYY").font(.subheadline).fontWeight(.bold).foregroundColor(deepPurple).padding(.leading, 16)
+                            Text("MM/DD/YYYY")
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                                .foregroundColor(deepPurple)
+                                .padding(.leading, 16)
                         }
-                        TextField("", text: $manualDateText)
-                            .padding(14)
-                            .background(Color.white.opacity(0.9))
-                            .cornerRadius(12)
-                            .foregroundColor(deepPurple)
-                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(accentPurple.opacity(0.5), lineWidth: 1))
-                            .keyboardType(.numbersAndPunctuation)
-                            .focused($isDateFieldFocused)
-                            .onChange(of: manualDateText) { _, newValue in
-                                let filtered = newValue.filter { "0123456789/".contains($0) }
-                                if filtered.count <= 10 { manualDateText = filtered }
-                                if filtered.count == 10 {
-                                    let formatter = DateFormatter()
-                                    formatter.dateFormat = "MM/dd/yyyy"
-                                    if let date = formatter.date(from: filtered) { dob = date }
+                        HStack {
+                            TextField("", text: $manualDateText)
+                                .padding(14)
+                                .foregroundColor(deepPurple)
+                                .keyboardType(.numbersAndPunctuation)
+                                .focused($isDateFieldFocused)
+                                .onChange(of: manualDateText) { _, newValue in
+                                    let filtered = newValue.filter { "0123456789/".contains($0) }
+                                    if filtered.count <= 10 { manualDateText = filtered }
+                                    if filtered.count == 10 {
+                                        let formatter = DateFormatter()
+                                        formatter.dateFormat = "MM/dd/yyyy"
+                                        if let date = formatter.date(from: filtered) { dob = date }
+                                    }
                                 }
+                            
+                            Button(action: {
+                                withAnimation {
+                                    showDatePicker.toggle()
+                                    if showDatePicker {
+                                        isDateFieldFocused = false
+                                        focusedField = nil
+                                    }
+                                }
+                            }) {
+                                Image(systemName: "calendar")
+                                    .font(.title2)
+                                    .foregroundColor(deepPurple)
+                                    .padding(.trailing, 16)
+                            }
+                        }
+                        .background(Color.white.opacity(0.9))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(accentPurple.opacity(showDatePicker ? 1.0 : 0.5), lineWidth: 1)
+                        )
+                    }
+                    
+                    // Conditional Picker
+                    if showDatePicker {
+                        DatePicker("", selection: $dob, displayedComponents: .date)
+                            .datePickerStyle(.wheel)
+                            .labelsHidden()
+                            .tint(accentPurple)
+                            .frame(height: 140)
+                            .clipped()
+                            .background(Color.white.opacity(0.5))
+                            .cornerRadius(12)
+                            .padding(.top, 8)
+                            .onChange(of: dob) { _, newDate in
+                                let f = DateFormatter(); f.dateFormat = "MM/dd/yyyy"
+                                manualDateText = f.string(from: newDate)
                             }
                     }
-                } else {
-                    DatePicker("", selection: $dob, displayedComponents: .date)
-                        .datePickerStyle(.wheel)
-                        .labelsHidden()
-                        .tint(accentPurple)
-                        .frame(height: 140)
-                        .clipped()
                 }
             }
             
@@ -254,11 +290,43 @@ struct SignupView: View {
             }
             
             // Time of Birth
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Time of Birth").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
-                DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
-                    .labelsHidden()
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Time of Birth").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
+                    
+                    Button(action: { showTimeInfo = true }) {
+                        Image(systemName: "info.circle")
+                            .font(.caption)
+                            .foregroundColor(deepPurple.opacity(0.7))
+                    }
+                    
+                    Spacer()
+                    
+                    Button(action: { useNAForTime.toggle() }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: useNAForTime ? "checkmark.square.fill" : "square")
+                            Text("Don't know")
+                        }
+                        .font(.caption).foregroundColor(deepPurple)
+                    }
+                }
+                
+                if !useNAForTime {
+                    DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
+                        .labelsHidden()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
+                        .background(Color.white.opacity(0.9))
+                        .cornerRadius(12)
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(accentPurple.opacity(0.5), lineWidth: 1))
+                } else {
+                    Text("Midday Alignment Active: Following the Astrology standard for unknown birth times, your chart is anchored to 12:00 PM to maximize planetary accuracy and ensure a reliable luck forecast.")
+                        .font(.caption)
+                        .foregroundColor(deepPurple.opacity(0.6))
+                        .italic()
+                        .padding(.top, 4)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
     }
@@ -284,7 +352,7 @@ struct SignupView: View {
                             password: password,
                             dob: formatDate(dob),
                             birthPlace: birthPlace,
-                            birthTime: birthTime
+                            birthTime: useNAForTime ? Calendar.current.date(bySettingHour: 12, minute: 0, second: 0, of: Date())! : birthTime
                         )
                         
                         await MainActor.run {

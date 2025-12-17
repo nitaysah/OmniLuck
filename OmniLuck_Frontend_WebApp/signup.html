@@ -163,8 +163,40 @@
                 </div>
 
                 <div class="input-row">
-                    <label>Time of Birth</label>
-                    <input type="time" id="birth-time" required>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label style="margin-bottom: 0;">Time of Birth</label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <button id="tob-info-btn" type="button"
+                                style="background:none; border:1px solid var(--deep-purple); color:var(--deep-purple); border-radius:50%; width:16px; height:16px; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;">i</button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                        <input type="checkbox" id="tob-na-checkbox" style="width: auto; margin: 0;">
+                        <label for="tob-na-checkbox"
+                            style="font-size: 0.8rem; color: var(--deep-purple); margin: 0; cursor: pointer;">Don't
+                            know</label>
+                    </div>
+
+                    <div id="time-inputs-container">
+                        <input type="time" id="birth-time">
+                    </div>
+
+                    <div id="tob-na-message"
+                        style="display: none; font-size: 0.75rem; color: var(--deep-purple); opacity: 0.8; font-style: italic; margin-top: 4px;">
+                        Midday Alignment Active: Following the Astrology standard for unknown birth times, your chart is
+                        anchored to 12:00 PM to maximize planetary accuracy and ensure a reliable luck forecast.
+                    </div>
+
+                    <div id="tob-explainer"
+                        style="display: none; font-size: 0.75rem; color: var(--deep-purple); background: rgba(128,77,179,0.1); padding: 8px; border-radius: 8px; margin-top: 4px; line-height: 1.4;">
+                        Add your exact local time of birth for full precision. This data acts as your cosmic GPS,
+                        identifying the precise degrees of your Rising Sign and the 12 Life Houses that shift every few
+                        minutes. These details are vital for accurate daily insights and a truly personalized Luck
+                        Score. If unknown, we apply the 12:00 PM Astrology standard to maximize planetary accuracy and
+                        provide reliable guidance.
+                    </div>
                 </div>
 
                 <button type="submit" class="submit-btn" style="margin-top: 10px;">Sign Up</button>
@@ -201,6 +233,36 @@
             return null;
         }
 
+        // Toggle UI Logic
+        const tobInfoBtn = document.getElementById('tob-info-btn');
+        const tobExplainer = document.getElementById('tob-explainer');
+        if (tobInfoBtn) {
+            tobInfoBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                tobExplainer.style.display = tobExplainer.style.display === 'none' ? 'block' : 'none';
+            });
+        }
+
+        const tobNaCheckbox = document.getElementById('tob-na-checkbox');
+        const timeContainer = document.getElementById('time-inputs-container');
+        const naMessage = document.getElementById('tob-na-message');
+        const birthTimeInput = document.getElementById('birth-time');
+
+        if (tobNaCheckbox) {
+            tobNaCheckbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    timeContainer.style.display = 'none';
+                    naMessage.style.display = 'block';
+                    birthTimeInput.value = '';
+                    birthTimeInput.required = false;
+                } else {
+                    timeContainer.style.display = 'block';
+                    naMessage.style.display = 'none';
+                    birthTimeInput.required = true;
+                }
+            });
+        }
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -218,10 +280,15 @@
             const confirmPassword = document.getElementById('confirm-password').value.trim();
             const dob = document.getElementById('dob').value;
             const birthPlace = document.getElementById('birth-place').value.trim();
-            const birthTime = document.getElementById('birth-time').value;
+
+            // Time Logic
+            let birthTimeVal = birthTimeInput.value;
+            if (tobNaCheckbox.checked) {
+                birthTimeVal = "12:00";
+            }
 
             // Simple Validation
-            if (!username || !fname || !lname || !email || !password || !confirmPassword || !dob || !birthPlace || !birthTime) {
+            if (!username || !fname || !lname || !email || !password || !confirmPassword || !dob || !birthPlace || !birthTimeVal) {
                 alert('Please fill in all required fields.');
                 submitBtn.textContent = originalBtnText;
                 submitBtn.disabled = false;
@@ -276,7 +343,7 @@
                     lastName: lname,
                     dob: dob,
                     birth_place: birthPlace,
-                    birth_time: birthTime,
+                    birth_time: birthTimeVal,
                     lat: coords ? coords.lat : 0.0,
                     lon: coords ? coords.lon : 0.0,
                     createdAt: new Date().toISOString()

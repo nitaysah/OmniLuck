@@ -60,8 +60,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // const weatherTempEl = document.getElementById('weather-temp');
     // const geoActivityEl = document.getElementById('geo-activity');
 
+    // State
     const inputView = document.getElementById('input-view');
     const resultView = document.getElementById('result-view');
+    const dashboardView = document.getElementById('dashboard-view');
+
+    // Dashboard Elements
+    const dashboardUserName = document.getElementById('dashboard-user-name');
+    const dashboardDob = document.getElementById('dashboard-dob-display');
+    const dashboardPlace = document.getElementById('dashboard-birthplace-display');
+    const dashboardZodiacIcon = document.getElementById('dashboard-zodiac-icon');
+    const dashboardRevealBtn = document.getElementById('dashboard-reveal-btn');
+    const dashboardLogoutBtn = document.getElementById('dashboard-logout-main-btn');
+    const menuLogoutBtn = document.getElementById('menu-logout-btn');
+
+    // Toggle User Menu
+    const userMenuBtn = document.getElementById('user-menu-btn');
+    const userDropdown = document.getElementById('user-dropdown');
+    if (userMenuBtn) {
+        userMenuBtn.addEventListener('click', () => {
+            userDropdown.classList.toggle('active');
+        });
+    }
 
     // State
     let name = '';
@@ -71,24 +91,85 @@ document.addEventListener('DOMContentLoaded', () => {
     const user = initUserSession();
 
     if (user) {
-        // Auto-fill form
+        // === LOGGED IN FLOW ===
+        // Show Dashboard, Hide Input Form
+        if (dashboardView) {
+            dashboardView.classList.add('active');
+            inputView.classList.remove('active');
+        }
+
+        // Show User Menu
+        const userMenuContainer = document.getElementById('user-menu-container');
+        if (userMenuContainer) userMenuContainer.style.display = 'block';
+
+        // Populate User Info
         if (user.name) {
             nameInput.value = user.name;
             name = user.name;
+            // Update Dashboard & Menu
+            document.getElementById('user-greeting').textContent = `Hi, ${user.name.split(' ')[0]}`;
+            if (dashboardUserName) dashboardUserName.textContent = user.name.split(' ')[0];
         }
+
         if (user.dob) {
             dobInput.value = user.dob;
             dob = user.dob;
+
+            // Format DOB for Dashboard
+            if (dashboardDob) {
+                // manual parse to avoid timezone shift from new Date("YYYY-MM-DD")
+                const [y, m, d] = user.dob.split('-').map(Number);
+                const dateObj = new Date(y, m - 1, d);
+                dashboardDob.textContent = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+                // Zodiac Icon
+                const z = getZodiacSign(d, m);
+                if (dashboardZodiacIcon) dashboardZodiacIcon.textContent = z.icon;
+            }
         }
+
         // Auto-fill Place and Time from Firebase/Local DB
         const birthPlaceEl = document.getElementById('birth-place');
         if (user.birth_place && birthPlaceEl) {
             birthPlaceEl.value = user.birth_place;
+            if (dashboardPlace) dashboardPlace.textContent = user.birth_place;
         }
         if (user.birth_time && birthTimeInput) {
             birthTimeInput.value = user.birth_time;
         }
+    } else {
+        // === GUEST FLOW ===
+        // Ensure Input View is Active (Default)
+        if (dashboardView) dashboardView.classList.remove('active');
+        inputView.classList.add('active');
+
+        // Update Logout Button to Home Button for Guests
+        const logoutMainBtn = document.getElementById('logout-main-btn');
+        if (logoutMainBtn) {
+            logoutMainBtn.innerHTML = '<span>🏠</span> Back to Home';
+        }
     }
+
+    // Connect Dashboard "Forecast" button to Main "Reveal" button
+    if (dashboardRevealBtn) {
+        dashboardRevealBtn.addEventListener('click', () => {
+            // Trigger the main logic
+            if (revealBtn) revealBtn.click();
+        });
+    }
+
+    // Connect Logouts
+    function handleLogout() {
+        localStorage.removeItem('currentUser');
+        window.location.href = 'index.html';
+    }
+
+    if (dashboardLogoutBtn) dashboardLogoutBtn.addEventListener('click', handleLogout);
+    if (menuLogoutBtn) menuLogoutBtn.addEventListener('click', handleLogout);
+
+    // Ensure the main entry logout button (visible to guests) also works
+    const logoutMainBtn = document.getElementById('logout-main-btn');
+    if (logoutMainBtn) logoutMainBtn.addEventListener('click', handleLogout);
 
     // Set default date to 25 years ago ONLY if empty
     if (!dobInput.value) {
@@ -236,8 +317,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // REVEAL BUTTON - CONNECTED TO BACKEND API
     // ==========================================
     revealBtn.addEventListener('click', async () => {
-        if (!name || !dob) {
-            alert("Please enter your Name and Date of Birth to reveal your fortune!");
+        const birthPlaceVal = document.getElementById('birth-place').value.trim();
+
+        if (!name || !dob || !birthPlaceVal) {
+            alert("Please enter your Name, Date of Birth, and Place of Birth to reveal your fortune!");
             return;
         }
 
@@ -278,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 uid: localStorage.getItem('currentUser') ? JSON.parse(localStorage.getItem('currentUser')).uid : "guest",
                 name: name,
                 dob: dob,
-                birth_time: (tobNaCheckbox && tobNaCheckbox.checked) ? "" : (birthTimeInput ? birthTimeInput.value : ""), // Send empty string if N/A or empty
+                birth_time: (tobNaCheckbox && tobNaCheckbox.checked) ? "12:00" : (birthTimeInput ? birthTimeInput.value : ""),
                 // Add Birth Location Data
                 birth_place_name: birthPlaceVal || null,
                 birth_lat: birthLocation ? birthLocation.lat : null,
@@ -346,215 +429,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Switch Views
             inputView.classList.remove('active');
+            if (dashboardView) dashboardView.classList.remove('active'); // Hide dashboard if active
             resultView.classList.add('active');
 
             // Animate
             setTimeout(() => {
                 animatePercentage(percentage);
             }, 300);
-
-            // === KUNDALI LOGIC START ===
-            const kundaliBtn = document.getElementById('kundali-btn');
-            const kundaliModal = document.getElementById('kundali-modal');
-            const closeModal = document.querySelector('.close-modal');
-            const kundaliContent = document.getElementById('kundali-report-content');
-
-            // Store chart data for modal usage
-            let chartData = null;
-
-            // Fetch Natal Chart if birth time is present
-            if (birthTimeInput && birthTimeInput.value) {
-                // We will ask one more time to fill the modal content
-                // In a real app we'd just use the response from calculateLuck if it had it
-                // For now, let's fetch it specifically for the modal
-                try {
-                    const birthInfo = {
-                        dob: dob,
-                        time: birthTimeInput.value,
-                        lat: birthLocation ? birthLocation.lat : 26.59,
-                        lon: birthLocation ? birthLocation.lon : 85.48,
-                        timezone: "UTC"
-                    };
-                    chartData = await api.calculateNatalChart(birthInfo);
-                } catch (e) { console.log("Chart fetch error", e); }
-            }
-
-            // Modal Events
-            if (kundaliBtn) {
-                // Show button only if birth time was given
-                kundaliBtn.style.display = (birthTimeInput && birthTimeInput.value) ? 'flex' : 'none';
-
-                kundaliBtn.onclick = () => {
-                    kundaliModal.classList.add('active'); // Use class for flex display
-                    kundaliModal.style.display = 'flex';
-
-                    if (chartData) {
-                        // Generate Simple Human Report
-                        let reportHtml = `
-                            <div style="text-align: left; line-height: 1.6; color: var(--deep-purple);">
-                                <p style="margin-bottom: 12px;"><strong>Your Rising Sign (Ascendant): </strong> ${chartData.ascendant}</p>
-                                <p style="margin-bottom: 12px; font-size: 0.95em;">
-                                    This sign represents your outer personality and how you interact with the world today.
-                                </p>
-                                
-                                <h4 style="margin-top:20px; margin-bottom:10px; border-bottom:1px solid rgba(0,0,0,0.1); padding-bottom:5px;">Key Planetary Influences</h4>
-                                <ul style="padding-left: 20px; font-size: 0.9em;">
-                        `;
-
-                        // Select only key planets for simplicity
-                        const keyPlanets = ['Sun', 'Moon', 'Mars', 'Jupiter', 'Venus'];
-
-                        for (const [planet, data] of Object.entries(chartData.planets)) {
-                            if (keyPlanets.includes(planet)) {
-                                reportHtml += `<li style="margin-bottom: 8px;">
-                                    <strong>${planet} in ${data.sign}</strong>: Bringing ${getPlanetKeyword(planet)} energy to your life.
-                                </li>`;
-                            }
-                        }
-
-                        reportHtml += `</ul>
-                                <div style="margin-top: 20px; background: rgba(255,230,128,0.3); padding: 12px; border-radius: 8px;">
-                                    <strong>Chart Strength: ${chartData.strength_score}/100</strong> <br>
-                                    <span style="font-size: 0.85em;">A higher score indicates stronger planetary support for your goals today.</span>
-                                </div>
-                            </div>`;
-
-                        kundaliContent.innerHTML = reportHtml;
-                    } else {
-                        kundaliContent.innerHTML = "<p>Report unavailable. Please verify your birth time.</p>";
-                    }
-                };
-            }
-
-            if (closeModal) {
-                closeModal.onclick = () => {
-                    kundaliModal.classList.remove('active');
-                    kundaliModal.style.display = 'none';
-                };
-            }
-
-            window.onclick = (event) => {
-                if (event.target == kundaliModal) {
-                    kundaliModal.classList.remove('active');
-                    kundaliModal.style.display = 'none';
-                }
-            };
-            // === KUNDALI LOGIC END ===
-
-            // === 7-DAY FORECAST (BACKGROUND -> UI) ===
-            // Validating the new feature engine without strictly altering UI layout (but now revealing per user request)
-            // 4. Update Strategy Card
-            const strategyCard = document.getElementById('strategy-card');
-            if (response.strategic_advice) {
-                document.getElementById('strategy-text').textContent = response.strategic_advice;
-
-                const timeList = document.getElementById('time-slots-list');
-                timeList.innerHTML = ''; // Clear previous
-
-                if (response.lucky_time_slots && response.lucky_time_slots.length > 0) {
-                    response.lucky_time_slots.forEach(slot => {
-                        const pill = document.createElement('span');
-                        pill.className = 'trait-pill'; // Reuse trait pill styling
-                        pill.style.backgroundColor = 'var(--accent-gold)';
-                        pill.style.color = 'var(--deep-purple)';
-                        pill.style.fontWeight = 'bold';
-                        pill.textContent = slot; // "9AM - 11AM"
-                        timeList.appendChild(pill);
-                    });
-                }
-
-                strategyCard.style.display = 'block';
-            } else {
-                strategyCard.style.display = 'none';
-            }
-
-            // 5. Forecast FLIP Card
-            const forecastFlipCard = document.getElementById('forecast-flip-card');
-            const forecastFlipInner = document.getElementById('forecast-flip-inner');
-            const forecastList = document.getElementById('forecast-list');
-            const forecastTrend = document.getElementById('forecast-trend');
-            const forecastBest = document.getElementById('forecast-best');
-
-            // Add flip handler (using class toggle for robustness)
-            if (forecastFlipCard) {
-                // Remove any previous event listeners (though usually not needed if re-run, good practice)
-                forecastFlipCard.onclick = null;
-                forecastFlipCard.onclick = function () {
-                    this.classList.toggle('flipped');
-                };
-            }
-
-
-            if (birthTimeInput && birthTimeInput.value) {
-                console.log("🔮 Initiating 7-Day Trend Analysis...");
-                api.getForecast(requestData).then(forecast => {
-                    console.log("✨ 7-DAY PREDICTIVE TRAJECTORY GENERATED ✨");
-
-                    if (forecastFlipCard && forecastList) {
-                        console.log("✅ Container found, rendering forecast...");
-                        // Populate Summary
-                        forecastTrend.textContent = forecast.trend_direction;
-                        // Format best day nicely
-                        const bestDate = new Date(forecast.best_day);
-                        forecastBest.textContent = bestDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); // e.g. "Sat, Dec 14"
-
-                        // Populate List
-                        forecastList.innerHTML = '';
-                        forecast.trajectory.forEach(day => {
-                            const d = new Date(day.date + 'T00:00:00'); // Ensure parsed as local date
-                            const dayName = d.toLocaleDateString('en-US', { weekday: 'short' }); // "Mon"
-                            const score = day.luck_score;
-
-                            const dayEl = document.createElement('div');
-                            dayEl.className = 'forecast-day';
-                            // Container style
-                            dayEl.style.cssText = `
-                                flex: 1;
-                                min-width: 0; 
-                                display: flex;
-                                flex-direction: column;
-                                align-items: center;
-                                justify-content: flex-end;
-                                height: 100px; /* Fixed height for alignment */
-                            `;
-
-                            // Color Logic (Matching iOS)
-                            let colorStart, colorEnd;
-                            if (score >= 80) { colorStart = '#4CAF50'; colorEnd = 'rgba(76, 175, 80, 0.5)'; } // Green
-                            else if (score < 50) { colorStart = '#FF9800'; colorEnd = 'rgba(255, 152, 0, 0.5)'; } // Orange
-                            else { colorStart = '#FFD700'; colorEnd = 'rgba(255, 215, 0, 0.5)'; } // Gold
-
-                            // Bar Height Calculation (Max 60px approx)
-                            const barHeight = Math.max(10, score * 0.6);
-
-                            dayEl.innerHTML = `
-                                <span style="font-size: 0.65rem; font-weight: 700; color: #555; margin-bottom: 2px;">${score}</span>
-                                
-                                <div style="
-                                    width: 16px; 
-                                    height: ${barHeight}px; 
-                                    background: linear-gradient(to bottom, ${colorStart}, ${colorEnd}); 
-                                    border-radius: 4px; 
-                                    margin-bottom: 4px;
-                                    transition: height 0.5s ease-out;
-                                "></div>
-                                
-                                <span style="font-size: 0.65rem; font-weight: 600; color: #777;">${dayName}</span>
-                            `;
-                            forecastList.appendChild(dayEl);
-                        });
-
-                        // Show flip card (starts showing front side)
-                        forecastFlipCard.style.display = 'block';
-                    }
-
-                }).catch(err => {
-                    console.warn("Forecast engine offline:", err);
-                    if (forecastFlipCard) forecastFlipCard.style.display = 'none';
-                });
-            } else {
-                if (forecastFlipCard) forecastFlipCard.style.display = 'none';
-            }
 
         } catch (error) {
             console.error("API Error:", error);
@@ -569,7 +450,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function goBack() {
         resultView.classList.remove('active');
-        inputView.classList.add('active');
+
+        // Determine where to go back to
+        const currentUser = localStorage.getItem('currentUser');
+        if (currentUser && dashboardView) {
+            dashboardView.classList.add('active');
+        } else {
+            inputView.classList.add('active');
+        }
 
         // Reset progress ring
         const progressRing = document.querySelector('.progress-ring-fill');
@@ -581,6 +469,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     backBtn.addEventListener('click', goBack);
     tryAgainBtn.addEventListener('click', goBack);
+
+    // Guest Home Button Logic
+    const guestHomeBtn = document.getElementById('guest-home-btn');
+    if (guestHomeBtn) {
+        guestHomeBtn.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+    }
 });
 
 // Helper for human-readable planet keywords

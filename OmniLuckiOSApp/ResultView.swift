@@ -17,7 +17,7 @@ struct ResultView: View {
     }
 
     // Birth Info for fetching chart
-    var birthInfo: (dob: Date, time: Date, place: String)? = nil
+    var birthInfo: (dob: Date, time: Date, place: String, timeIsNA: Bool)? = nil
     
     // NEW: Strategic Data
     var strategicAdvice: String? = nil
@@ -63,7 +63,7 @@ struct ResultView: View {
             Circle().fill(accentPurple.opacity(0.3)).frame(width: 300, height: 300).blur(radius: 80).offset(y: -100)
             
             ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 30) {
+                VStack(spacing: 20) {
                 
                 // Result Animation
                 VStack(spacing: 20) {
@@ -117,7 +117,8 @@ struct ResultView: View {
                                     name: "User",
                                     dob: info.dob,
                                     birthTime: info.time,
-                                    birthPlace: info.place
+                                    birthPlace: info.place,
+                                    timeIsNA: info.timeIsNA
                                 )
                                 await MainActor.run { self.forecastData = forecast }
                             } catch {
@@ -127,27 +128,28 @@ struct ResultView: View {
                     }
                 }
                 
-                // Caption (Web App Match)
-                if showCard {
-                    Text(displayCaption)
-                        .font(.title) // Larger title font
-                        .fontWeight(.bold)
-                        .foregroundColor(deepPurple)
-                        .transition(.opacity)
-                }
-
-                // Expl Card
+                // Expl Card (Main Luck Analysis with Caption inside)
                 if showCard {
                     VStack(alignment: .leading, spacing: 16) {
+                        // Caption Header
+                        Text(displayCaption)
+                            .font(.title2) // Slightly smaller than Title to fit in box nicely
+                            .fontWeight(.bold)
+                            .foregroundColor(accentPurple) // Use accent color for impact
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        Divider().padding(.vertical, 4)
+                        
                         HStack {
                             Image(systemName: "sparkle.magnifyingglass").foregroundColor(deepPurple)
                             Text("Daily Luck Analysis").font(.headline).foregroundColor(deepPurple)
                         }
                         Text(explanation.text).font(.subheadline).foregroundColor(deepPurple.opacity(0.8)).lineSpacing(4)
                         
-                        HStack(spacing: 10) {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 8)], spacing: 8) {
                             ForEach(explanation.traits, id: \.self) { trait in
-                                Text(trait).font(.caption).fontWeight(.semibold).padding(.horizontal, 14).padding(.vertical, 8)
+                                Text(trait).font(.caption).fontWeight(.semibold).padding(.horizontal, 10).padding(.vertical, 8)
+                                    .frame(maxWidth: .infinity)
                                     .background(Capsule().fill(accentPurple.opacity(0.5)).overlay(Capsule().stroke(accentGold.opacity(0.5), lineWidth: 1)))
                                     .foregroundColor(deepPurple)
                             }
@@ -166,6 +168,7 @@ struct ResultView: View {
                     .background(RoundedRectangle(cornerRadius: 20).fill(Color.white.opacity(0.7)).overlay(RoundedRectangle(cornerRadius: 20).stroke(accentPurple.opacity(0.3), lineWidth: 1)))
                     .padding(.horizontal)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
+
                     
                     // NEW: Cosmic Strategy Protocol Card
                     if let strategy = strategicAdvice {
@@ -208,14 +211,13 @@ struct ResultView: View {
                     }
                     
                     // 7-Day Forecast FLIP Card
-                    // 7-Day Forecast FLIP Card
                     if let forecast = forecastData {
                         ZStack {
                             // BACK SIDE (The Chart)
                             VStack(alignment: .leading, spacing: 10) {
                                 // Header with close hint
                                 HStack {
-                                    Text("�").font(.title3)
+                                    Text("").font(.title3)
                                     Text("7-Day Luck Trajectory").font(.headline).foregroundColor(deepPurple)
                                     Spacer()
                                     Image(systemName: "arrow.uturn.backward.circle.fill")
@@ -228,7 +230,12 @@ struct ResultView: View {
                                     Text(forecast.trend_direction).font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
                                     Spacer()
                                     Text("Peak:").font(.caption).foregroundColor(deepPurple.opacity(0.7))
-                                    Text(formatDayMonth(forecast.best_day)).font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
+                                    if let best = forecast.trajectory.max(by: { $0.luck_score < $1.luck_score }) {
+                                        Text("\(formatDayMonth(best.date)) (\(best.luck_score)%)")
+                                            .font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
+                                    } else {
+                                        Text(formatDayMonth(forecast.best_day)).font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
+                                    }
                                 }
                                 
                                 // Bar Chart
@@ -260,6 +267,7 @@ struct ResultView: View {
                                     }
                                 }
                                 .frame(height: 90)
+                                .clipped() // Prevent Horizontal Overflow from Chart
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(16)
@@ -417,9 +425,11 @@ struct ResultView: View {
                         .background(LinearGradient(colors: [accentGold, accentGold.opacity(0.8)], startPoint: .leading, endPoint: .trailing))
                         .cornerRadius(16).shadow(color: accentGold.opacity(0.3), radius: 10, x: 0, y: 5)
                 }
-                .padding(.horizontal).padding(.bottom, 30)
+                .padding(.horizontal).padding(.bottom, 60) // Increased bottom padding for safe scroll area
             }
+            .padding(.top, 20) // Add some top padding inside scroll
             }
+
 
         }
         .navigationBarBackButtonHidden(true)
@@ -429,23 +439,50 @@ struct ResultView: View {
     // Helper
     func getDayName(_ dateStr: String) -> String {
         let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        // Try strict format
         f.dateFormat = "yyyy-MM-dd"
-        f.locale = Locale(identifier: "en_US_POSIX") // Ensure fixed format parsing
         if let d = f.date(from: dateStr) {
             f.dateFormat = "EEE" // "Mon"
             return f.string(from: d)
         }
-        return dateStr.prefix(3).capitalized // Fallback to string slicing if parse fails? Or just return "?"
+        
+        // Try ISO text fallback
+        let isoFn = ISO8601DateFormatter()
+        // If it includes time
+        isoFn.formatOptions = [.withFullDate, .withDashSeparatorInDate]
+        if let d = isoFn.date(from: dateStr) {
+             f.dateFormat = "EEE"
+             return f.string(from: d)
+        }
+
+        // Final Fallback: Slicing (Assume YYYY-MM-DD)
+        // If slicing fails (empty), return "?"
+        if dateStr.count >= 10 {
+            // Can't reliably manually verify day of week without calendar
+            // So return "Day" or placeholder
+             return "?"
+        }
+        return "?"
     }
     
     func formatDayMonth(_ dateStr: String) -> String {
         let f = DateFormatter()
-        f.dateFormat = "yyyy-MM-dd"
         f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd"
         if let d = f.date(from: dateStr) {
             f.dateFormat = "EEE, MMM d" // "Sun, Dec 15"
             return f.string(from: d)
         }
+        
+        // Try ISO/Lenient
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withFullDate]
+        if let d = iso.date(from: dateStr) {
+             f.dateFormat = "EEE, MMM d"
+             return f.string(from: d)
+        }
+        
         return dateStr
     }
     

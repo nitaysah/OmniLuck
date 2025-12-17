@@ -7,11 +7,8 @@ export function initUserSession() {
 
     // Auth Check
     if (!storedUser) {
-        if (!isPublicPage) {
-            console.warn("No session found, redirecting to login.");
-            window.location.href = 'index.html';
-            return null;
-        }
+        // App supports Guest Mode, so we do NOT redirect.
+        // Script.js handles the UI state (Guest vs Logged In).
         return null;
     }
 

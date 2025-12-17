@@ -256,7 +256,7 @@ struct LoginView: View {
                 VStack(spacing: 15) {
                     HStack {
                         Rectangle().frame(height: 1).foregroundColor(deepPurple.opacity(0.2))
-                        Text("or continue as guest").font(.caption).foregroundColor(deepPurple.opacity(0.6)).fixedSize()
+                        Text("or skip for now").font(.caption).foregroundColor(deepPurple.opacity(0.6)).fixedSize()
                         Rectangle().frame(height: 1).foregroundColor(deepPurple.opacity(0.2))
                     }
                     .padding(.horizontal, 60)
@@ -264,7 +264,7 @@ struct LoginView: View {
                     Button(action: {
                         userSession.isLoggedIn = true
                     }) {
-                        Text("Skip for now")
+                        Text("Continue as Guest")
                             .font(.subheadline)
                             .fontWeight(.semibold)
                             .padding(.vertical, 8)
