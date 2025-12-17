@@ -15,6 +15,13 @@ struct LuckRequest: Codable {
     let current_lon: Double?
 }
 
+struct PowerballNumbers: Codable {
+    let white_balls: [Int]
+    let powerball: Int
+    let type: String
+    let index: Int?
+}
+
 struct LuckResponse: Codable {
     let luck_score: Int
     let explanation: String
@@ -22,6 +29,8 @@ struct LuckResponse: Codable {
     let summary: String?
     let strategic_advice: String?
     let lucky_time_slots: [String]?
+    let personal_powerball: PowerballNumbers?
+    let daily_powerballs: [PowerballNumbers]?
 }
 
 struct BirthInfoRequest: Codable {

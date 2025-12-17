@@ -47,6 +47,153 @@
             display: flex;
             flex-direction: column;
         }
+
+        /* Section Buttons */
+        .section-button {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(128, 77, 179, 0.3);
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--deep-purple);
+            transition: all 0.2s ease;
+            margin-bottom: 10px;
+        }
+
+        .section-button:hover {
+            background: rgba(255, 255, 255, 0.85);
+            border-color: var(--accent-purple);
+            transform: translateY(-1px);
+        }
+
+        .section-button.power-hours {
+            border-color: rgba(255, 200, 100, 0.6);
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: 20px;
+            max-width: 90%;
+            max-height: 80vh;
+            width: 400px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: scaleIn 0.25s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: rgba(128, 77, 179, 0.1);
+            border-bottom: 1px solid rgba(128, 77, 179, 0.1);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            color: var(--deep-purple);
+        }
+
+        .modal-close-x {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--accent-purple);
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .modal-close-x:hover {
+            opacity: 1;
+        }
+
+        .modal-content {
+            padding: 20px;
+            max-height: 50vh;
+            overflow-y: auto;
+            color: var(--deep-purple);
+            line-height: 1.6;
+            flex: 1;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(128, 77, 179, 0.1);
+        }
+
+        .modal-close-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent-purple);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .modal-close-btn:hover {
+            background: var(--deep-purple);
+        }
+
+        .modal-close-btn.gold {
+            background: var(--accent-gold);
+            color: var(--deep-purple);
+        }
     </style>
     <title>Discover Your Luck - OmniLuck</title>
     <meta name="description"
@@ -205,101 +352,95 @@
             </div>
 
             <div class="header-section">
-                <div class="logo-container">
-                    <div class="logo-glow"></div>
-                    <span class="sparkle-icon">✨</span>
-                </div>
-
 
                 <h1>Discover Your Luck</h1>
                 <p>A Fusion of Astrology, Physics & Predictive AI</p>
-                </header>
+            </div>
 
-                <div class="card">
-                    <div class="input-group">
-                        <label for="name">
-                            <span class="label-icon">👤</span> YOUR NAME
-                        </label>
-                        <input type="text" id="name" placeholder="Enter your name">
-                    </div>
-
-                    <div class="input-group">
-                        <label for="dob">
-                            <span class="label-icon">📅</span> DATE OF BIRTH
-                        </label>
-                        <input type="date" id="dob">
-                    </div>
-
-
-
-                    <div class="input-group">
-                        <label for="birth-place">
-                            <span class="label-icon">📍</span> PLACE OF BIRTH
-                        </label>
-                        <input type="text" id="birth-place" placeholder="City, Country (e.g. Dallas, USA)">
-                    </div>
-
-                    <div class="input-group">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <label for="birth-time" style="margin-bottom: 0;">
-                                <span class="label-icon">⏰</span> TIME OF BIRTH
-                            </label>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <button id="tob-info-btn" type="button" class="info-circle">i</button>
-                            </div>
-                        </div>
-
-                        <!-- Don't Know Checkbox -->
-                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-                            <input type="checkbox" id="tob-na-checkbox" style="width: auto; margin: 0;">
-                            <label for="tob-na-checkbox"
-                                style="font-size: 0.85rem; color: var(--deep-purple); margin: 0; cursor: pointer;">Don't
-                                know</label>
-                        </div>
-
-                        <!-- Time & Timezone Container -->
-                        <div id="time-inputs-container">
-                            <div style="position: relative; margin-bottom: 12px;">
-                                <input type="time" id="birth-time" style="width: 100%;">
-                            </div>
-                        </div>
-
-                        <!-- N/A Message (Hidden by default) -->
-                        <div id="tob-na-message"
-                            style="display: none; font-size: 0.75rem; color: var(--deep-purple); opacity: 0.8; font-style: italic; margin-top: 4px;">
-                            Midday Alignment Active: Following the Astrology standard for unknown birth times, your
-                            chart is
-                            anchored to 12:00 PM to maximize planetary accuracy and ensure a reliable luck forecast.
-                        </div>
-
-                        <div id="tob-explainer" class="explainer-text" style="display: none;">
-                            Add your exact local time of birth for full precision. This data acts as your cosmic GPS,
-                            identifying the precise degrees of your Rising Sign and the 12 Life Houses that shift every
-                            few
-                            minutes. These details are vital for accurate daily insights and a truly personalized Luck
-                            Score. If unknown, we apply the 12:00 PM Astrology standard to maximize planetary accuracy
-                            and
-                            provide reliable guidance.
-                        </div>
-                    </div>
-
-                    <!-- Personal Context Section -->
-
-
-                    <!-- Personal Context Section -->
+            <div class="card">
+                <div class="input-group">
+                    <label for="name">
+                        <span class="label-icon">👤</span> YOUR NAME
+                    </label>
+                    <input type="text" id="name" placeholder="Enter your name">
                 </div>
 
-                <button id="reveal-btn" class="primary-btn">
-                    <span class="btn-text">Forecast my Luck</span>
-                    <span class="loading-spinner" style="display: none;"></span>
-                    <span class="btn-icon">🪄</span>
-                </button>
+                <div class="input-group">
+                    <label for="dob">
+                        <span class="label-icon">📅</span> DATE OF BIRTH
+                    </label>
+                    <input type="date" id="dob">
+                </div>
 
-                <button id="logout-main-btn" class="secondary-btn" style="margin-top: 16px;">
-                    <span>🚪</span> Logout
-                </button>
+
+
+                <div class="input-group">
+                    <label for="birth-place">
+                        <span class="label-icon">📍</span> PLACE OF BIRTH
+                    </label>
+                    <input type="text" id="birth-place" placeholder="City, Country (e.g. Dallas, USA)">
+                </div>
+
+                <div class="input-group">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label for="birth-time" style="margin-bottom: 0;">
+                            <span class="label-icon">⏰</span> TIME OF BIRTH
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <button id="tob-info-btn" type="button" class="info-circle">i</button>
+                        </div>
+                    </div>
+
+                    <!-- Don't Know Checkbox -->
+                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                        <input type="checkbox" id="tob-na-checkbox" style="width: auto; margin: 0;">
+                        <label for="tob-na-checkbox"
+                            style="font-size: 0.85rem; color: var(--deep-purple); margin: 0; cursor: pointer;">Don't
+                            know</label>
+                    </div>
+
+                    <!-- Time & Timezone Container -->
+                    <div id="time-inputs-container">
+                        <div style="position: relative; margin-bottom: 12px;">
+                            <input type="time" id="birth-time" style="width: 100%;">
+                        </div>
+                    </div>
+
+                    <!-- N/A Message (Hidden by default) -->
+                    <div id="tob-na-message"
+                        style="display: none; font-size: 0.75rem; color: var(--deep-purple); opacity: 0.8; font-style: italic; margin-top: 4px;">
+                        Midday Alignment Active: Following the Astrology standard for unknown birth times, your
+                        chart is
+                        anchored to 12:00 PM to maximize planetary accuracy and ensure a reliable luck forecast.
+                    </div>
+
+                    <div id="tob-explainer" class="explainer-text" style="display: none;">
+                        Add your exact local time of birth for full precision. This data acts as your cosmic GPS,
+                        identifying the precise degrees of your Rising Sign and the 12 Life Houses that shift every
+                        few
+                        minutes. These details are vital for accurate daily insights and a truly personalized Luck
+                        Score. If unknown, we apply the 12:00 PM Astrology standard to maximize planetary accuracy
+                        and
+                        provide reliable guidance.
+                    </div>
+                </div>
+
+                <!-- Personal Context Section -->
+
+
+                <!-- Personal Context Section -->
             </div>
+
+            <button id="reveal-btn" class="primary-btn">
+                <span class="btn-text">Forecast my Luck</span>
+                <span class="loading-spinner" style="display: none;"></span>
+                <span class="btn-icon">🪄</span>
+            </button>
+
+            <button id="logout-main-btn" class="secondary-btn" style="margin-top: 16px;">
+                <span>🚪</span> Logout
+            </button>
 
         </div>
         <!-- Result View -->
@@ -328,49 +469,105 @@
 
                 <!-- Cosmic Dashboard Removed -->
 
-                <div class="fortune-card">
-                    <!-- New Caption: "Cosmic Jackpot!" -->
-                    <h2 id="result-caption" class="result-caption"></h2>
+                <!-- Caption Header (Always Visible) -->
+                <h2 id="result-caption" class="result-caption" style="text-align: center; margin: 16px 0 20px 0;"></h2>
 
-                    <div class="fortune-header">
-                        <span class="fortune-icon">✨</span>
-                        <h3>Daily Luck Analysis</h3>
-                    </div>
+                <!-- SECTION 1: Daily Luck Analysis Button -->
+                <button class="section-button" onclick="openModal('analysis')">
+                    <span>📜 Read Daily Luck Analysis</span>
+                    <span style="color: var(--accent-purple);">→</span>
+                </button>
 
-                    <p id="fortune-text"></p>
+                <!-- SECTION 2: Cosmic Strategy Button -->
+                <button id="strategy-btn" class="section-button" onclick="openModal('strategy')" style="display: none;">
+                    <span>🧭 Read Cosmic Strategy</span>
+                    <span style="color: var(--accent-purple);">→</span>
+                </button>
 
-                    <!-- Factors Summary -->
-                    <div id="factors-box" class="factors-box">
-                        <span class="factors-label">WHY THIS SCORE:</span>
-                        <p id="factors-text"></p>
-                    </div>
+                <!-- SECTION 3: Power Hours Button -->
+                <button id="power-hours-btn" class="section-button power-hours" onclick="openModal('power-hours')"
+                    style="display: none;">
+                    <span>⏰ View Power Hours</span>
+                    <span style="color: var(--accent-gold);">→</span>
+                </button>
 
-                    <!-- Trait Pills -->
-                    <div id="traits-list" class="traits-list"></div>
-                </div>
-
-                <!-- NEW: Cosmic Strategy Protocol Card -->
-                <div id="strategy-card" class="fortune-card"
-                    style="display: none; background: rgba(255, 255, 255, 0.9); border-color: var(--accent-purple);">
-                    <div class="fortune-header">
-                        <span class="fortune-icon">🧭</span>
-                        <h3>Cosmic Strategy</h3>
-                    </div>
-
-                    <p id="strategy-text"
-                        style="font-style: italic; color: var(--deep-purple); opacity: 0.9; margin-bottom: 16px;">
-                    </p>
-
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <span
-                            style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--accent-purple); letter-spacing: 1px;">POWER
-                            HOURS</span>
-                        <div id="time-slots-list" style="display: flex; flex-wrap: wrap; gap: 8px;">
-                            <!-- Injected Time Pills -->
+                <!-- MODAL: Daily Luck Analysis -->
+                <div id="analysis-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'analysis')">
+                    <div class="modal-card" onclick="event.stopPropagation()">
+                        <div class="modal-header">
+                            <h3>📜 Daily Luck Analysis</h3>
+                            <button class="modal-close-x" onclick="closeModal('analysis')">×</button>
+                        </div>
+                        <div class="modal-content">
+                            <p id="fortune-text" style="margin-bottom: 16px;"></p>
+                            <div id="factors-box" class="factors-box" style="display: none; margin-bottom: 16px;">
+                                <span class="factors-label">WHY THIS SCORE:</span>
+                                <p id="factors-text"></p>
+                            </div>
+                            <div id="traits-list" class="traits-list"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-close-btn" onclick="closeModal('analysis')">Close</button>
                         </div>
                     </div>
                 </div>
 
+                <!-- MODAL: Cosmic Strategy -->
+                <div id="strategy-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'strategy')">
+                    <div class="modal-card" onclick="event.stopPropagation()">
+                        <div class="modal-header">
+                            <h3>🧭 Cosmic Strategy</h3>
+                            <button class="modal-close-x" onclick="closeModal('strategy')">×</button>
+                        </div>
+                        <div class="modal-content">
+                            <p id="strategy-text" style="font-style: italic;"></p>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-close-btn" onclick="closeModal('strategy')">Close</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODAL: Power Hours -->
+                <div id="power-hours-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'power-hours')">
+                    <div class="modal-card" onclick="event.stopPropagation()">
+                        <div class="modal-header" style="background: rgba(255, 200, 100, 0.2);">
+                            <h3>⏰ Power Hours</h3>
+                            <button class="modal-close-x" style="color: var(--accent-gold);"
+                                onclick="closeModal('power-hours')">×</button>
+                        </div>
+                        <div class="modal-content">
+                            <div id="time-slots-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-close-btn gold" onclick="closeModal('power-hours')">Close</button>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Daily Astro Insights Button -->
+                <button id="kundali-btn" class="section-button" onclick="openModal('astro-insights')">
+                    <span>🌟 Read Daily Astro Insights</span>
+                    <span style="color: var(--accent-purple);">→</span>
+                </button>
+
+                <!-- MODAL: Daily Astro Insights -->
+                <div id="astro-insights-modal" class="modal-overlay"
+                    onclick="closeModalOnOverlay(event, 'astro-insights')">
+                    <div class="modal-card" onclick="event.stopPropagation()">
+                        <div class="modal-header">
+                            <h3>🌟 Daily Astro Insights</h3>
+                            <button class="modal-close-x" onclick="closeModal('astro-insights')">×</button>
+                        </div>
+                        <div class="modal-content" id="kundali-report-content">
+                            <p>Loading insights...</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-close-btn" onclick="closeModal('astro-insights')">Close</button>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- 7-Day Forecast FLIP Card -->
                 <div id="forecast-flip-card" class="flip-card" style="display: none;">
@@ -422,22 +619,52 @@
                     </div>
                 </div>
 
-                <!-- Daily Report Button (Moved here) -->
-                <button id="kundali-btn" class="secondary-btn"
-                    style="margin-bottom: 24px; background: rgba(255,255,255,0.3); border: 1px solid var(--accent-purple);">
-                    <span>📜</span> Read my Daily Astro Report
+
+                <!-- Lucky Powerball Numbers Button -->
+                <button id="powerball-btn" class="section-button" onclick="openModal('powerball')"
+                    style="display: none;">
+                    <span>🎱 Lucky Powerball Numbers</span>
+                    <span style="color: var(--accent-purple);">→</span>
                 </button>
 
-                <!-- NEW: Report Modal (Hidden by default) -->
-                <div id="kundali-modal" class="modal" style="display: none;">
-                    <div class="modal-content card">
-                        <span class="close-modal">&times;</span>
-                        <h3>Daily Cosmic Report</h3>
-                        <div id="kundali-report-content" class="report-text">
-                            <p>Loading report...</p>
+                <!-- MODAL: Lucky Powerball Numbers -->
+                <div id="powerball-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'powerball')">
+                    <div class="modal-card" onclick="event.stopPropagation()">
+                        <div class="modal-header">
+                            <h3>🎱 Lucky Powerball Numbers</h3>
+                            <button class="modal-close-x" onclick="closeModal('powerball')">×</button>
+                        </div>
+                        <div class="modal-content" id="powerball-content">
+                            <!-- Personal Powerball -->
+                            <div id="personal-powerball-section" style="margin-bottom: 24px;">
+                                <h4
+                                    style="color: var(--accent-gold); margin: 0 0 12px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
+                                    🌟 Your Personal Lucky Numbers</h4>
+                                <div id="personal-powerball-display"
+                                    style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px;">
+                                    <!-- White balls and powerball will be rendered here -->
+                                </div>
+                                <p
+                                    style="font-size: 0.75rem; color: var(--deep-purple); opacity: 0.7; text-align: center; margin: 0;">
+                                    Based on your birth chart - these numbers stay with you</p>
+                            </div>
+
+                            <!-- Daily Powerballs -->
+                            <div id="daily-powerballs-section">
+                                <h4
+                                    style="color: var(--accent-purple); margin: 0 0 12px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
+                                    📅 Today's Top 10 Cosmic Combinations</h4>
+                                <div id="daily-powerballs-list">
+                                    <!-- Daily combinations will be rendered here -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-close-btn" onclick="closeModal('powerball')">Close</button>
                         </div>
                     </div>
                 </div>
+
 
                 <!-- Info Modal -->
                 <div id="info-modal" class="modal" style="display: none;">

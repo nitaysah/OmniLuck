@@ -128,6 +128,14 @@ class LuckComponents(BaseModel):
     total: int = Field(..., ge=0, le=100)
 
 
+class PowerballNumbers(BaseModel):
+    """Powerball lottery numbers"""
+    white_balls: List[int] = Field(..., description="5 white balls (1-69)")
+    powerball: int = Field(..., description="Red powerball (1-26)")
+    type: str = Field(..., description="'personal' or 'daily'")
+    index: Optional[int] = Field(None, description="For daily numbers, which combo (1-10)")
+
+
 class LuckCalculationResponse(BaseModel):
     luck_score: int = Field(..., ge=0, le=100)
     components: LuckComponents
@@ -138,6 +146,8 @@ class LuckCalculationResponse(BaseModel):
     recommended_actions: List[str] = Field(default_factory=list)
     strategic_advice: Optional[str] = Field(None, description="Detailed strategy for conflicting energies")
     lucky_time_slots: List[str] = Field(default_factory=list, description="Best times of day based on astro-numerology")
+    personal_powerball: Optional[PowerballNumbers] = Field(None, description="User's personal lucky powerball")
+    daily_powerballs: List[PowerballNumbers] = Field(default_factory=list, description="10 daily powerball combinations")
 
 
 class ForecastDay(BaseModel):

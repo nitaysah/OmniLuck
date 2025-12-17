@@ -43,14 +43,13 @@ struct ContentView: View {
                     dashboardViewV3(profile: profile)
                 } else {
                     // === GUEST / INPUT MODE ===
-                    ScrollView {
-                        VStack(spacing: 25) {
-                            guestHeaderView
-                            formView
-                            Spacer(minLength: 20)
-                            footerView
-                        }
+                    VStack(spacing: 16) {
+                        guestHeaderView
+                        formView
+                        Spacer(minLength: 0)
+                        footerView
                     }
+                    .padding(.bottom, 20)
                 }
             }
             .alert("Time of Birth", isPresented: $showTimeInfo) {
@@ -94,7 +93,9 @@ struct ContentView: View {
                         summary: result.summary,
                         birthInfo: (dob: dob, time: birthTime, place: birthPlace, timeIsNA: useNAForTime),
                         strategicAdvice: result.strategic_advice,
-                        luckyTimeSlots: result.lucky_time_slots
+                        luckyTimeSlots: result.lucky_time_slots,
+                        personalPowerball: result.personal_powerball,
+                        dailyPowerballs: result.daily_powerballs
                     )
                 } else {
                     // Fallback
@@ -187,24 +188,14 @@ struct ContentView: View {
                 .padding(.trailing, 20)
             }
             
-            VStack(spacing: 20) {
-                ZStack {
-                    Circle()
-                        .fill(accentPurple.opacity(0.2))
-                        .frame(width: 120, height: 120)
-                        .blur(radius: 20)
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 60))
-                        .foregroundStyle(LinearGradient(colors: [accentGold, accentPurple], startPoint: .topLeading, endPoint: .bottomTrailing))
-                }
-                
+            VStack(spacing: 16) {
                 VStack(spacing: 8) {
                     Text("Welcome back,")
                          .font(.title3)
                          .foregroundColor(deepPurple.opacity(0.7))
                     
                     Text(profile.name?.components(separatedBy: " ").first ?? "Traveler")
-                        .font(.system(size: 42, weight: .bold, design: .serif))
+                        .font(.system(size: 38, weight: .bold, design: .serif))
                         .foregroundColor(deepPurple)
                 }
                 
@@ -432,39 +423,20 @@ struct ContentView: View {
                 Spacer()
             }
             .padding(.horizontal)
-            .padding(.bottom, 10)
+            .padding(.bottom, 8)
             
-            ZStack(alignment: .topTrailing) {
-            VStack(spacing: 12) {
-                ZStack {
-                    Circle()
-                        .fill(accentPurple.opacity(0.3))
-                        .frame(width: 100, height: 100)
-                        .blur(radius: 20)
-                    
-                    Image(systemName: "sparkles")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 60, height: 60)
-                        .foregroundStyle(
-                            LinearGradient(colors: [accentGold, accentGold.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                        )
-                }
-                
+            VStack(spacing: 8) {
                 Text("Discover Your Luck")
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(deepPurple)
                 
                 Text("A Fusion of Astrology, Physics & Predictive AI")
-                    .font(.subheadline)
+                    .font(.caption)
                     .foregroundColor(deepPurple.opacity(0.7))
             }
-            .padding(.top, 40)
-            
-
+            .padding(.top, 10)
         }
     }
-}
 
     private var formView: some View {
         VStack(alignment: .leading, spacing: 22) {

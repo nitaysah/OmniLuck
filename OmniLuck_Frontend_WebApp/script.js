@@ -441,6 +441,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('forecast-flip-card').style.display = 'none';
             }
 
+            // Render Powerball Numbers
+            renderPowerball(response.personal_powerball, response.daily_powerballs);
+
             // Switch Views
             inputView.classList.remove('active');
             if (dashboardView) dashboardView.classList.remove('active');
@@ -489,24 +492,304 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderStrategy(strategy, slots) {
-        const card = document.getElementById('strategy-card');
+        const strategyBtn = document.getElementById('strategy-btn');
+        const powerHoursBtn = document.getElementById('power-hours-btn');
+
+        // Strategy Button
         if (!strategy) {
-            card.style.display = 'none';
-            return;
+            strategyBtn.style.display = 'none';
+        } else {
+            strategyBtn.style.display = 'flex';
+            document.getElementById('strategy-text').textContent = strategy;
         }
 
-        card.style.display = 'block';
-        document.getElementById('strategy-text').textContent = strategy;
-
+        // Power Hours Button
         const slotsList = document.getElementById('time-slots-list');
         slotsList.innerHTML = '';
 
         if (slots && slots.length > 0) {
+            powerHoursBtn.style.display = 'flex';
             slots.forEach(slot => {
                 const div = document.createElement('div');
-                div.style.cssText = "background: white; border: 1px solid var(--accent-gold); color: var(--deep-purple); font-size: 0.75rem; font-weight: 700; padding: 6px 10px; border-radius: 8px;";
+                div.style.cssText = "background: white; border: 1.5px solid var(--accent-gold); color: var(--deep-purple); font-size: 0.9rem; font-weight: 500; padding: 14px; border-radius: 12px; line-height: 1.5;";
                 div.textContent = slot;
                 slotsList.appendChild(div);
+            });
+        } else {
+            powerHoursBtn.style.display = 'none';
+        }
+    }
+
+    // Modal Functions (Global)
+    window.openModal = function (modalName) {
+        const modal = document.getElementById(modalName + '-modal');
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent background scroll
+
+            // Special handling for Astro Insights modal - fetch natal chart
+            if (modalName === 'astro-insights') {
+                loadAstroInsights();
+            }
+        }
+    };
+
+    // Load Astro Insights (Natal Chart Data)
+    async function loadAstroInsights() {
+        const contentDiv = document.getElementById('kundali-report-content');
+        contentDiv.innerHTML = '<p style="text-align: center; padding: 40px;">✨ Consulting the stars...</p>';
+
+        try {
+            // Get birth info from form inputs (same as luck calculation)
+            const dobInput = document.getElementById('dob');
+            const birthTimeInput = document.getElementById('birth-time');
+            const birthPlaceInput = document.getElementById('birth-place');
+            const tobNaCheckbox = document.getElementById('tob-na-checkbox');
+
+            const dob = dobInput ? dobInput.value : '';
+            const birthTime = (tobNaCheckbox && tobNaCheckbox.checked) ? '12:00' : (birthTimeInput ? birthTimeInput.value : '12:00');
+
+            if (!dob) {
+                contentDiv.innerHTML = '<p style="text-align: center; color: orange;">⚠️ Please enter your date of birth first.</p>';
+                return;
+            }
+
+            // Get birth location (geocode if needed)
+            let birthLat = 0, birthLon = 0;
+            const birthPlace = birthPlaceInput ? birthPlaceInput.value : '';
+            if (birthPlace) {
+                try {
+                    const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(birthPlace)}`;
+                    const geoResponse = await fetch(geoUrl);
+                    const geoData = await geoResponse.json();
+                    if (geoData && geoData.length > 0) {
+                        birthLat = parseFloat(geoData[0].lat);
+                        birthLon = parseFloat(geoData[0].lon);
+                    }
+                } catch (e) { console.error('Geocoding error:', e); }
+            }
+
+            // Prepare birth info (matching backend BirthInfo schema)
+            const birthInfo = {
+                dob: dob,
+                time: birthTime || '12:00',
+                lat: birthLat,
+                lon: birthLon,
+                timezone: 'UTC'
+            };
+
+            // Fetch natal chart from API
+            const response = await fetch(`${window.celestialAPI?.baseURL || 'https://omniluck.onrender.com'}/api/astrology/natal-chart`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(birthInfo)
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch chart');
+
+            const chart = await response.json();
+
+            // Render the chart data
+            let html = `
+                <div style="margin-bottom: 20px; padding: 16px; background: rgba(192, 153, 240, 0.1); border-radius: 12px;">
+                    <h4 style="color: var(--accent-purple); margin: 0 0 8px 0;">🌅 Your Rising Sign (Ascendant)</h4>
+                    <p style="font-size: 1.1rem; font-weight: 600; color: var(--deep-purple); margin: 0 0 8px 0;">${chart.ascendant || 'Unknown'}</p>
+                    <p style="font-size: 0.85rem; opacity: 0.8; margin: 0;">This sign represents your outer personality and how you interact with the world today.</p>
+                </div>
+                
+                <h4 style="color: var(--deep-purple); margin: 0 0 12px 0;">🌟 Key Planetary Influences</h4>
+            `;
+
+            // Planet keywords
+            const planetKeywords = {
+                'Sun': 'vitality and purpose',
+                'Moon': 'emotional depth',
+                'Mars': 'action and drive',
+                'Jupiter': 'expansion and luck',
+                'Venus': 'love and harmony',
+                'Mercury': 'communication',
+                'Saturn': 'discipline'
+            };
+
+            const keyPlanets = ['Sun', 'Moon', 'Mars', 'Jupiter', 'Venus'];
+
+            if (chart.planets) {
+                keyPlanets.forEach(planet => {
+                    if (chart.planets[planet]) {
+                        html += `
+                            <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px;">
+                                <span style="color: var(--accent-gold);">•</span>
+                                <div>
+                                    <strong style="color: var(--deep-purple);">${planet} in ${chart.planets[planet].sign}</strong>
+                                    <p style="font-size: 0.85rem; opacity: 0.7; margin: 4px 0 0 0;">Bringing ${planetKeywords[planet] || 'cosmic'} energy to your life.</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            }
+
+            // Chart strength
+            html += `
+                <div style="margin-top: 20px; padding: 16px; background: rgba(255, 200, 100, 0.2); border-radius: 12px; text-align: center;">
+                    <h4 style="color: var(--deep-purple); margin: 0 0 8px 0;">Chart Strength: ${chart.strength_score || 50}/100</h4>
+                    <p style="font-size: 0.8rem; opacity: 0.7; margin: 0;">A higher score indicates stronger planetary support.</p>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+
+        } catch (error) {
+            console.error('Astro Insights Error:', error);
+            contentDiv.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <span style="font-size: 3rem;">⚠️</span>
+                    <h4 style="color: var(--deep-purple); margin: 16px 0 8px 0;">Insights Unavailable</h4>
+                    <p style="font-size: 0.85rem; opacity: 0.7;">Please ensure you have entered your birth information and have an internet connection.</p>
+                </div>
+            `;
+        }
+    }
+
+    window.closeModal = function (modalName) {
+        const modal = document.getElementById(modalName + '-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = ''; // Restore scroll
+        }
+    };
+
+    window.closeModalOnOverlay = function (event, modalName) {
+        // Only close if clicking directly on overlay (not the card)
+        if (event.target.classList.contains('modal-overlay')) {
+            closeModal(modalName);
+        }
+    };
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                modal.classList.remove('active');
+            });
+            document.body.style.overflow = '';
+        }
+    });
+
+    function renderPowerball(personalPB, dailyPBs) {
+        const powerballBtn = document.getElementById('powerball-btn');
+
+        // Only show if we have powerball data
+        if (!personalPB && (!dailyPBs || dailyPBs.length === 0)) {
+            powerballBtn.style.display = 'none';
+            return;
+        }
+
+        powerballBtn.style.display = 'flex';
+
+        // Helper function to create a ball element
+        function createBall(number, isRed = false) {
+            const ball = document.createElement('div');
+            ball.style.cssText = `
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 0.95rem;
+                ${isRed
+                    ? 'background: linear-gradient(135deg, #dc2626, #991b1b); color: white; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);'
+                    : 'background: white; color: var(--deep-purple); border: 2px solid var(--accent-purple); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);'
+                }
+            `;
+            ball.textContent = number;
+            return ball;
+        }
+
+        // Render Personal Powerball
+        if (personalPB) {
+            const personalDisplay = document.getElementById('personal-powerball-display');
+            personalDisplay.innerHTML = '';
+
+            // Add white balls
+            personalPB.white_balls.forEach(num => {
+                personalDisplay.appendChild(createBall(num, false));
+            });
+
+            // Add separator
+            const separator = document.createElement('div');
+            separator.style.cssText = 'width: 2px; height: 30px; background: var(--accent-gold); margin: 0 4px; opacity: 0.3;';
+            personalDisplay.appendChild(separator);
+
+            // Add powerball
+            personalDisplay.appendChild(createBall(personalPB.powerball, true));
+        }
+
+        // Render Daily Powerballs
+        if (dailyPBs && dailyPBs.length > 0) {
+            const dailyList = document.getElementById('daily-powerballs-list');
+            dailyList.innerHTML = '';
+
+            dailyPBs.forEach((combo, idx) => {
+                const comboDiv = document.createElement('div');
+                comboDiv.style.cssText = 'margin-bottom: 12px; padding: 12px; background: rgba(192, 153, 240, 0.05); border-radius: 10px; border: 1px solid rgba(192, 153, 240, 0.1);';
+
+                const header = document.createElement('div');
+                header.style.cssText = 'font-size: 0.75rem; color: var(--deep-purple); opacity: 0.6; margin-bottom: 8px; font-weight: 600;';
+                header.textContent = `Combination #${idx + 1}`;
+                comboDiv.appendChild(header);
+
+                const ballsContainer = document.createElement('div');
+                ballsContainer.style.cssText = 'display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;';
+
+                // Add white balls (smaller)
+                combo.white_balls.forEach(num => {
+                    const ball = document.createElement('div');
+                    ball.style.cssText = `
+                        width: 32px;
+                        height: 32px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-weight: 600;
+                        font-size: 0.85rem;
+                        background: white;
+                        color: var(--deep-purple);
+                        border: 1.5px solid var(--accent-purple);
+                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+                    `;
+                    ball.textContent = num;
+                    ballsContainer.appendChild(ball);
+                });
+
+                // Add separator
+                const sep = document.createElement('div');
+                sep.style.cssText = 'width: 1px; height: 24px; background: var(--accent-purple); margin: 0 4px; opacity: 0.2;';
+                ballsContainer.appendChild(sep);
+
+                // Add powerball (smaller)
+                const powerball = document.createElement('div');
+                powerball.style.cssText = `
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                    background: linear-gradient(135deg, #dc2626, #991b1b);
+                    color: white;
+                    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+                `;
+                powerball.textContent = combo.powerball;
+                ballsContainer.appendChild(powerball);
+
+                comboDiv.appendChild(ballsContainer);
+                dailyList.appendChild(comboDiv);
             });
         }
     }

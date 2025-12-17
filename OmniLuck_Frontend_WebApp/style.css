@@ -1206,6 +1206,7 @@ input[type="range"]::-webkit-slider-thumb {
 .planet-name {
     font-weight: 600;
 }
+
 /* User Menu Dropdown */
 .user-menu-container {
     position: absolute;
@@ -1249,7 +1250,7 @@ input[type="range"]::-webkit-slider-thumb {
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--card-border);
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     display: none;
     flex-direction: column;
     overflow: hidden;

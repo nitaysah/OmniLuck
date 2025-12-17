@@ -132,6 +132,32 @@ async def calculate_luck(request: LuckCalculationRequest):
         f"AI Intuition ({ai_intuition_score}/100)"
     )
 
+    # Generate Powerball Lucky Numbers
+    from app.services.powerball_service import powerball_service
+    personal_powerball = None
+    daily_powerballs = []
+    
+    try:
+        # Personal powerball (static for user)
+        personal_pb_data = powerball_service.generate_personal_powerball(
+            name=request.name,
+            dob=request.dob
+        )
+        personal_powerball = personal_pb_data
+        
+        # Daily powerballs (10 combinations for today)
+        daily_pb_list = powerball_service.generate_daily_powerballs(
+            name=request.name,
+            dob=request.dob,
+            current_date=datetime.now().strftime("%Y-%m-%d"),
+            luck_score=int(final_score),
+            astro_score=astro_score,
+            natal_score=natal_score
+        )
+        daily_powerballs = daily_pb_list
+    except Exception as e:
+        print(f"⚠️ Powerball Generation Error: {e}")
+
     return LuckCalculationResponse(
         luck_score=int(final_score),
         components=LuckComponents(
@@ -148,7 +174,9 @@ async def calculate_luck(request: LuckCalculationRequest):
         explanation=ai_result.get("explanation"),
         recommended_actions=ai_result.get("actions"),
         strategic_advice=ai_result.get("strategic_advice"),
-        lucky_time_slots=ai_result.get("lucky_time_slots") or []
+        lucky_time_slots=ai_result.get("lucky_time_slots") or [],
+        personal_powerball=personal_powerball,
+        daily_powerballs=daily_powerballs
     )
 
 
