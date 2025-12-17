@@ -253,11 +253,19 @@ struct LoginView: View {
                     }
                     .padding(.horizontal, 60)
                     
-                    Button("Skip for now") {
+                    Button(action: {
                         userSession.isLoggedIn = true
+                    }) {
+                        Text("Skip for now")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 24)
+                            .background(Color.white.opacity(0.8))
+                            .cornerRadius(20)
+                            .overlay(RoundedRectangle(cornerRadius: 20).stroke(deepPurple, lineWidth: 1))
+                            .foregroundColor(deepPurple)
                     }
-                    .font(.headline)
-                    .foregroundColor(deepPurple)
                 }
                 .padding(.bottom, 20)
             }

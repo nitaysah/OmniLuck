@@ -1,4 +1,5 @@
 import CelestialAPI from './api-client.js?v=5';
+import { initUserSession } from './user-session.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize API Client
@@ -66,61 +67,26 @@ document.addEventListener('DOMContentLoaded', () => {
     let name = '';
     let dob = '';
 
-    // Check for "Logged In" user from Get Started Page
-    const storedUser = localStorage.getItem('currentUser');
-    const logoutBtn = document.getElementById('logout-main-btn'); // Updated ID
+    // Check for "Logged In" user via Session Manager
+    const user = initUserSession();
 
-    // Always wire up logout logic
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            if (confirm('Are you sure you want to sign out?')) {
-                localStorage.removeItem('currentUser');
-                window.location.href = 'index.html';
-            }
-        });
-    }
-
-    if (storedUser) {
-        try {
-            const user = JSON.parse(storedUser);
-            if (user.name) {
-                // Auto-fill form
-                nameInput.value = user.name;
-                name = user.name;
-
-                if (user.dob) {
-                    dobInput.value = user.dob;
-                    dob = user.dob;
-                }
-
-                // Auto-fill Place and Time from Firebase/Local DB
-                const birthPlaceEl = document.getElementById('birth-place');
-                if (user.birth_place && birthPlaceEl) {
-                    birthPlaceEl.value = user.birth_place;
-                }
-                if (user.birth_time && birthTimeInput) {
-                    birthTimeInput.value = user.birth_time;
-                }
-
-                // Show User Greeting / Logout Pill
-                const userPillBtn = document.getElementById('user-pill-btn'); // Updated to button
-                const userGreeting = document.getElementById('user-greeting');
-
-                if (userPillBtn && userGreeting) {
-                    userGreeting.textContent = `Hi, ${user.name.split(' ')[0]}`;
-                    userPillBtn.style.display = 'flex';
-
-                    // Attach Logout Listener
-                    userPillBtn.addEventListener('click', () => {
-                        if (confirm('Are you sure you want to sign out?')) {
-                            localStorage.removeItem('currentUser');
-                            window.location.href = 'index.html';
-                        }
-                    });
-                }
-            }
-        } catch (e) {
-            console.error("Error parsing user data", e);
+    if (user) {
+        // Auto-fill form
+        if (user.name) {
+            nameInput.value = user.name;
+            name = user.name;
+        }
+        if (user.dob) {
+            dobInput.value = user.dob;
+            dob = user.dob;
+        }
+        // Auto-fill Place and Time from Firebase/Local DB
+        const birthPlaceEl = document.getElementById('birth-place');
+        if (user.birth_place && birthPlaceEl) {
+            birthPlaceEl.value = user.birth_place;
+        }
+        if (user.birth_time && birthTimeInput) {
+            birthTimeInput.value = user.birth_time;
         }
     }
 

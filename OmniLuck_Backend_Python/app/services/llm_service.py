@@ -22,10 +22,6 @@ class LLMService:
         self.groq_client = None
         
         print(f"🔧 LLM Service: use_local={self.use_local}, has_gemini={bool(self.gemini_key)}, has_groq={bool(self.groq_key)}")
-        
-        # Circuit Breaker defaults
-        self.gemini_cooldown_until = 0
-        self.cooldown_duration = 60
 
         if not self.use_local:
             # Initialize Gemini
@@ -33,8 +29,8 @@ class LLMService:
                 try:
                     from google import genai
                     self.gemini_client = genai.Client(api_key=self.gemini_key)
-                    self.gemini_model_id = 'gemini-2.0-flash'
-                    print("✅ Google Gemini 2.0 Flash configured (v1 SDK)")
+                    self.gemini_model_id = 'gemini-2.5-pro'
+                    print("✅ Google Gemini 2.5 Pro configured (v1 SDK)")
                 except Exception as e:
                     print(f"❌ Gemini configuration failed: {e}")
                     self.gemini_client = None
@@ -269,11 +265,6 @@ Fortune message:"""
         
         try:
             import json
-            import time
-            
-            # Circuit Breaker Check
-            if time.time() < self.gemini_cooldown_until:
-                 raise Exception(f"Gemini Cooling Down ({int(self.gemini_cooldown_until - time.time())}s)")
 
             
             # Use SDK to generate content
@@ -282,12 +273,15 @@ Fortune message:"""
                 contents=prompt,
                 config={
                     "temperature": 0.7,
-                    "max_output_tokens": 500,
+                    "max_output_tokens": 4000,
                 }
             )
             
             text_response = response.text
-            
+            if not text_response:
+                print(f"⚠️ Gemini connected but returned no text. Response candidates: {response.candidates}")
+                raise ValueError("Empty response from Gemini")
+
             # Clean and parse JSON from Markdown response
             clean_json = text_response.replace("```json", "").replace("```", "").strip()
             parsed_data = json.loads(clean_json)
@@ -303,13 +297,6 @@ Fortune message:"""
             }
             
         except Exception as e:
-            # Check for Quota Error to set cooldown
-            error_str = str(e).lower()
-            if "429" in error_str or "quota" in error_str or "resource exhausted" in error_str:
-                 import time
-                 self.gemini_cooldown_until = time.time() + self.cooldown_duration
-                 print(f"⚠️ Gemini Quota Exceeded. Cooldown set for {self.cooldown_duration}s.")
-
             print(f"⚠️ Gemini Analysis error: {e}")
             
             # Try Groq Fallback

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>About Us - OmniLuck</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/png" href="favicon.png">
+</head>
+
+<body>
+    <!-- Consistent Background -->
+    <div class="galaxy-container">
+        <div class="galaxy-wrapper">
+            <div class="stars"></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- User Menu -->
+        <div class="user-menu-container" id="user-menu-container" style="display: none;">
+            <button id="user-menu-btn" class="user-menu-btn">
+                <span id="user-greeting">Hi, User</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div id="user-dropdown" class="user-menu-dropdown">
+                <a href="about.html" class="menu-item" style="background: rgba(191,153,242,0.1);">ℹ️ About Us</a>
+                <a href="contact.html" class="menu-item">📞 Contact Us</a>
+                <a href="settings.html" class="menu-item">⚙️ Settings</a>
+                <div id="menu-logout-btn" class="menu-item" style="color: #d32f2f;">🚪 Logout</div>
+            </div>
+        </div>
+
+        <!-- Content Card -->
+        <div class="card" style="margin-top: 80px; animation: fadeIn 0.5s ease;">
+            <button onclick="window.location.href='app.html'" class="back-btn"
+                style="position: relative; top: 0; left: 0; margin-bottom: 24px;">
+                <span>←</span> Back Home
+            </button>
+
+            <h1 style="margin-bottom: 24px; font-size: 2rem;">About OmniLuck</h1>
+
+            <p style="margin-bottom: 20px; line-height: 1.6; color: var(--deep-purple);">
+                OmniLuck is your daily celestial companion, uniquely designed to fuse ancient astrological wisdom with
+                modern predictive AI technology.
+            </p>
+
+            <p style="margin-bottom: 24px; line-height: 1.6; color: var(--deep-purple);">
+                Unlike generic horoscopes, we calculate your personalized luck score by analyzing real-time planetary
+                transits, numerology cycles, and cosmic weather patterns specific to your exact birth chart.
+            </p>
+
+            <div
+                style="margin-top: 20px; padding: 20px; background: rgba(255,230,128,0.25); border-radius: 16px; border: 1px solid var(--accent-gold);">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                    <span style="font-size: 1.5rem;">✨</span>
+                    <h3 style="font-size: 1.2rem; color: var(--deep-purple);">Our Mission</h3>
+                </div>
+                <p style="font-size: 0.95rem; color: var(--deep-purple); opacity: 0.9;">
+                    To help you navigate life's tides with confidence. Whether it's a high-luck day for risk-taking or a
+                    low-energy day for reflection, OmniLuck ensures you're always aligned with the stars.
+                </p>
+            </div>
+
+            <div style="margin-top: 30px; text-align: center; font-size: 0.8rem; color: var(--deep-purple-light);">
+                v1.5.0 (Beta) • © 2024 Antigravity
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initUserSession } from './user-session.js';
+        document.addEventListener('DOMContentLoaded', () => {
+            initUserSession();
+        });
+    </script>
+</body>
+
+</html>

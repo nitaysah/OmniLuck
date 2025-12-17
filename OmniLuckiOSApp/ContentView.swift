@@ -19,6 +19,9 @@ struct ContentView: View {
     @State private var showError = false
     @State private var errorMessage = ""
     @State private var showLogoutAlert = false
+    @State private var showAbout = false
+    @State private var showContact = false
+    @State private var showSettings = false
     
     // Light Celestial Color Palette
     let accentPurple = Color(red: 0.75, green: 0.6, blue: 0.95)  // Light purple
@@ -113,6 +116,9 @@ struct ContentView: View {
                     )
                 }
             }
+            .navigationDestination(isPresented: $showAbout) { AboutView() }
+            .navigationDestination(isPresented: $showContact) { ContactView() }
+            .navigationDestination(isPresented: $showSettings) { SettingsView() }
             #if os(iOS)
             .navigationBarHidden(true)
             #endif
@@ -167,14 +173,26 @@ struct ContentView: View {
             .padding(.top, 40)
             
             if let profile = userSession.userProfile, let userName = profile.name {
-                Button(action: {
-                    showLogoutAlert = true
-                }) {
+                Menu {
+                    Button(action: { showAbout = true }) {
+                        Label("About Us", systemImage: "info.circle")
+                    }
+                    Button(action: { showContact = true }) {
+                        Label("Contact Us", systemImage: "envelope")
+                    }
+                    Button(action: { showSettings = true }) {
+                        Label("Settings", systemImage: "gearshape")
+                    }
+                    Divider()
+                    Button(role: .destructive, action: { showLogoutAlert = true }) {
+                        Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right")
+                    }
+                } label: {
                     HStack(spacing: 6) {
                         Text("Hi, \(userName.components(separatedBy: " ").first ?? userName)")
                             .font(.system(size: 14, weight: .semibold))
-                        Image(systemName: "rectangle.portrait.and.arrow.right")
-                            .font(.system(size: 12))
+                        Image(systemName: "chevron.down") // Changed to chevron for menu indication
+                            .font(.system(size: 10, weight: .bold)) // Smaller chevron
                     }
                     .foregroundColor(deepPurple)
                     .padding(.horizontal, 14)

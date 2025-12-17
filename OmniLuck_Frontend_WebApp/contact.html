@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Contact Us - OmniLuck</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/png" href="favicon.png">
+</head>
+
+<body>
+    <div class="galaxy-container">
+        <div class="galaxy-wrapper">
+            <div class="stars"></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- User Menu -->
+        <div class="user-menu-container" id="user-menu-container" style="display: none;">
+            <button id="user-menu-btn" class="user-menu-btn">
+                <span id="user-greeting">Hi, User</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div id="user-dropdown" class="user-menu-dropdown">
+                <a href="about.html" class="menu-item">ℹ️ About Us</a>
+                <a href="contact.html" class="menu-item" style="background: rgba(191,153,242,0.1);">📞 Contact Us</a>
+                <a href="settings.html" class="menu-item">⚙️ Settings</a>
+                <div id="menu-logout-btn" class="menu-item" style="color: #d32f2f;">🚪 Logout</div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 80px; animation: fadeIn 0.5s ease;">
+            <button onclick="window.location.href='app.html'" class="back-btn"
+                style="position: relative; top: 0; left: 0; margin-bottom: 24px;">
+                <span>←</span> Back Home
+            </button>
+
+            <h1 style="margin-bottom: 20px;">Contact Us</h1>
+            <p style="margin-bottom: 30px; color: var(--deep-purple);">We'd love to hear your cosmic feedback or help
+                with any issues.</p>
+
+            <div class="input-group">
+                <label>TOPIC</label>
+                <select id="contact-topic" style="margin-bottom: 16px;">
+                    <option>General Inquiry</option>
+                    <option>Bug Report</option>
+                    <option>Feature Request</option>
+                    <option>account Support</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>MESSAGE</label>
+                <textarea id="contact-message" rows="5"
+                    style="width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(191,153,242,0.5); background: var(--input-bg); font-family: inherit; color: var(--deep-purple); resize: none;"
+                    placeholder="How can we help?"></textarea>
+            </div>
+
+            <button id="send-btn" class="primary-btn" style="margin-top: 24px;">
+                <span>✉️</span> Send Message
+            </button>
+
+            <div style="margin-top: 30px; text-align: center;">
+                <p style="font-size: 0.9rem; color: var(--deep-purple);">Or email us directly:</p>
+                <a href="mailto:support@omniluck.app"
+                    style="color: var(--accent-purple); font-weight: 600; text-decoration: none;">support@omniluck.app</a>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initUserSession } from './user-session.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initUserSession();
+
+            const sendBtn = document.getElementById('send-btn');
+            const msgInput = document.getElementById('contact-message');
+
+            if (sendBtn) {
+                sendBtn.addEventListener('click', () => {
+                    if (!msgInput.value.trim()) {
+                        alert("Please enter a message!");
+                        return;
+                    }
+                    // Mock send
+                    sendBtn.innerHTML = "✨ Sending...";
+                    setTimeout(() => {
+                        alert("Message sent to the cosmos! (We'll get back to you soon).");
+                        msgInput.value = "";
+                        sendBtn.innerHTML = "<span>✉️</span> Send Message";
+                    }, 1500);
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

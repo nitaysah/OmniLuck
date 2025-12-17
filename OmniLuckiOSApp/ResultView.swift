@@ -62,7 +62,7 @@ struct ResultView: View {
             // Decorative Glow
             Circle().fill(accentPurple.opacity(0.3)).frame(width: 300, height: 300).blur(radius: 80).offset(y: -100)
             
-            ScrollView {
+            ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 30) {
                 
                 // Result Animation
@@ -186,17 +186,16 @@ struct ResultView: View {
                                     Text("POWER HOURS").font(.caption).fontWeight(.bold).foregroundColor(accentPurple).tracking(1)
                                     
                                     // Simple flow replacement using HSAck/ScrollView for now (safer than lazy grid)
-                                    ScrollView(.horizontal, showsIndicators: false) {
-                                        HStack(spacing: 8) {
-                                            ForEach(slots, id: \.self) { slot in
-                                                Text(slot)
-                                                    .font(.caption).fontWeight(.bold)
-                                                    .padding(.horizontal, 12).padding(.vertical, 6)
-                                                    .background(Color.white)
-                                                    .cornerRadius(8)
-                                                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(accentGold, lineWidth: 1))
-                                                    .foregroundColor(deepPurple)
-                                            }
+                                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), spacing: 8)], spacing: 8) {
+                                        ForEach(slots, id: \.self) { slot in
+                                            Text(slot)
+                                                .font(.caption).fontWeight(.bold)
+                                                .padding(.horizontal, 12).padding(.vertical, 6)
+                                                .frame(maxWidth: .infinity) // Fill grid cell
+                                                .background(Color.white)
+                                                .cornerRadius(8)
+                                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(accentGold, lineWidth: 1))
+                                                .foregroundColor(deepPurple)
                                         }
                                     }
                                 }
