@@ -90,6 +90,15 @@ struct SignupResponse: Codable {
     let message: String
 }
 
+struct ResetPasswordRequest: Codable {
+    let email: String
+}
+
+struct ResetPasswordResponse: Codable {
+    let success: Bool
+    let message: String
+}
+
 struct ForecastResponse: Codable {
     let trend_direction: String
     let best_day: String
@@ -169,6 +178,12 @@ class NetworkService {
             lon: lon
         )
         return try await performRequest(endpoint: "/api/auth/signup", body: payload)
+    }
+    
+    // 0c. Auth: Reset Password
+    func resetPassword(email: String) async throws -> ResetPasswordResponse {
+        let payload = ResetPasswordRequest(email: email)
+        return try await performRequest(endpoint: "/api/auth/reset-password", body: payload)
     }
     
     // 1. Fetch Daily Luck

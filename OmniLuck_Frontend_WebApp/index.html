@@ -222,6 +222,25 @@
         <p id="loading-text" style="color:var(--deep-purple); font-weight:500;">Connecting...</p>
     </div>
 
+    <!-- Forgot Password Modal -->
+    <div id="forgot-modal" class="loading-overlay" style="align-items: center; justify-content: center; z-index: 200;">
+        <div
+            style="background: white; padding: 24px; border-radius: 20px; width: 90%; max-width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            <h3 style="color: var(--deep-purple); margin-bottom: 10px; font-weight: 700;">Reset Password</h3>
+            <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">Enter your email to receive a reset link.
+            </p>
+            <input type="email" id="forgot-email-input" placeholder="Your Email"
+                style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 10px; border: 1px solid #ddd; outline: none;">
+            <div style="display: flex; gap: 10px;">
+                <button id="forgot-cancel-btn"
+                    style="flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #ddd; background: #f5f5f5; color: #666; cursor: pointer; font-weight: 600;">Cancel</button>
+                <button id="forgot-send-btn"
+                    style="flex: 1; padding: 10px; border-radius: 10px; border: none; background: var(--deep-purple); color: white; cursor: pointer; font-weight: 600;">Send
+                    Link</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { auth, db } from './firebase-config.js';
         import { signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
@@ -310,35 +329,40 @@
 
         if (manualBtn) manualBtn.addEventListener('click', handleLogin);
 
-        // Forgot Password Handler
-        if (forgotLink) forgotLink.addEventListener('click', async (e) => {
+        // Forgot Password Handler (Modal)
+        const forgotModal = document.getElementById('forgot-modal');
+        const forgotEmailInput = document.getElementById('forgot-email-input');
+        const forgotSendBtn = document.getElementById('forgot-send-btn');
+        const forgotCancelBtn = document.getElementById('forgot-cancel-btn');
+
+        if (forgotLink) forgotLink.addEventListener('click', (e) => {
             e.preventDefault();
-            const loginInput = emailInput.value.trim();
+            forgotModal.style.display = 'flex';
+        });
 
-            if (!loginInput) {
-                alert('Please enter your Email or Username in the box above to reset your password.');
-                return;
-            }
+        if (forgotCancelBtn) forgotCancelBtn.addEventListener('click', () => {
+             forgotModal.style.display = 'none';
+        });
 
-            try {
-                showLoading('Checking Account...');
+        if (forgotSendBtn) forgotSendBtn.addEventListener('click', async () => {
+             const email = forgotEmailInput.value.trim();
+             if (!email) { alert("Please enter your email."); return; }
 
-                // Resolve email (in case they typed a username)
-                const emailToUse = await resolveEmail(loginInput);
-
-                showLoading('Sending Email...');
-                await sendPasswordResetEmail(auth, emailToUse);
-
-                hideLoading();
-                alert(`Password reset link sent to: ${emailToUse}\nPlease check your inbox/spam.`);
-
-            } catch (error) {
-                hideLoading();
-                console.error("Reset Error:", error);
-
-                let msg = error.code === 'auth/user-not-found' ? "No account found with this email." : error.message;
-                alert(msg);
-            }
+             try {
+                 forgotSendBtn.textContent = "Sending...";
+                 forgotSendBtn.disabled = true;
+                 await sendPasswordResetEmail(auth, email);
+                 alert(`Password reset link sent to: ${email}\nPlease check your inbox/spam.`);
+                 forgotModal.style.display = 'none';
+                 forgotEmailInput.value = ''; // Clear
+             } catch (error) {
+                 console.error("Reset Error:", error);
+                 let msg = error.code === 'auth/user-not-found' ? "No account found with this email." : error.message;
+                 alert(msg);
+             } finally {
+                 forgotSendBtn.textContent = "Send Link";
+                 forgotSendBtn.disabled = false;
+             }
         });
 
         if (guestBtn) guestBtn.addEventListener('click', () => {

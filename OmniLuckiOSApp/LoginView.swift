@@ -14,6 +14,8 @@ struct LoginView: View {
     @State private var showSignup = false
     @State private var showForgotPassword = false
     @State private var errorMessage = ""
+    @State private var forgotEmail = ""
+    @State private var showResetSuccess = false
     
     // Floating Animation State
     @State private var floatOffset: CGFloat = 0
@@ -275,6 +277,29 @@ struct LoginView: View {
         }
         .sheet(isPresented: $showSignup) {
             SignupView(userSession: userSession)
+        }
+        .alert("Reset Password", isPresented: $showForgotPassword) {
+            TextField("Enter your email", text: $forgotEmail)
+                .textInputAutocapitalization(.never)
+                .keyboardType(.emailAddress)
+            Button("Send Reset Link") {
+                Task {
+                    do {
+                        _ = try await NetworkService.shared.resetPassword(email: forgotEmail)
+                        await MainActor.run { showResetSuccess = true }
+                    } catch {
+                       print("Reset Password Error: \(error)")
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Enter your email address to receive a password reset link.")
+        }
+        .alert("Link Sent", isPresented: $showResetSuccess) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("If an account exists for \(forgotEmail), a reset link has been sent.")
         }
         .onAppear {
             withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {

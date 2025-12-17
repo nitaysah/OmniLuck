@@ -203,3 +203,35 @@ async def signup(request: SignupRequest):
         
     except requests.RequestException as e:
         raise HTTPException(status_code=503, detail=f"Network error: {str(e)}")
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+
+@router.post("/reset-password")
+async def reset_password(request: ResetPasswordRequest):
+    auth_url = f"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={FIREBASE_WEB_API_KEY}"
+    payload = {
+        "requestType": "PASSWORD_RESET",
+        "email": request.email
+    }
+    
+    try:
+        resp = requests.post(auth_url, json=payload)
+        
+        if resp.status_code != 200:
+            error_data = resp.json()
+            error_msg = error_data.get("error", {}).get("message", "Reset failed")
+            
+            if "EMAIL_NOT_FOUND" in error_msg:
+                # Security: Don't reveal email existence? Or user helpfulness?
+                # Usually standard to say "If account exists..."
+                pass 
+                # But for this MVP app, explicit error is helpful.
+                raise HTTPException(status_code=404, detail="No account found with this email")
+            
+            raise HTTPException(status_code=400, detail=error_msg)
+            
+        return {"success": True, "message": "Password reset email sent"}
+        
+    except requests.RequestException as e:
+        raise HTTPException(status_code=503, detail=f"Network error: {str(e)}")
