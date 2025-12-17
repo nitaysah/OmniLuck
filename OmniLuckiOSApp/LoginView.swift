@@ -16,6 +16,7 @@ struct LoginView: View {
     @State private var errorMessage = ""
     @State private var forgotEmail = ""
     @State private var showResetSuccess = false
+    @State private var isRotating = false
     
     // Floating Animation State
     @State private var floatOffset: CGFloat = 0
@@ -73,9 +74,12 @@ struct LoginView: View {
                             .frame(width: 80, height: 80)
                             .blur(radius: 10)
                             .background(Circle().stroke(accentGold.opacity(0.5), lineWidth: 1))
-                        Text("✨")
-                            .font(.system(size: 40))
-                            .shadow(color: accentGold.opacity(0.8), radius: 10)
+                        Image("Logo")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 60, height: 60)
+                            .clipShape(Circle())
+                            .rotationEffect(.degrees(isRotating ? 360 : 0))
                     }
                     
                     Text("OmniLuck")
@@ -158,6 +162,7 @@ struct LoginView: View {
 
                     // Sign In Button (Cosmic Glow)
                     Button(action: {
+                        focusedField = nil // Dismiss keyboard
                         isLoading = true
                         errorMessage = ""
                         Task {
@@ -303,9 +308,13 @@ struct LoginView: View {
             Text("If an account exists for \(forgotEmail), a reset link has been sent.")
         }
         .onAppear {
+            withAnimation(.linear(duration: 20).repeatForever(autoreverses: false)) {
+                isRotating = true
+            }
             withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
                 floatOffset = 15
             }
         }
     }
 }
+

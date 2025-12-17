@@ -133,6 +133,24 @@
                 transform: rotate(360deg);
             }
         }
+
+        @keyframes slowSpin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .rotating-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            animation: slowSpin 20s linear infinite;
+            box-shadow: 0 0 30px rgba(191, 153, 242, 0.4);
+        }
     </style>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -172,8 +190,7 @@
     <!-- Login View -->
     <div class="login-view">
         <div class="logo-container">
-            <div class="logo-glow"></div>
-            <span class="sparkle-icon">✨</span>
+            <img src="apple-touch-icon.png" class="rotating-logo" alt="OmniLuck Logo">
         </div>
 
         <h1 class="hero-title">OmniLuck</h1>
