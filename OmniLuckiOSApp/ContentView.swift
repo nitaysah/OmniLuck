@@ -615,41 +615,33 @@ struct ContentView: View {
                 }
                 
                 if !useNAForTime {
-                                // Visual placeholder
                     ZStack(alignment: .leading) {
-                        // LAYER 1: The Interactive Picker
-                        // We make this the "base" so it's always present in the layout.
-                        // We scale it lightly to ensure it covers the pill edges if needed.
-                        DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
-                            .datePickerStyle(.compact)
-                            .labelsHidden()
-                            .colorScheme(.light)
-                            // If not selected, blend it out but keep it touchable
-                            .opacity(timeSelected ? 1 : 0.02)
-                            .onChange(of: birthTime) { _, _ in
-                                withAnimation {
-                                    timeSelected = true
-                                }
-                            }
-                        
-                        // LAYER 2: The Visual Mask
-                        // Only visible when no time is selected.
-                        if !timeSelected {
-                            HStack {
-                                Image(systemName: "clock")
-                                    .foregroundColor(deepPurple.opacity(0.4))
-                                Text("-- : --")
-                                    .font(.subheadline)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(deepPurple.opacity(0.7))
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(accentPurple.opacity(0.1))
-                            .cornerRadius(10)
-                            // CRITICAL: Allow touches to pass through this mask to the Picker below
-                            .allowsHitTesting(false)
-                        }
+                         // Visual background that sizes the container
+                         HStack {
+                             Image(systemName: "clock")
+                                 .foregroundColor(deepPurple.opacity(0.4))
+                             Text(timeSelected ? birthTime.formatted(date: .omitted, time: .shortened) : "-- : --")
+                                 .font(.subheadline)
+                                 .fontWeight(.bold)
+                                 .foregroundColor(deepPurple.opacity(timeSelected ? 1.0 : 0.7))
+                         }
+                         .padding(.horizontal, 12)
+                         .padding(.vertical, 8)
+                         .background(accentPurple.opacity(0.1))
+                         .cornerRadius(10)
+                         .opacity(timeSelected ? 0 : 1)
+                         .overlay(
+                             DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
+                                 .datePickerStyle(.compact)
+                                 .labelsHidden()
+                                 .colorScheme(.light)
+                                 .opacity(timeSelected ? 1 : 0.011)
+                                 .onChange(of: birthTime) { _, _ in
+                                     withAnimation {
+                                         timeSelected = true
+                                     }
+                                 }
+                         )
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(12)
