@@ -637,9 +637,6 @@ struct ContentView: View {
                             .colorScheme(.light)
                             // We make it nearly transparent or fully visible depending on selection
                             .opacity(timeSelected ? 1 : 0.015)
-                            // CRITICAL: Stretch the picker and its hit area to cover the entire row
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
-                            .contentShape(Rectangle()) 
                             .onChange(of: birthTime) { _, _ in
                                 withAnimation {
                                     timeSelected = true
