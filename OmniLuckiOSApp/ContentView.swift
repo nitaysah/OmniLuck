@@ -615,34 +615,31 @@ struct ContentView: View {
                 }
                 
                 if !useNAForTime {
-                    ZStack(alignment: .leading) {
-                        // Background placeholder pill to show "-- : --"
-                        HStack {
-                            Image(systemName: "clock")
-                                .foregroundColor(deepPurple.opacity(0.4))
-                            Text(timeSelected ? birthTime.formatted(date: .omitted, time: .shortened) : "-- : --")
-                                .font(.subheadline)
-                                .fontWeight(.bold)
-                                .foregroundColor(deepPurple.opacity(timeSelected ? 1.0 : 0.7))
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(accentPurple.opacity(0.1))
-                        .cornerRadius(10)
-                        
-                        // The actual picker layered on top, expanded to fill the entire hit area
+                                // Visual placeholder
+                    HStack {
+                        Image(systemName: "clock")
+                            .foregroundColor(deepPurple.opacity(0.4))
+                        Text(timeSelected ? birthTime.formatted(date: .omitted, time: .shortened) : "-- : --")
+                            .font(.subheadline)
+                            .fontWeight(.bold)
+                            .foregroundColor(deepPurple.opacity(timeSelected ? 1.0 : 0.7))
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(accentPurple.opacity(0.1))
+                    .cornerRadius(8)
+                    .overlay(
                         DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
                             .datePickerStyle(.compact)
                             .labelsHidden()
                             .colorScheme(.light)
-                            // We make it nearly transparent or fully visible depending on selection
                             .opacity(timeSelected ? 1 : 0.015)
                             .onChange(of: birthTime) { _, _ in
                                 withAnimation {
                                     timeSelected = true
                                 }
                             }
-                    }
+                    )
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(12)
                     .background(Color.white.opacity(0.9))
