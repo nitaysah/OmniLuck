@@ -22,6 +22,7 @@ struct ContentView: View {
     @State private var errorMessage = ""
     @State private var showLogoutAlert = false
     @State private var activeSheet: SheetType?
+    @State private var timeSelected = false
 
     enum SheetType: Identifiable {
         case about, contact, settings
@@ -614,17 +615,32 @@ struct ContentView: View {
                 }
                 
                 if !useNAForTime {
-                    DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
-                        .datePickerStyle(.compact)
-                        .labelsHidden()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(12)
-                        .background(Color.white.opacity(0.9))
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(accentPurple.opacity(0.5), lineWidth: 1)
-                        )
+                    ZStack(alignment: .leading) {
+                        if !timeSelected {
+                            Text("-- : --")
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                                .foregroundColor(deepPurple.opacity(0.7))
+                                .padding(.leading, 12)
+                        }
+                        
+                        DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
+                            .datePickerStyle(.compact)
+                            .labelsHidden()
+                            .colorScheme(.light)
+                            .opacity(timeSelected ? 1 : 0.015)
+                            .onChange(of: birthTime) { _, _ in
+                                timeSelected = true
+                            }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .background(Color.white.opacity(0.9))
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(accentPurple.opacity(0.5), lineWidth: 1)
+                    )
                 } else {
                     Text("Midday Alignment Active: Following the Astrology standard for unknown birth times, your chart is anchored to 12:00 PM to maximize planetary accuracy and ensure a reliable luck forecast.")
                         .font(.caption)
@@ -691,7 +707,8 @@ struct ContentView: View {
                 .shadow(color: (name.isEmpty || birthPlace.isEmpty) ? .clear : accentGold.opacity(0.4), radius: 10, x: 0, y: 5)
                 .scaleEffect(isButtonPressed ? 0.95 : 1.0)
             }
-            .disabled(name.isEmpty || birthPlace.isEmpty)
+            .disabled(name.isEmpty || birthPlace.isEmpty || (!useNAForTime && !timeSelected) || manualDateText.isEmpty)
+            .opacity((name.isEmpty || birthPlace.isEmpty || (!useNAForTime && !timeSelected) || manualDateText.isEmpty) ? 0.6 : 1)
             .padding(.horizontal)
             .padding(.bottom, 10)
             

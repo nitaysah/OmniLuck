@@ -27,6 +27,7 @@ struct SignupView: View {
     @State private var showTimeInfo = false
     @State private var showPassword = false
     @State private var showConfirmPassword = false
+    @State private var timeSelected = false
     
     enum Field {
         case username, firstName, middleName, lastName, email, password, confirmPassword, birthPlace
@@ -340,13 +341,29 @@ struct SignupView: View {
                 }
                 
                 if !useNAForTime {
-                    DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
-                        .labelsHidden()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(12)
-                        .background(Color.white.opacity(0.9))
-                        .cornerRadius(12)
-                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(accentPurple.opacity(0.5), lineWidth: 1))
+                    ZStack(alignment: .leading) {
+                        if !timeSelected {
+                            Text("-- : --")
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                                .foregroundColor(deepPurple.opacity(0.7))
+                                .padding(.leading, 12)
+                        }
+                        
+                        DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
+                            .datePickerStyle(.compact)
+                            .labelsHidden()
+                            .colorScheme(.light)
+                            .opacity(timeSelected ? 1 : 0.015)
+                            .onChange(of: birthTime) { _, _ in
+                                timeSelected = true
+                            }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .background(Color.white.opacity(0.9))
+                    .cornerRadius(12)
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(accentPurple.opacity(0.5), lineWidth: 1))
                 } else {
                     Text("Midday Alignment Active: Following the Astrology standard for unknown birth times, your chart is anchored to 12:00 PM to maximize planetary accuracy and ensure a reliable luck forecast.")
                         .font(.caption)
@@ -421,8 +438,8 @@ struct SignupView: View {
                 .foregroundColor(.white)
                 .cornerRadius(12)
             }
-            .disabled(username.isEmpty || firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty || birthPlace.isEmpty)
-            .opacity((username.isEmpty || firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty || birthPlace.isEmpty) ? 0.6 : 1)
+            .disabled(username.isEmpty || firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty || birthPlace.isEmpty || (!useNAForTime && !timeSelected) || manualDateText.isEmpty)
+            .opacity((username.isEmpty || firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty || birthPlace.isEmpty || (!useNAForTime && !timeSelected) || manualDateText.isEmpty) ? 0.6 : 1)
             .padding(.top, 8)
             
             Button("Wait, I have an account") { dismiss() }
