@@ -17,6 +17,7 @@ struct LoginView: View {
     @State private var forgotEmail = ""
     @State private var showResetSuccess = false
     @State private var isRotating = false
+    @State private var showPassword = false
     
     // Floating Animation State
     @State private var floatOffset: CGFloat = 0
@@ -134,21 +135,35 @@ struct LoginView: View {
                                 .foregroundColor(deepPurple.opacity(0.7))
                                 .padding(.leading, 16)
                         }
-                        SecureField("", text: $password)
-                            .padding(12)
-                            .background(Color.white.opacity(0.7))
-                            .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(accentPurple.opacity(0.5), lineWidth: 1)
-                            )
-                            .foregroundColor(deepPurple)
-                            .tint(deepPurple)
-                            .submitLabel(.done)
-                            .focused($focusedField, equals: .password)
-                            .onSubmit {
-                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        
+                        HStack {
+                            if showPassword {
+                                TextField("", text: $password)
+                                    .textInputAutocapitalization(.never)
+                            } else {
+                                SecureField("", text: $password)
                             }
+                            
+                            Button(action: { showPassword.toggle() }) {
+                                Image(systemName: showPassword ? "eye.slash" : "eye")
+                                    .foregroundColor(deepPurple.opacity(0.7))
+                                    .font(.system(size: 16))
+                            }
+                        }
+                        .padding(12)
+                        .background(Color.white.opacity(0.7))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(accentPurple.opacity(0.5), lineWidth: 1)
+                        )
+                        .foregroundColor(deepPurple)
+                        .tint(deepPurple)
+                        .submitLabel(.done)
+                        .focused($focusedField, equals: .password)
+                        .onSubmit {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        }
                     }
                     
                     // Error Message

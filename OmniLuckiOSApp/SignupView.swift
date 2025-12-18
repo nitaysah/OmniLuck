@@ -25,6 +25,8 @@ struct SignupView: View {
     @State private var errorMessage = ""
     @State private var useNAForTime = false
     @State private var showTimeInfo = false
+    @State private var showPassword = false
+    @State private var showConfirmPassword = false
     
     enum Field {
         case username, firstName, middleName, lastName, email, password, confirmPassword, birthPlace
@@ -174,29 +176,55 @@ struct SignupView: View {
             // Password
             VStack(alignment: .leading, spacing: 6) {
                 Text("Password").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
-                SecureField("", text: $password)
-                    .padding(14)
-                    .background(Color.white.opacity(0.9))
-                    .cornerRadius(12)
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(accentPurple.opacity(0.5), lineWidth: 1))
-                    .foregroundColor(deepPurple)
-                    .submitLabel(.next)
-                    .focused($focusedField, equals: .password)
-                    .onSubmit { focusedField = .confirmPassword }
+                HStack {
+                    if showPassword {
+                        TextField("", text: $password)
+                            .textInputAutocapitalization(.never)
+                    } else {
+                        SecureField("", text: $password)
+                    }
+                    
+                    Button(action: { showPassword.toggle() }) {
+                        Image(systemName: showPassword ? "eye.slash" : "eye")
+                            .foregroundColor(deepPurple.opacity(0.7))
+                            .font(.system(size: 14))
+                    }
+                }
+                .padding(14)
+                .background(Color.white.opacity(0.9))
+                .cornerRadius(12)
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(accentPurple.opacity(0.5), lineWidth: 1))
+                .foregroundColor(deepPurple)
+                .submitLabel(.next)
+                .focused($focusedField, equals: .password)
+                .onSubmit { focusedField = .confirmPassword }
             }
             
             // Confirm Password
             VStack(alignment: .leading, spacing: 6) {
                 Text("Confirm Password").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
-                SecureField("", text: $confirmPassword)
-                    .padding(14)
-                    .background(Color.white.opacity(0.9))
-                    .cornerRadius(12)
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(accentPurple.opacity(0.5), lineWidth: 1))
-                    .foregroundColor(deepPurple)
-                    .submitLabel(.done)
-                    .focused($focusedField, equals: .confirmPassword)
-                    .onSubmit { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
+                HStack {
+                    if showConfirmPassword {
+                        TextField("", text: $confirmPassword)
+                            .textInputAutocapitalization(.never)
+                    } else {
+                        SecureField("", text: $confirmPassword)
+                    }
+                    
+                    Button(action: { showConfirmPassword.toggle() }) {
+                        Image(systemName: showConfirmPassword ? "eye.slash" : "eye")
+                            .foregroundColor(deepPurple.opacity(0.7))
+                            .font(.system(size: 14))
+                    }
+                }
+                .padding(14)
+                .background(Color.white.opacity(0.9))
+                .cornerRadius(12)
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(accentPurple.opacity(0.5), lineWidth: 1))
+                .foregroundColor(deepPurple)
+                .submitLabel(.done)
+                .focused($focusedField, equals: .confirmPassword)
+                .onSubmit { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
             }
         }
     }

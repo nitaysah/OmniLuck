@@ -1282,3 +1282,39 @@ input[type="range"]::-webkit-slider-thumb {
 .menu-item:hover {
     background: rgba(191, 153, 242, 0.1);
 }
+
+/* Password Toggle */
+.password-container {
+    position: relative;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--deep-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    opacity: 0.5;
+    transition: all 0.2s ease;
+    z-index: 5;
+}
+
+.password-toggle:hover {
+    opacity: 0.8;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.password-toggle svg {
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+}
