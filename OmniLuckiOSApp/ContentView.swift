@@ -616,34 +616,39 @@ struct ContentView: View {
                 
                 if !useNAForTime {
                     ZStack(alignment: .leading) {
-                         // Visual background that sizes the container
-                         HStack {
-                             Image(systemName: "clock")
-                                 .foregroundColor(deepPurple.opacity(0.4))
-                             Text(timeSelected ? birthTime.formatted(date: .omitted, time: .shortened) : "-- : --")
-                                 .font(.subheadline)
-                                 .fontWeight(.bold)
-                                 .foregroundColor(deepPurple.opacity(timeSelected ? 1.0 : 0.7))
-                         }
-                         .padding(.horizontal, 12)
-                         .padding(.vertical, 8)
-                         .background(accentPurple.opacity(0.1))
-                         .cornerRadius(10)
-                         .opacity(timeSelected ? 0 : 1)
-                         .overlay(
-                             DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
-                                 .datePickerStyle(.compact)
-                                 .labelsHidden()
-                                 .colorScheme(.light)
-                                 .opacity(timeSelected ? 1 : 0.011)
-                                 .onChange(of: birthTime) { _, _ in
-                                     withAnimation {
-                                         timeSelected = true
-                                     }
-                                 }
-                         )
+                        // 1. The Real Picker (Always acting as the touch target)
+                        DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
+                            .datePickerStyle(.compact)
+                            .labelsHidden()
+                            .colorScheme(.light)
+                            // When not selected, it is invisible but INTERACTIVE (0.02 opacity)
+                            .opacity(timeSelected ? 1 : 0.02)
+                            .onChange(of: birthTime) { _, _ in
+                                withAnimation {
+                                    timeSelected = true
+                                }
+                            }
+                        
+                        // 2. The Visual Placeholder (Only visible when not selected)
+                        if !timeSelected {
+                            HStack {
+                                Image(systemName: "clock")
+                                    .foregroundColor(deepPurple.opacity(0.4))
+                                Text("-- : --")
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(deepPurple.opacity(0.7))
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(accentPurple.opacity(0.1))
+                            .cornerRadius(10)
+                            // CRITICAL: This allows taps to go through to the DatePicker below
+                            .allowsHitTesting(false)
+                        }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    // We let the DatePicker (or Placeholder) determine the size, which is naturally "compact"
+                    // We DO NOT force it to fill the infinity width, preventing accidental side-taps.
                     .padding(12)
                     .background(Color.white.opacity(0.9))
                     .cornerRadius(12)
