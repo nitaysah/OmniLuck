@@ -213,7 +213,8 @@ struct ResultView: View {
                                     chartData = try await NetworkService.shared.fetchNatalChart(
                                         dob: info.dob,
                                         birthTime: info.time,
-                                        birthPlace: info.place
+                                        birthPlace: info.place,
+                                        timeIsNA: info.timeIsNA
                                     )
                                 } catch {
                                     print("Chart Error: \(error)")

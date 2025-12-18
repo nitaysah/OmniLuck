@@ -151,6 +151,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const d = new Date(); d.setHours(h); d.setMinutes(m);
                     dTime.textContent = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
                 } catch (e) { dTime.textContent = user.birth_time; }
+
+                // If time is 12:00, it's likely an unknown time (Astrology standard)
+                if (user.birth_time === "12:00" && tobNaCheckbox) {
+                    tobNaCheckbox.checked = true;
+                    tobNaCheckbox.dispatchEvent(new Event('change'));
+                }
             }
         } else {
             if (dTime) dTime.textContent = "Unknown (12:00 PM)";
@@ -383,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 uid: localStorage.getItem('currentUser') ? JSON.parse(localStorage.getItem('currentUser')).uid : "guest",
                 name: name,
                 dob: dob,
-                birth_time: (tobNaCheckbox && tobNaCheckbox.checked) ? "" : (birthTimeInput ? birthTimeInput.value : ""),
+                birth_time: (tobNaCheckbox && tobNaCheckbox.checked) ? "12:00" : (birthTimeInput && birthTimeInput.value ? birthTimeInput.value : "12:00"),
                 birth_place_name: birthPlaceVal || null,
                 birth_lat: birthLocation ? birthLocation.lat : null,
                 birth_lon: birthLocation ? birthLocation.lon : null,

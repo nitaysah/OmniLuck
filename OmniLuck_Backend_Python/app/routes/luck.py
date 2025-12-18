@@ -41,11 +41,12 @@ async def calculate_luck(request: LuckCalculationRequest):
     natal_score = 50 # Default neutral
     astro_data = {}
     
-    if request.birth_lat and request.birth_lon and request.birth_time:
+    birth_time = request.birth_time or "12:00"
+    if request.birth_lat and request.birth_lon:
         try:
             birth_info = BirthInfo(
                 dob=request.dob,
-                time=request.birth_time,
+                time=birth_time,
                 lat=request.birth_lat,
                 lon=request.birth_lon,
                 timezone="UTC"
@@ -216,13 +217,15 @@ async def get_forecast(request: LuckCalculationRequest):
     from app.models.schemas import BirthInfo, ForecastResponse, ForecastDay
     from datetime import timedelta
     
-    if not request.birth_lat or not request.birth_time:
-         raise HTTPException(status_code=400, detail="Birth time and location required for forecast")
+    if not request.birth_lat:
+         raise HTTPException(status_code=400, detail="Birth location required for forecast")
+
+    birth_time = request.birth_time or "12:00"
 
     # Calculate Natal Chart ONE time
     birth_info = BirthInfo(
         dob=request.dob,
-        time=request.birth_time,
+        time=birth_time,
         lat=request.birth_lat,
         lon=request.birth_lon,
         timezone=request.timezone or "UTC"

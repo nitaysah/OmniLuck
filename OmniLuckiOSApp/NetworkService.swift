@@ -208,7 +208,7 @@ class NetworkService {
             uid: "ios-user",
             name: name,
             dob: formatDate(dob),
-            birth_time: timeIsNA ? "" : formatTime(birthTime), // Send empty string if time is not known
+            birth_time: timeIsNA ? "12:00" : formatTime(birthTime), // Send "12:00" if time is not known
             birth_place_name: birthPlace,
             birth_lat: lat,
             birth_lon: lon,
@@ -220,7 +220,7 @@ class NetworkService {
     }
     
     // 2. Fetch Natal Chart
-    func fetchNatalChart(dob: Date, birthTime: Date, birthPlace: String) async throws -> NatalChartResponse {
+    func fetchNatalChart(dob: Date, birthTime: Date, birthPlace: String, timeIsNA: Bool = false) async throws -> NatalChartResponse {
         // Geocode (Redundant if cached, but safer)
         guard let coords = await getCoordinates(for: birthPlace) else {
             throw NSError(domain: "NetworkService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Could not validate location '\(birthPlace)'. Please use City, Country format (e.g. Dallas, USA)."])
@@ -230,7 +230,7 @@ class NetworkService {
         
         let payload = BirthInfoRequest(
             dob: formatDate(dob),
-            time: formatTime(birthTime),
+            time: timeIsNA ? "12:00" : formatTime(birthTime),
             lat: lat,
             lon: lon,
             timezone: "UTC"
@@ -252,7 +252,7 @@ class NetworkService {
             uid: "ios-user",
             name: name,
             dob: formatDate(dob),
-            birth_time: timeIsNA ? "" : formatTime(birthTime),
+            birth_time: timeIsNA ? "12:00" : formatTime(birthTime),
             birth_place_name: birthPlace,
             birth_lat: lat,
             birth_lon: lon,

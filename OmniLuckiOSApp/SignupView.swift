@@ -360,7 +360,8 @@ struct SignupView: View {
                             
                             let f = DateFormatter()
                             f.dateFormat = "HH:mm"
-                            let timeStr = f.string(from: birthTime)
+                            let finalTime = useNAForTime ? Calendar.current.date(bySettingHour: 12, minute: 0, second: 0, of: Date())! : birthTime
+                            let timeStr = f.string(from: finalTime)
                             
                             let fullName = "\(firstName) \(middleName.isEmpty ? "" : middleName + " ")\(lastName)"
                             let profile = UserProfile(
