@@ -616,21 +616,32 @@ struct ContentView: View {
                 
                 if !useNAForTime {
                     ZStack(alignment: .leading) {
-                        if !timeSelected {
-                            Text("-- : --")
+                        // Background placeholder pill to show "-- : --"
+                        HStack {
+                            Image(systemName: "clock")
+                                .foregroundColor(deepPurple.opacity(0.4))
+                            Text(timeSelected ? birthTime.formatted(date: .omitted, time: .shortened) : "-- : --")
                                 .font(.subheadline)
                                 .fontWeight(.bold)
-                                .foregroundColor(deepPurple.opacity(0.7))
-                                .padding(.leading, 12)
+                                .foregroundColor(deepPurple.opacity(timeSelected ? 1.0 : 0.7))
                         }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(accentPurple.opacity(0.1))
+                        .cornerRadius(10)
                         
+                        // The actual picker layered on top
                         DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
                             .datePickerStyle(.compact)
                             .labelsHidden()
                             .colorScheme(.light)
+                            // When not selected, we keep it nearly transparent so the placeholder shows
+                            // but it still captures the tap to open the system picker popover.
                             .opacity(timeSelected ? 1 : 0.015)
                             .onChange(of: birthTime) { _, _ in
-                                timeSelected = true
+                                withAnimation {
+                                    timeSelected = true
+                                }
                             }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)

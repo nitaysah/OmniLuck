@@ -342,13 +342,19 @@ struct SignupView: View {
                 
                 if !useNAForTime {
                     ZStack(alignment: .leading) {
-                        if !timeSelected {
-                            Text("-- : --")
+                        // Visual placeholder
+                        HStack {
+                            Image(systemName: "clock")
+                                .foregroundColor(deepPurple.opacity(0.4))
+                            Text(timeSelected ? birthTime.formatted(date: .omitted, time: .shortened) : "-- : --")
                                 .font(.subheadline)
                                 .fontWeight(.bold)
-                                .foregroundColor(deepPurple.opacity(0.7))
-                                .padding(.leading, 12)
+                                .foregroundColor(deepPurple.opacity(timeSelected ? 1.0 : 0.7))
                         }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(accentPurple.opacity(0.1))
+                        .cornerRadius(8)
                         
                         DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
                             .datePickerStyle(.compact)
@@ -356,11 +362,13 @@ struct SignupView: View {
                             .colorScheme(.light)
                             .opacity(timeSelected ? 1 : 0.015)
                             .onChange(of: birthTime) { _, _ in
-                                timeSelected = true
+                                withAnimation {
+                                    timeSelected = true
+                                }
                             }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(12)
+                    .padding(10)
                     .background(Color.white.opacity(0.9))
                     .cornerRadius(12)
                     .overlay(RoundedRectangle(cornerRadius: 12).stroke(accentPurple.opacity(0.5), lineWidth: 1))
