@@ -725,6 +725,10 @@ input[type="range"]::-webkit-slider-thumb {
     box-shadow: 0 8px 20px rgba(255, 230, 128, 0.4);
     transition: all 0.2s ease;
     margin-top: auto;
+    position: relative;
+    /* CRITICAL: Enables absolute positioning within button */
+    overflow: hidden;
+    /* Contain the animation */
 }
 
 .primary-btn:disabled {
@@ -1317,4 +1321,88 @@ input[type="range"]::-webkit-slider-thumb {
     width: 20px;
     height: 20px;
     pointer-events: none;
+}
+
+/* --- Magic Wand Loading Animation (Mimics iOS HStack) --- */
+.wand-loading-container {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    flex-direction: row;
+    /* Horizontal like HStack */
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    /* Spacing between elements */
+    pointer-events: none;
+    z-index: 50;
+}
+
+.primary-btn.loading .wand-loading-container {
+    display: flex !important;
+}
+
+.primary-btn.loading .btn-text,
+.primary-btn.loading .btn-icon {
+    visibility: hidden !important;
+}
+
+/* Sparkles - positioned in horizontal flow, not absolute */
+.magic-trail {
+    font-size: 16px;
+    color: #FFD700;
+    opacity: 0;
+    /* Pulse animation with staggered delays */
+}
+
+.trail-1 {
+    animation: sparklePulse 0.6s ease-in-out infinite 0.0s;
+}
+
+.trail-2 {
+    order: 2;
+    animation: sparklePulse 0.6s ease-in-out infinite 0.2s;
+}
+
+.trail-3 {
+    order: 3;
+    animation: sparklePulse 0.6s ease-in-out infinite 0.4s;
+}
+
+/* Wand - positioned in middle of flex flow */
+.magic-wand-icon {
+    font-size: 24px;
+    order: 1;
+    /* Position between trail-1 and trail-2 */
+    animation: wandSwing 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes sparklePulse {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+}
+
+@keyframes wandSwing {
+    0% {
+        transform: translateX(-20px) rotate(-10deg);
+    }
+
+    100% {
+        transform: translateX(20px) rotate(10deg);
+    }
 }

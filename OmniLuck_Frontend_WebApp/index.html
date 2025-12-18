@@ -145,10 +145,10 @@
         }
 
         .rotating-logo {
-            width: 80px;
-            height: 80px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
-            animation: slowSpin 20s linear infinite;
+            animation: slowSpin 30s linear infinite;
             box-shadow: 0 0 30px rgba(191, 153, 242, 0.4);
         }
     </style>
@@ -317,11 +317,16 @@
             loading.classList.remove('active');
         }
 
-        // Helper: Resolve Username to Email
+        // Helper: Resolve Username to Email (WITH CACHING & PROFILE DATA)
         async function resolveEmail(input) {
-            if (input.includes('@')) return input;
+            if (input.includes('@')) return { email: input, userData: null };
 
-            // Input is likely a username, query Firestore
+            // Check session cache first (fast!)
+            const cacheKey = `user_${input}`;
+            const cached = sessionStorage.getItem(cacheKey);
+            if (cached) return JSON.parse(cached);
+
+            // Query Firestore for username
             const q = query(collection(db, "users"), where("username", "==", input));
             const querySnapshot = await getDocs(q);
 
@@ -329,7 +334,12 @@
                 throw new Error("No account found with this username.");
             }
 
-            return querySnapshot.docs[0].data().email;
+            const userData = querySnapshot.docs[0].data();
+            const result = { email: userData.email, userData };
+
+            // Cache it
+            sessionStorage.setItem(cacheKey, JSON.stringify(result));
+            return result;
         }
 
         // Manual Auth Handler - LOGIN ONLY
@@ -345,8 +355,8 @@
             try {
                 showLoading('Verifying...');
 
-                // key logic: get email from username if needed
-                const emailToUse = await resolveEmail(loginInput);
+                // Resolve email (and get userData if username lookup)
+                const { email: emailToUse, userData: preloadedData } = await resolveEmail(loginInput);
 
                 showLoading('Signing In...');
 
@@ -354,18 +364,23 @@
                 const userCredential = await signInWithEmailAndPassword(auth, emailToUse, password);
                 const user = userCredential.user;
 
-                // Fetch full profile from Firestore (to get DOB, etc.)
-                const docRef = doc(db, "users", user.uid);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    const userData = docSnap.data();
-                    // Save to LocalStorage (Session Cache)
-                    localStorage.setItem('currentUser', JSON.stringify(userData));
+                // Use preloaded data if available (SKIP second Firestore call!)
+                if (preloadedData && preloadedData.uid === user.uid) {
+                    localStorage.setItem('currentUser', JSON.stringify(preloadedData));
                     window.location.href = 'app.html';
                 } else {
-                    alert("User profile not found. Please contact support.");
-                    hideLoading();
+                    // Only fetch if we don't have it yet
+                    const docRef = doc(db, "users", user.uid);
+                    const docSnap = await getDoc(docRef);
+
+                    if (docSnap.exists()) {
+                        const userData = docSnap.data();
+                        localStorage.setItem('currentUser', JSON.stringify(userData));
+                        window.location.href = 'app.html';
+                    } else {
+                        alert("User profile not found. Please contact support.");
+                        hideLoading();
+                    }
                 }
 
             } catch (error) {

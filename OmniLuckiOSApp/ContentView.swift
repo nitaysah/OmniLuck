@@ -414,9 +414,9 @@ struct ContentView: View {
             HStack {
                 Button(action: { userSession.logout() }) {
                     Image(systemName: "house.fill")
-                        .font(.system(size: 18, weight: .semibold))
+                        .font(.system(size: 24, weight: .semibold))
                         .foregroundColor(deepPurple)
-                        .padding(10)
+                        .padding(12)
                         .background(Color.white.opacity(0.6))
                         .clipShape(Circle())
                         .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
@@ -619,6 +619,7 @@ struct ContentView: View {
                         .datePickerStyle(.compact)
                         .labelsHidden()
                         .colorScheme(.light)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(12)
                         .background(Color.white.opacity(0.9))
                         .cornerRadius(12)
@@ -864,10 +865,16 @@ struct ContentView: View {
                     Button(action: {
                         triggerForecast()
                     }) {
-                        HStack(spacing: 8) {
-                            Text("Forecast my Luck")
-                                .fontWeight(.bold)
-                            Image(systemName: "wand.and.stars")
+                        Group {
+                            if isButtonPressed {
+                                MagicWandLoadingView(color: deepPurple)
+                            } else {
+                                HStack(spacing: 8) {
+                                    Text("Forecast my Luck")
+                                        .fontWeight(.bold)
+                                    Image(systemName: "wand.and.stars")
+                                }
+                            }
                         }
                         .font(.title3)
                         .foregroundColor(deepPurple)
@@ -933,3 +940,43 @@ struct ContentView_Previews: PreviewProvider {
 
 
 // Galaxy Animation moved to GalaxyView.swift
+
+struct MagicWandLoadingView: View {
+    let color: Color
+    @State private var isAnimating = false
+    
+    var body: some View {
+        ZStack {
+            // Trail/Sparkles
+            HStack(spacing: 15) {
+                 ForEach(0..<3) { i in 
+                     Image(systemName: "sparkle")
+                         .font(.system(size: 12))
+                         .foregroundColor(color.opacity(0.7))
+                         .scaleEffect(isAnimating ? 1.2 : 0.5)
+                         .opacity(isAnimating ? 1 : 0)
+                         .animation(
+                             .easeInOut(duration: 0.6)
+                             .repeatForever()
+                             .delay(Double(i) * 0.2), 
+                             value: isAnimating
+                         )
+                 }
+            }
+            
+            // Moving Wand
+            Image(systemName: "wand.and.stars")
+                .font(.title3)
+                .fontWeight(.bold)
+                .foregroundColor(color)
+                .rotationEffect(.degrees(isAnimating ? 10 : -10))
+                .offset(x: isAnimating ? 30 : -30)
+                .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: isAnimating)
+        }
+        .frame(maxWidth: .infinity)
+        .contentShape(Rectangle()) // Ensure tap area sanity if needed, though disabled
+        .onAppear {
+            isAnimating = true
+        }
+    }
+}

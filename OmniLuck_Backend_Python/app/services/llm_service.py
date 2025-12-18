@@ -21,6 +21,9 @@ class LLMService:
         self.gemini_model_id = None
         self.groq_client = None
         
+        # Simple in-memory cache for AI responses (resets on server restart)
+        self._response_cache = {}
+        
         print(f"🔧 LLM Service: use_local={self.use_local}, has_gemini={bool(self.gemini_key)}, has_groq={bool(self.groq_key)}")
 
         if not self.use_local:
@@ -221,6 +224,19 @@ Fortune message:"""
         Analyze user's profile and cosmic data to generate content.
         Note: AI no longer calculates the score; it explains the provided data.
         """
+        from datetime import datetime
+        import hashlib
+        
+        # Generate cache key (uid + current date)
+        uid = user_data.get("uid", "guest")
+        today = datetime.now().strftime("%Y-%m-%d")
+        cache_key = f"{uid}_{today}"
+        
+        # Check cache first (instant return!)
+        if cache_key in self._response_cache:
+            print(f"✅ Using cached AI response for {uid}")
+            return self._response_cache[cache_key]
+        
         # Build comprehensive analysis prompt
         prompt = self._build_analysis_prompt(user_data, cosmic_signals, astrology_data, numerology_data)
 
@@ -286,7 +302,7 @@ Fortune message:"""
             clean_json = text_response.replace("```json", "").replace("```", "").strip()
             parsed_data = json.loads(clean_json)
             
-            return {
+            result = {
                 "score": max(0, min(100, parsed_data.get("score", 75))),
                 "explanation": parsed_data.get("explanation", "The stars are aligning for you."),
                 "actions": parsed_data.get("actions", ["Seize the day", "Reflect inward", "Smile often"]),
@@ -295,6 +311,14 @@ Fortune message:"""
                 "strategic_advice": parsed_data.get("strategy", "Balance your internal drive with external patience."),
                 "lucky_time_slots": parsed_data.get("schedule", [])
             }
+            
+            # Cache the successful result
+            uid = user_data.get("uid", "guest")
+            today = datetime.now().strftime("%Y-%m-%d")
+            cache_key = f"{uid}_{today}"
+            self._response_cache[cache_key] = result
+            
+            return result
             
         except Exception as e:
             print(f"⚠️ Gemini Analysis error: {e}")

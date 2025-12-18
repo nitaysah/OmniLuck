@@ -345,6 +345,7 @@ struct SignupView: View {
                         .datePickerStyle(.compact)
                         .labelsHidden()
                         .colorScheme(.light)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(10)
                         .background(Color.white.opacity(0.9))
                         .cornerRadius(12)

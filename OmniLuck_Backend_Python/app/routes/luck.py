@@ -19,63 +19,70 @@ async def calculate_luck(request: LuckCalculationRequest):
     2. Astrology Transits (Swiss Ephemeris) - 40%
     3. Cosmic Signals (Moon, Weather, Space Weather) - 20%
     """
+    import asyncio
     from app.services.astrology_service import astrology_service
     from app.services.signals_service import signals_service
     from app.services.numerology_service import numerology_service
     from app.models.schemas import BirthInfo
     
-    # 1. Fetch Cosmic Signals (20%)
-    try:
-        lat = request.current_lat or 0.0
-        lon = request.current_lon or 0.0
-        signals = await signals_service.get_all_signals(lat, lon)
-        signals_score = signals.total_influence_score
-        signals_dict = signals.dict()
-    except Exception as e:
-        print(f"⚠️ Signals Error: {e}")
-        signals_score = 50
-        signals_dict = {}
-
-    # 2. Calculate Astrology Score (40%)
-    astro_score = 50 
-    natal_score = 50 # Default neutral
-    astro_data = {}
-    
-    birth_time = request.birth_time or "12:00"
-    if request.birth_lat and request.birth_lon:
+    # OPTIMIZATION: Run independent calculations in PARALLEL
+    async def fetch_signals():
         try:
-            birth_info = BirthInfo(
-                dob=request.dob,
-                time=birth_time,
-                lat=request.birth_lat,
-                lon=request.birth_lon,
-                timezone="UTC"
-            )
-            natal_chart = astrology_service.calculate_natal_chart(birth_info)
-            # Use current time but round to minute (no seconds) for consistency
-            current_time = datetime.now().replace(second=0, microsecond=0)
-            transits_result = astrology_service.calculate_daily_transits(current_time, natal_chart)
-            astro_score = transits_result.influence_score
-            natal_score = natal_chart.strength_score
-            
-            astro_data = {
-                "sun_sign": natal_chart.sun_sign,
-                "moon_sign": natal_chart.moon_sign,
-                "ascendant": natal_chart.ascendant,
-                "transits_score": transits_result.influence_score,
-                "aspects": transits_result.aspects
-            }
+            lat = request.current_lat or 0.0
+            lon = request.current_lon or 0.0
+            signals = await signals_service.get_all_signals(lat, lon)
+            return signals.total_influence_score, signals.dict()
         except Exception as e:
-            print(f"⚠️ Astrology Error: {e}")
+            print(f"⚠️ Signals Error: {e}")
+            return 50, {}
     
-    # 3. Calculate Numerology Score (30%)
-    try:
-        numerology_result = numerology_service.calculate_daily_score(request.dob, request.name)
-        numero_score = numerology_result["numerology_score"]
-    except Exception as e:
-        print(f"⚠️ Numerology Error: {e}")
-        numero_score = 50
-        numerology_result = {}
+    async def calculate_astrology():
+        astro_score = 50 
+        natal_score = 50
+        astro_data = {}
+        birth_time = request.birth_time or "12:00"
+        
+        if request.birth_lat and request.birth_lon:
+            try:
+                birth_info = BirthInfo(
+                    dob=request.dob,
+                    time=birth_time,
+                    lat=request.birth_lat,
+                    lon=request.birth_lon,
+                    timezone="UTC"
+                )
+                natal_chart = astrology_service.calculate_natal_chart(birth_info)
+                current_time = datetime.now().replace(second=0, microsecond=0)
+                transits_result = astrology_service.calculate_daily_transits(current_time, natal_chart)
+                astro_score = transits_result.influence_score
+                natal_score = natal_chart.strength_score
+                
+                astro_data = {
+                    "sun_sign": natal_chart.sun_sign,
+                    "moon_sign": natal_chart.moon_sign,
+                    "ascendant": natal_chart.ascendant,
+                    "transits_score": transits_result.influence_score,
+                    "aspects": transits_result.aspects
+                }
+            except Exception as e:
+                print(f"⚠️ Astrology Error: {e}")
+        
+        return astro_score, natal_score, astro_data
+    
+    async def calculate_numerology():
+        try:
+            numerology_result = numerology_service.calculate_daily_score(request.dob, request.name)
+            return numerology_result["numerology_score"], numerology_result
+        except Exception as e:
+            print(f"⚠️ Numerology Error: {e}")
+            return 50, {}
+    
+    # Execute all calculations in PARALLEL (massive speedup!)
+    (signals_score, signals_dict), (astro_score, natal_score, astro_data), (numero_score, numerology_result) = await asyncio.gather(
+        fetch_signals(),
+        calculate_astrology(),
+        calculate_numerology()
+    )
 
     # Zodiac Symbol Mapping
     zodiac_symbols = {

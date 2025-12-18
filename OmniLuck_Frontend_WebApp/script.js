@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // New Elements
     const btnText = document.querySelector('.btn-text');
-    const loadingSpinner = document.querySelector('.loading-spinner');
+    // const loadingSpinner = document.querySelector('.loading-spinner'); // Removed
 
 
     // Populate Timezones (Removed)
@@ -176,9 +176,105 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Connect Dashboard "Forecast" button to Main "Reveal" button
     if (dashboardRevealBtn) {
-        dashboardRevealBtn.addEventListener('click', () => {
-            // Trigger the main logic
-            if (revealBtn) revealBtn.click();
+        dashboardRevealBtn.addEventListener('click', async () => {
+            // Get stored user data
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!user) return;
+
+            // UI Loading State for Dashboard Button
+            dashboardRevealBtn.disabled = true;
+            dashboardRevealBtn.classList.add('loading');
+            const dashBtnText = dashboardRevealBtn.querySelector('.btn-text');
+            if (dashBtnText) dashBtnText.style.display = 'none';
+
+            try {
+                // Use stored data from user profile
+                const birthPlaceVal = user.birthPlace || '';
+                let birthLocation = null;
+
+                if (birthPlaceVal) {
+                    birthLocation = await geocodeCity(birthPlaceVal);
+                }
+
+                const currentLat = birthLocation ? birthLocation.lat : 28.6139;
+                const currentLon = birthLocation ? birthLocation.lon : 77.2090;
+
+                const requestData = {
+                    uid: user.uid || "guest",
+                    name: user.name || name,
+                    dob: user.dob || dob,
+                    birth_time: user.birthTime || "12:00",
+                    birth_place_name: birthPlaceVal || null,
+                    birth_lat: birthLocation ? birthLocation.lat : null,
+                    birth_lon: birthLocation ? birthLocation.lon : null,
+                    current_lat: currentLat,
+                    current_lon: currentLon,
+                };
+
+                console.log("Dashboard Sending Request:", requestData);
+
+                // Fetch Luck and Forecast
+                const [response, forecastResponse] = await Promise.all([
+                    api.calculateLuck(requestData),
+                    api.getForecast(requestData).catch(e => null)
+                ]);
+
+                const percentage = response.luck_score || 0;
+                const explanation = response.explanation || "The stars are silent today...";
+
+                displayZodiacResult();
+
+                let caption = response.caption;
+                const summary = response.summary;
+                if (!caption) {
+                    if (percentage >= 80) caption = "🚀 Cosmic Jackpot!";
+                    else if (percentage >= 60) caption = "✨ Strong Vibes";
+                    else if (percentage >= 40) caption = "⚖️ Balanced Energy";
+                    else caption = "🛡️ Stay Grounded";
+                }
+
+                document.getElementById('result-caption').textContent = caption;
+                fortuneText.innerHTML = explanation.replace(/\n/g, '<br>');
+
+                if (summary) {
+                    document.getElementById('factors-text').textContent = summary;
+                    document.getElementById('factors-box').style.display = 'block';
+                } else {
+                    document.getElementById('factors-box').style.display = 'none';
+                }
+
+                renderTraits(percentage);
+                renderStrategy(response.strategic_advice, response.lucky_time_slots);
+
+                if (forecastResponse && forecastResponse.trajectory) {
+                    renderForecast(forecastResponse);
+                } else {
+                    document.getElementById('forecast-flip-card').style.display = 'none';
+                }
+
+                renderPowerball(response.personal_powerball, response.daily_powerballs);
+
+                // Switch Views
+                inputView.classList.remove('active');
+                if (dashboardView) dashboardView.classList.remove('active');
+                resultView.classList.add('active');
+
+                const userMenuContainer = document.getElementById('user-menu-container');
+                if (userMenuContainer) userMenuContainer.style.display = 'none';
+
+                setTimeout(() => {
+                    animatePercentage(percentage);
+                }, 300);
+
+            } catch (error) {
+                console.error("Dashboard API Error:", error);
+                alert("The stars are cloudy right now (Connection Error). Please try again.");
+            } finally {
+                // Reset Button State
+                dashboardRevealBtn.disabled = false;
+                dashboardRevealBtn.classList.remove('loading');
+                if (dashBtnText) dashBtnText.style.display = 'inline-block';
+            }
         });
     }
 
@@ -360,8 +456,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // UI Loading State
         revealBtn.disabled = true;
+        revealBtn.classList.add('loading');
         btnText.style.display = 'none';
-        loadingSpinner.style.display = 'inline-block';
 
         try {
             // 1. Geocode Birth Place (if provided)
@@ -374,8 +470,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!birthLocation) {
                     alert("Could not find location '" + birthPlaceVal + "'. Please validate the city and country name (e.g. Dallas, USA).");
                     revealBtn.disabled = false;
+                    revealBtn.classList.remove('loading');
                     btnText.style.display = 'inline-block';
-                    loadingSpinner.style.display = 'none';
                     return;
                 }
             }
@@ -470,8 +566,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             // Reset Button State
             revealBtn.disabled = false;
+            revealBtn.classList.remove('loading');
             btnText.style.display = 'inline-block';
-            loadingSpinner.style.display = 'none';
         }
     });
 

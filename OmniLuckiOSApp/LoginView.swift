@@ -69,19 +69,12 @@ struct LoginView: View {
             VStack(spacing: 15) {
                 // Logo & Title
                 VStack(spacing: 15) {
-                    ZStack {
-                        Circle()
-                            .fill(accentPurple.opacity(0.2))
-                            .frame(width: 80, height: 80)
-                            .blur(radius: 10)
-                            .background(Circle().stroke(accentGold.opacity(0.5), lineWidth: 1))
-                        Image("Logo")
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 60, height: 60)
-                            .clipShape(Circle())
-                            .rotationEffect(.degrees(isRotating ? 360 : 0))
-                    }
+                    Image("Logo")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 120, height: 120)
+                        .clipShape(Circle())
+                        .rotationEffect(.degrees(isRotating ? 360 : 0))
                     
                     Text("OmniLuck")
                         .font(.system(size: 42, weight: .heavy, design: .serif))
@@ -182,6 +175,9 @@ struct LoginView: View {
                         errorMessage = ""
                         Task {
                             do {
+                                // Cache the email for faster future logins
+                                UserDefaults.standard.set(email, forKey: "lastLoginEmail")
+                                
                                 let response = try await NetworkService.shared.login(email: email, password: password)
                                 await MainActor.run {
                                     isLoading = false
@@ -323,6 +319,11 @@ struct LoginView: View {
             Text("If an account exists for \(forgotEmail), a reset link has been sent.")
         }
         .onAppear {
+            // Pre-fill email from cache for faster login
+            if let cachedEmail = UserDefaults.standard.string(forKey: "lastLoginEmail") {
+                email = cachedEmail
+            }
+            
             withAnimation(.linear(duration: 20).repeatForever(autoreverses: false)) {
                 isRotating = true
             }
