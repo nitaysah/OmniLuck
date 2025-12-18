@@ -188,16 +188,25 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dashBtnText) dashBtnText.style.display = 'none';
 
             try {
-                // Use stored data from user profile
-                const birthPlaceVal = user.birthPlace || '';
+
+                const birthPlaceVal = user.birth_place || user.birthPlace || '';
                 let birthLocation = null;
 
-                if (birthPlaceVal) {
+                // Check for birth coordinates (prioritize snake_case as requested)
+                if (user.birth_lat && user.birth_lon) {
+                    birthLocation = { lat: user.birth_lat, lon: user.birth_lon };
+                } else if (user.birthLat && user.birthLon) {
+                    birthLocation = { lat: user.birthLat, lon: user.birthLon };
+                } else if (user.lat && user.lon) {
+                    birthLocation = { lat: user.lat, lon: user.lon };
+                } else if (birthPlaceVal) {
+                    // Fallback to geocoding if only place name is stored
                     birthLocation = await geocodeCity(birthPlaceVal);
                 }
 
-                const currentLat = birthLocation ? birthLocation.lat : 28.6139;
-                const currentLon = birthLocation ? birthLocation.lon : 77.2090;
+                // Current location fallback to null if no birth location found
+                const currentLat = birthLocation ? birthLocation.lat : null;
+                const currentLon = birthLocation ? birthLocation.lon : null;
 
                 const requestData = {
                     uid: user.uid || "guest",
@@ -214,10 +223,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log("Dashboard Sending Request:", requestData);
 
                 // Fetch Luck and Forecast
-                const [response, forecastResponse] = await Promise.all([
-                    api.calculateLuck(requestData),
-                    api.getForecast(requestData).catch(e => null)
-                ]);
+                // We only fetch forecast if we have a valid birth location
+                const luckPromise = api.calculateLuck(requestData);
+                const forecastPromise = birthLocation
+                    ? api.getForecast(requestData).catch(e => {
+                        console.error('Forecast API error:', e);
+                        return null;
+                    })
+                    : Promise.resolve(null);
+
+                const [response, forecastResponse] = await Promise.all([luckPromise, forecastPromise]);
+
 
                 const percentage = response.luck_score || 0;
                 const explanation = response.explanation || "The stars are silent today...";
@@ -246,9 +262,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderTraits(percentage);
                 renderStrategy(response.strategic_advice, response.lucky_time_slots);
 
+                console.log('Forecast Response:', forecastResponse);
                 if (forecastResponse && forecastResponse.trajectory) {
+                    console.log('Rendering forecast with', forecastResponse.trajectory.length, 'days');
                     renderForecast(forecastResponse);
                 } else {
+                    console.log('No forecast data available');
                     document.getElementById('forecast-flip-card').style.display = 'none';
                 }
 
@@ -477,8 +496,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // 2. Determine "Current" Location for Weather
-            let currentLat = birthLocation ? birthLocation.lat : 28.6139;
-            let currentLon = birthLocation ? birthLocation.lon : 77.2090;
+            let currentLat = birthLocation ? birthLocation.lat : null;
+            let currentLon = birthLocation ? birthLocation.lon : null;
 
             // Update request
             const requestData = {
@@ -496,10 +515,17 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Sending Request:", requestData);
 
             // Fetch Luck and Forecast in parallel
-            const [response, forecastResponse] = await Promise.all([
-                api.calculateLuck(requestData),
-                api.getForecast(requestData).catch(e => null) // Fail silently for forecast
-            ]);
+            // We only fetch forecast if we have a valid birth location
+            const luckPromise = api.calculateLuck(requestData);
+            const forecastPromise = birthLocation
+                ? api.getForecast(requestData).catch(e => {
+                    console.error('Forecast API error:', e);
+                    return null;
+                })
+                : Promise.resolve(null);
+
+            const [response, forecastResponse] = await Promise.all([luckPromise, forecastPromise]);
+
 
             // Process Luck Response
             const percentage = response.luck_score || 0;

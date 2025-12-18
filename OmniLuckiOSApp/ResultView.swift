@@ -29,6 +29,7 @@ struct ResultView: View {
     @State private var isAnimating = false
     @State private var showCard = false
     @State private var showReport = false
+    @State private var isLuckCardExpanded = true  // Daily Luck Score card expanded by default
     
     // Forecast Data State
     @State private var forecastData: ForecastResponse? = nil
@@ -59,6 +60,12 @@ struct ResultView: View {
         else { return Color.orange }
     }
     
+    // Computed padding for Daily Luck Score card
+    var cardPadding: EdgeInsets {
+        isLuckCardExpanded ? EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16) 
+                          : EdgeInsets(top: 14, leading: 18, bottom: 14, trailing: 18)
+    }
+    
     var body: some View {
         ZStack {
             // Background
@@ -73,40 +80,89 @@ struct ResultView: View {
             Circle().fill(accentPurple.opacity(0.3)).frame(width: 300, height: 300).blur(radius: 80).offset(y: -100)
             
             ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 20) {
+                VStack(spacing: 10) {
                     // Prevent horizontal overflow
                 
-                // Result Animation
-                VStack(spacing: 20) {
-                    Text("Your Daily Luck")
-                        .font(.title2).fontWeight(.medium).foregroundColor(deepPurple)
-                        .opacity(isAnimating ? 1 : 0).offset(y: isAnimating ? 0 : 20)
-                        .animation(.easeOut(duration: 0.5), value: isAnimating)
-                    
-                    // Zodiac from Birth Info (Moved down)
-                    
-                    ZStack {
-                        // Background Ring
-                        Circle().stroke(accentPurple.opacity(0.2), lineWidth: 12).frame(width: 200, height: 200)
-                        // Progress Ring
-                        Circle()
-                            .trim(from: 0, to: isAnimating ? CGFloat(percentage) / 100.0 : 0)
-                            .stroke(
-                                AngularGradient(colors: [luckColor, luckColor.opacity(0.5), luckColor], center: .center),
-                                style: StrokeStyle(lineWidth: 12, lineCap: .round)
-                            )
-                            .frame(width: 200, height: 200).rotationEffect(.degrees(-90))
-                            .animation(.easeOut(duration: 1.5), value: isAnimating)
+                // Daily Luck Score Card (Collapsible, Expanded by Default)
+                VStack(alignment: .leading, spacing: 12) {
+                    // Card Header
+                    HStack {
+                        HStack(spacing: 8) {
+                            Text("🎯")
+                                .font(.title3)
+                            Text("Daily Luck Score")
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .foregroundColor(deepPurple)
+                        }
                         
-                        // Percentage Text
-                        VStack(spacing: 5) {
-                            Text("\(displayedPercentage)")
-                                .font(.system(size: 72, weight: .bold, design: .rounded)).foregroundColor(deepPurple)
-                            Text("%").font(.title).fontWeight(.light).foregroundColor(deepPurple.opacity(0.7))
+                        Spacer()
+                        
+                        Image(systemName: isLuckCardExpanded ? "chevron.down" : "chevron.right")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(accentPurple)
+                            .rotationEffect(.degrees(isLuckCardExpanded ? 0 : -90))
+                            .animation(.spring(response: 0.3), value: isLuckCardExpanded)
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            isLuckCardExpanded.toggle()
                         }
                     }
-                    .shadow(color: luckColor.opacity(0.5), radius: 20, x: 0, y: 10)
+                    
+                    // Card Content
+                    if isLuckCardExpanded {
+                        VStack(spacing: 20) {
+                            ZStack {
+                                // Background Ring
+                                Circle().stroke(accentPurple.opacity(0.2), lineWidth: 12).frame(width: 200, height: 200)
+                                // Progress Ring
+                                Circle()
+                                    .trim(from: 0, to: isAnimating ? CGFloat(percentage) / 100.0 : 0)
+                                    .stroke(
+                                        AngularGradient(colors: [luckColor, luckColor.opacity(0.5), luckColor], center: .center),
+                                        style: StrokeStyle(lineWidth: 12, lineCap: .round)
+                                    )
+                                    .frame(width: 200, height: 200).rotationEffect(.degrees(-90))
+                                    .animation(.easeOut(duration: 1.5), value: isAnimating)
+                                
+                                // Percentage Text
+                                VStack(spacing: 5) {
+                                    Text("\(displayedPercentage)")
+                                        .font(.system(size: 72, weight: .bold, design: .rounded)).foregroundColor(deepPurple)
+                                    Text("%").font(.title).fontWeight(.light).foregroundColor(deepPurple.opacity(0.7))
+                                }
+                            }
+                            .shadow(color: luckColor.opacity(0.5), radius: 20, x: 0, y: 10)
+                            
+                            // Caption (Inside Card)
+                            if showCard {
+                                Text(displayCaption)
+                                    .font(.title3)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(accentPurple)
+                                    .multilineTextAlignment(.center)
+                            }
+                        }
+                        .padding(.top, 8)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
                 }
+                .padding(cardPadding)
+                .background(
+                    RoundedRectangle(cornerRadius: isLuckCardExpanded ? 20 : 14)
+                        .fill(Color.white.opacity(0.8))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: isLuckCardExpanded ? 20 : 14)
+                                .stroke(accentPurple.opacity(0.3), lineWidth: 1)
+                        )
+                        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+                )
+                .padding(.horizontal, 16)
+                .opacity(isAnimating ? 1 : 0)
+                .offset(y: isAnimating ? 0 : 20)
+                .animation(.easeOut(duration: 0.5), value: isAnimating)
                 .onAppear {
                     withAnimation { isAnimating = true }
                     // Counter animation
@@ -138,18 +194,6 @@ struct ResultView: View {
                         }
                     }
                 }
-                
-                // Caption Header (Always Visible)
-                if showCard {
-                    VStack(spacing: 8) {
-                        Text(displayCaption)
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(accentPurple)
-                            .multilineTextAlignment(.center)
-                    }
-                    .padding(.vertical, 8)
-                    .transition(.opacity)
                     
                     // SECTION 1: Daily Luck Analysis Button
                     Button(action: { showAnalysisModal = true }) {
@@ -238,119 +282,6 @@ struct ResultView: View {
                     .buttonStyle(PlainButtonStyle())
                     .padding(.horizontal)
                     
-                    // 7-Day Forecast FLIP Card
-                    if let forecast = forecastData {
-                        ZStack {
-                            // BACK SIDE (The Chart)
-                            VStack(alignment: .leading, spacing: 10) {
-                                // Header with close hint
-                                HStack {
-                                    Text("").font(.title3)
-                                    Text("7-Day Luck Trajectory").font(.headline).foregroundColor(deepPurple)
-                                    Spacer()
-                                    Image(systemName: "arrow.uturn.backward.circle.fill")
-                                        .foregroundColor(accentPurple.opacity(0.6))
-                                }
-                                
-                                // Trend and Peak Row
-                                HStack {
-                                    Text("Trend:").font(.caption).foregroundColor(deepPurple.opacity(0.7))
-                                    Text(forecast.trend_direction).font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
-                                    Spacer()
-                                    Text("Peak:").font(.caption).foregroundColor(deepPurple.opacity(0.7))
-                                    if let best = forecast.trajectory.max(by: { $0.luck_score < $1.luck_score }) {
-                                        Text("\(formatDayMonth(best.date)) (\(best.luck_score)%)")
-                                            .font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
-                                    } else {
-                                        Text(formatDayMonth(forecast.best_day)).font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
-                                    }
-                                }
-                                
-                                // Bar Chart
-                                HStack(alignment: .bottom, spacing: 4) {
-                                    ForEach(forecast.trajectory) { day in
-                                        VStack(spacing: 2) {
-                                            Text("\(day.luck_score)")
-                                                .font(.system(size: 9, weight: .bold))
-                                                .foregroundColor(deepPurple)
-                                            
-                                            RoundedRectangle(cornerRadius: 3)
-                                                .fill(
-                                                    LinearGradient(
-                                                        colors: [
-                                                            day.luck_score >= 80 ? Color.green : (day.luck_score < 50 ? Color.orange : accentGold),
-                                                            (day.luck_score >= 80 ? Color.green : (day.luck_score < 50 ? Color.orange : accentGold)).opacity(0.5)
-                                                        ],
-                                                        startPoint: .top,
-                                                        endPoint: .bottom
-                                                    )
-                                                )
-                                                .frame(height: max(10, CGFloat(day.luck_score) * 0.7))
-                                            
-                                            Text(getDayName(day.date))
-                                                .font(.system(size: 10, weight: .medium))
-                                                .foregroundColor(deepPurple.opacity(0.8))
-                                        }
-                                        .frame(maxWidth: .infinity)
-                                    }
-                                }
-                                .frame(height: 90)
-                                .clipped() // Prevent Horizontal Overflow from Chart
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(16)
-                            .background(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color.white.opacity(0.95))
-                                    .overlay(RoundedRectangle(cornerRadius: 20).stroke(accentPurple.opacity(0.3), lineWidth: 1))
-                            )
-                            .rotation3DEffect(.degrees(isForecastFlipped ? 0 : -180), axis: (x: 0, y: 1, z: 0))
-                            .opacity(isForecastFlipped ? 1 : 0) // Hide when not flipped to prevent hit testing issues
-                            
-                            // FRONT SIDE (The Teaser)
-                            VStack(spacing: 16) {
-                                Text("🔮").font(.system(size: 44))
-                                
-                                Text("7-Day Cosmic Forecast")
-                                    .font(.title3)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(deepPurple)
-                                
-                                Text("Tap to reveal your luck trajectory")
-                                    .font(.subheadline)
-                                    .foregroundColor(deepPurple.opacity(0.7))
-                                
-                                HStack(spacing: 8) {
-                                    Image(systemName: "hand.tap.fill")
-                                        .foregroundColor(accentPurple)
-                                    Text("Tap to flip")
-                                        .font(.caption)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(accentPurple)
-                                }
-                                .padding(.top, 4)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 200) // Match height of back side approx
-                            .background(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(LinearGradient(colors: [Color.white.opacity(0.9), accentPurple.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                    .overlay(RoundedRectangle(cornerRadius: 20).stroke(accentPurple.opacity(0.4), lineWidth: 1))
-                            )
-                            .rotation3DEffect(.degrees(isForecastFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
-                            .opacity(isForecastFlipped ? 0 : 1)
-                        }
-                        .frame(height: 200) // Fixed height container
-                        .padding(.horizontal)
-                        .onTapGesture {
-                            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                                isForecastFlipped.toggle()
-                            }
-                        }
-                        .transition(.scale.combined(with: .opacity))
-                    }
-                }
-
                 // NEW: Powerball Section
                 Button(action: { showPowerballModal = true }) {
                     HStack(spacing: 12) {
@@ -380,7 +311,119 @@ struct ResultView: View {
                     )
                 }
                 .padding(.horizontal)
-                .padding(.bottom, 8)
+                // Removed extra bottom padding, relying on VStack(spacing: 10)
+
+                // 7-Day Forecast FLIP Card
+                if let forecast = forecastData {
+                    ZStack {
+                        // BACK SIDE (The Chart)
+                        VStack(alignment: .leading, spacing: 10) {
+                            // Header with close hint
+                            HStack {
+                                Text("").font(.title3)
+                                Text("7-Day Luck Trajectory").font(.headline).foregroundColor(deepPurple)
+                                Spacer()
+                                Image(systemName: "arrow.uturn.backward.circle.fill")
+                                    .foregroundColor(accentPurple.opacity(0.6))
+                            }
+                            
+                            // Trend and Peak Row
+                            HStack {
+                                Text("Trend:").font(.caption).foregroundColor(deepPurple.opacity(0.7))
+                                Text(forecast.trend_direction).font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
+                                Spacer()
+                                Text("Peak:").font(.caption).foregroundColor(deepPurple.opacity(0.7))
+                                if let best = forecast.trajectory.max(by: { $0.luck_score < $1.luck_score }) {
+                                    Text("\(formatDayMonth(best.date)) (\(best.luck_score)%)")
+                                        .font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
+                                } else {
+                                    Text(formatDayMonth(forecast.best_day)).font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
+                                }
+                            }
+                            
+                            // Bar Chart
+                            HStack(alignment: .bottom, spacing: 4) {
+                                ForEach(forecast.trajectory) { day in
+                                    VStack(spacing: 2) {
+                                        Text("\(day.luck_score)")
+                                            .font(.system(size: 9, weight: .bold))
+                                            .foregroundColor(deepPurple)
+                                        
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(
+                                                LinearGradient(
+                                                    colors: [
+                                                        day.luck_score >= 80 ? Color.green : (day.luck_score < 50 ? Color.orange : accentGold),
+                                                        (day.luck_score >= 80 ? Color.green : (day.luck_score < 50 ? Color.orange : accentGold)).opacity(0.5)
+                                                    ],
+                                                    startPoint: .top,
+                                                    endPoint: .bottom
+                                                )
+                                            )
+                                            .frame(height: max(10, CGFloat(day.luck_score) * 0.7))
+                                        
+                                        Text(getDayName(day.date))
+                                            .font(.system(size: 10, weight: .medium))
+                                            .foregroundColor(deepPurple.opacity(0.8))
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                }
+                            }
+                            .frame(height: 90)
+                            .clipped() // Prevent Horizontal Overflow from Chart
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.white.opacity(0.95))
+                                .overlay(RoundedRectangle(cornerRadius: 20).stroke(accentPurple.opacity(0.3), lineWidth: 1))
+                        )
+                        .rotation3DEffect(.degrees(isForecastFlipped ? 0 : -180), axis: (x: 0, y: 1, z: 0))
+                        .opacity(isForecastFlipped ? 1 : 0) // Hide when not flipped to prevent hit testing issues
+                        
+                        // FRONT SIDE (The Teaser)
+                        VStack(spacing: 16) {
+                            Text("🔮").font(.system(size: 44))
+                            
+                            Text("7-Day Cosmic Forecast")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .foregroundColor(deepPurple)
+                            
+                            Text("Tap to reveal your luck trajectory")
+                                .font(.subheadline)
+                                .foregroundColor(deepPurple.opacity(0.7))
+                            
+                            HStack(spacing: 8) {
+                                Image(systemName: "hand.tap.fill")
+                                    .foregroundColor(accentPurple)
+                                Text("Tap to flip")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(accentPurple)
+                            }
+                            .padding(.top, 4)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 200) // Match height of back side approx
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(LinearGradient(colors: [Color.white.opacity(0.9), accentPurple.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                .overlay(RoundedRectangle(cornerRadius: 20).stroke(accentPurple.opacity(0.4), lineWidth: 1))
+                        )
+                        .rotation3DEffect(.degrees(isForecastFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
+                        .opacity(isForecastFlipped ? 0 : 1)
+                    }
+                    .frame(height: 200) // Fixed height container
+                    .padding(.horizontal)
+                    .onTapGesture {
+                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                            isForecastFlipped.toggle()
+                        }
+                    }
+                    .transition(.scale.combined(with: .opacity))
+                }
                 
                 // Home Button
                 Button(action: { dismiss() }) {
@@ -390,11 +433,11 @@ struct ResultView: View {
                         .cornerRadius(16).shadow(color: accentGold.opacity(0.3), radius: 10, x: 0, y: 5)
                 }
                 .padding(.horizontal).padding(.bottom, 60) // Increased bottom padding for safe scroll area
+                }
             }
             .frame(maxWidth: UIScreen.main.bounds.width) // Hard constrain to screen width
             .clipped() // Prevent horizontal overflow
             .padding(.top, 20) // Add some top padding inside scroll
-            }
             .scrollBounceBehavior(.basedOnSize) // iOS 16.4+ only bounces when content overflows
 
 

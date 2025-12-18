@@ -12,7 +12,9 @@
             height: 220px;
             perspective: 1000px;
             cursor: pointer;
-            margin-top: 16px;
+            margin-top: 0;
+            margin-bottom: 10px;
+            /* Gap 10px to Home Button */
         }
 
         .flip-card-inner {
@@ -346,10 +348,10 @@
 
         <!-- Input View -->
         <div id="input-view" class="view input-view">
-            <div style="position: absolute; top: 20px; left: 20px; z-index: 10;">
+            <div style="position: absolute; top: 15px; left: 15px; z-index: 10;">
                 <button id="guest-home-btn"
-                    style="background: white; border: 1px solid rgba(128, 77, 179, 0.3); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--deep-purple); cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.2s ease;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    style="background: white; border: 1px solid rgba(128, 77, 179, 0.3); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--deep-purple); cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: all 0.2s ease;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -357,10 +359,11 @@
                 </button>
             </div>
 
-            <div class="header-section">
-
-                <h1>Discover Your Luck</h1>
-                <p>A Fusion of Astrology, Physics & Predictive AI</p>
+            <div class="header-section" style="text-align: center; padding-top: 15px; margin-bottom: 12px;">
+                <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--deep-purple); margin-bottom: 6px;">Discover
+                    Your Luck</h1>
+                <p style="font-size: 0.9rem; color: var(--deep-purple-lighter); margin: 0;">A Fusion of Astrology,
+                    Physics & Predictive AI</p>
             </div>
 
             <div class="card">
@@ -456,32 +459,37 @@
         </div>
         <!-- Result View -->
         <div id="result-view" class="view">
-            <!-- Back button removed to focus on result display -->
-
             <div class="result-content">
-                <div class="result-header">
-                    <h2>Your Daily Luck</h2>
-                    <!-- Zodiac Moved -->
-                </div>
 
-                <div class="luck-circle">
-                    <svg class="progress-ring" viewBox="0 0 200 200">
-                        <circle class="progress-ring-bg" cx="100" cy="100" r="90" />
-                        <circle class="progress-ring-fill" cx="100" cy="100" r="90" />
-                    </svg>
-                    <div class="luck-value">
-                        <span id="result-percentage">0</span>
-                        <span class="percent-sign">%</span>
+                <!-- Daily Luck Score Card (Collapsible, Expanded by Default) -->
+                <div class="card" id="luck-score-card" style="cursor: pointer; margin-top: 20px;"
+                    onclick="toggleLuckCard()">
+                    <div id="luck-card-header"
+                        style="display: flex; justify-content: space-between; align-items: center;">
+                        <span id="luck-card-title" style="font-weight: 700; color: var(--deep-purple);">🎯 Daily
+                            Luck Score</span>
+                        <span id="luck-card-arrow"
+                            style="color: var(--accent-purple); font-size: 1.2rem; transition: transform 0.3s;">▼</span>
+                    </div>
+
+                    <div id="luck-card-content" style="display: block;">
+                        <div class="luck-circle" style="margin: 20px auto;">
+                            <svg class="progress-ring" viewBox="0 0 200 200">
+                                <circle class="progress-ring-bg" cx="100" cy="100" r="90" />
+                                <circle class="progress-ring-fill" cx="100" cy="100" r="90" />
+                            </svg>
+                            <div class="luck-value">
+                                <span id="result-percentage">0</span>
+                                <span class="percent-sign">%</span>
+                            </div>
+                        </div>
+
+                        <!-- Caption (Inside Card) -->
+                        <div id="result-caption" class="result-caption"
+                            style="text-align: center; margin: 12px 0 0 0; font-size: 1rem; font-weight: 600; color: var(--accent-purple);">
+                        </div>
                     </div>
                 </div>
-
-                <!-- NEW: Daily Report Button -->
-                <!-- Buttons Moved -->
-
-                <!-- Cosmic Dashboard Removed -->
-
-                <!-- Caption Header (Always Visible) -->
-                <h2 id="result-caption" class="result-caption" style="text-align: center; margin: 16px 0 20px 0;"></h2>
 
                 <!-- SECTION 1: Daily Luck Analysis Button -->
                 <button class="section-button" onclick="openModal('analysis')">
@@ -580,6 +588,52 @@
                     </div>
                 </div>
 
+                <!-- Lucky Powerball Numbers Button -->
+                <button id="powerball-btn" class="section-button" onclick="openModal('powerball')"
+                    style="display: none;">
+                    <span>🎱 Lucky Powerball Numbers</span>
+                    <span style="color: var(--accent-purple);">→</span>
+                </button>
+
+                <!-- MODAL: Lucky Powerball Numbers -->
+                <div id="powerball-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'powerball')">
+                    <div class="modal-card" onclick="event.stopPropagation()">
+                        <div class="modal-header">
+                            <h3>🎱 Lucky Powerball Numbers</h3>
+                            <button class="modal-close-x" onclick="closeModal('powerball')">×</button>
+                        </div>
+                        <div class="modal-content" id="powerball-content">
+                            <!-- Personal Powerball -->
+                            <div id="personal-powerball-section" style="margin-bottom: 24px;">
+                                <h4
+                                    style="color: var(--accent-gold); margin: 0 0 12px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
+                                    🌟 Your Personal Lucky Numbers</h4>
+                                <div id="personal-powerball-display"
+                                    style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px;">
+                                    <!-- White balls and powerball will be rendered here -->
+                                </div>
+                                <p
+                                    style="font-size: 0.75rem; color: var(--deep-purple); opacity: 0.7; text-align: center; margin: 0;">
+                                    Based on your birth chart - these numbers stay with you</p>
+                            </div>
+
+                            <!-- Daily Powerballs -->
+                            <div id="daily-powerballs-section">
+                                <h4
+                                    style="color: var(--accent-purple); margin: 0 0 12px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
+                                    📅 Today's Top 10 Cosmic Combinations</h4>
+                                <div id="daily-powerballs-list">
+                                    <!-- Daily combinations will be rendered here -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-close-btn" onclick="closeModal('powerball')">Close</button>
+                        </div>
+                    </div>
+                </div>
+
+
                 <!-- 7-Day Forecast FLIP Card -->
                 <div id="forecast-flip-card" class="flip-card" style="display: none;">
                     <div class="flip-card-inner" id="forecast-flip-inner">
@@ -631,52 +685,6 @@
                 </div>
 
 
-                <!-- Lucky Powerball Numbers Button -->
-                <button id="powerball-btn" class="section-button" onclick="openModal('powerball')"
-                    style="display: none;">
-                    <span>🎱 Lucky Powerball Numbers</span>
-                    <span style="color: var(--accent-purple);">→</span>
-                </button>
-
-                <!-- MODAL: Lucky Powerball Numbers -->
-                <div id="powerball-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'powerball')">
-                    <div class="modal-card" onclick="event.stopPropagation()">
-                        <div class="modal-header">
-                            <h3>🎱 Lucky Powerball Numbers</h3>
-                            <button class="modal-close-x" onclick="closeModal('powerball')">×</button>
-                        </div>
-                        <div class="modal-content" id="powerball-content">
-                            <!-- Personal Powerball -->
-                            <div id="personal-powerball-section" style="margin-bottom: 24px;">
-                                <h4
-                                    style="color: var(--accent-gold); margin: 0 0 12px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
-                                    🌟 Your Personal Lucky Numbers</h4>
-                                <div id="personal-powerball-display"
-                                    style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px;">
-                                    <!-- White balls and powerball will be rendered here -->
-                                </div>
-                                <p
-                                    style="font-size: 0.75rem; color: var(--deep-purple); opacity: 0.7; text-align: center; margin: 0;">
-                                    Based on your birth chart - these numbers stay with you</p>
-                            </div>
-
-                            <!-- Daily Powerballs -->
-                            <div id="daily-powerballs-section">
-                                <h4
-                                    style="color: var(--accent-purple); margin: 0 0 12px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
-                                    📅 Today's Top 10 Cosmic Combinations</h4>
-                                <div id="daily-powerballs-list">
-                                    <!-- Daily combinations will be rendered here -->
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button class="modal-close-btn" onclick="closeModal('powerball')">Close</button>
-                        </div>
-                    </div>
-                </div>
-
-
                 <!-- Info Modal -->
                 <div id="info-modal" class="modal" style="display: none;">
                     <div class="modal-content card" style="text-align: center;">
@@ -694,6 +702,29 @@
             </button>
         </div>
     </div>
+
+    <script>
+        // Toggle Daily Luck Score Card
+        function toggleLuckCard() {
+            const card = document.getElementById('luck-score-card');
+            const content = document.getElementById('luck-card-content');
+            const arrow = document.getElementById('luck-card-arrow');
+
+            if (content.style.display === 'none') {
+                // Expanding
+                content.style.display = 'block';
+                arrow.style.transform = 'rotate(0deg)';
+                arrow.textContent = '▼';
+                card.classList.remove('collapsed');
+            } else {
+                // Collapsing
+                content.style.display = 'none';
+                arrow.style.transform = 'rotate(-90deg)';
+                arrow.textContent = '▶';
+                card.classList.add('collapsed');
+            }
+        }
+    </script>
 
     <!-- Firebase Config -->
     <script type="module" src="firebase-config.js?v=5"></script>

@@ -486,13 +486,51 @@ header p {
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--card-border);
     border-radius: 24px;
+    width: 100%;
+    /* Fix card width to match buttons */
     padding: 20px;
-    margin-bottom: 24px;
+    /* Restored larger padding for card look */
+    margin-bottom: 10px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    /* Smooth resize animation */
+}
+
+/* Daily Luck Score Card - Expanded state (default) */
+#luck-card-header {
+    margin-bottom: 12px;
+}
+
+#luck-card-title {
+    font-size: 1.1rem;
+}
+
+/* Collapsed state for Daily Luck Score Card - matches section-button */
+.card.collapsed {
+    padding: 14px 18px !important;
+    margin-bottom: 10px !important;
+    border-radius: 14px !important;
+    border-color: rgba(128, 77, 179, 0.3) !important;
+    /* Match section-button border */
+}
+
+.card.collapsed:hover {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: var(--accent-purple) !important;
+    transform: translateY(-1px);
+}
+
+.card.collapsed #luck-card-header {
+    margin-bottom: 0 !important;
+}
+
+.card.collapsed #luck-card-title {
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
 }
 
 /* Input Groups */
 .input-group {
-    margin-bottom: 20px;
+    margin-bottom: 14px;
 }
 
 .input-group:last-of-type {
@@ -506,7 +544,7 @@ label {
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--deep-purple-lighter);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     letter-spacing: 0.05em;
 }
 
@@ -516,7 +554,7 @@ label {
 
 input {
     width: 100%;
-    padding: 14px 16px;
+    padding: 12px 14px;
     background: var(--input-bg);
     border: 1px solid rgba(191, 153, 242, 0.5);
     border-radius: 12px;
@@ -709,7 +747,7 @@ input[type="range"]::-webkit-slider-thumb {
 /* Buttons - matching iOS */
 .primary-btn {
     width: 100%;
-    padding: 16px 24px;
+    padding: 14px 24px;
     background: linear-gradient(135deg, var(--accent-gold) 0%, rgba(255, 230, 128, 0.8) 100%);
     border: none;
     border-radius: 16px;
@@ -726,9 +764,7 @@ input[type="range"]::-webkit-slider-thumb {
     transition: all 0.2s ease;
     margin-top: auto;
     position: relative;
-    /* CRITICAL: Enables absolute positioning within button */
     overflow: hidden;
-    /* Contain the animation */
 }
 
 .primary-btn:disabled {

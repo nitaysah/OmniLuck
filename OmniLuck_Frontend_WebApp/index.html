@@ -15,17 +15,25 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            padding: 20px;
+            max-height: 100vh;
+            padding: 15px 20px;
             text-align: center;
             z-index: 2;
             position: relative;
+            overflow-y: auto;
+        }
+
+        .logo-container {
+            margin-bottom: 25px;
         }
 
         .hero-title {
-            font-size: 3.5rem;
+            font-size: 2.8rem;
+            /* Reduced from 3.5rem */
             font-weight: 800;
             color: var(--deep-purple);
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            /* Reduced from 10px */
             text-shadow: 0 0 30px rgba(191, 153, 242, 0.3);
             background: linear-gradient(135deg, var(--deep-purple) 0%, #4a2c6d 100%);
             -webkit-background-clip: text;
@@ -34,11 +42,14 @@
         }
 
         .hero-subtitle {
-            font-size: 1rem;
+            font-size: 0.95rem;
+            /* Slightly smaller */
             color: var(--deep-purple-lighter);
-            margin-bottom: 40px;
+            margin-bottom: 20px;
+            /* Reduced from 40px */
             max-width: 380px;
-            line-height: 1.5;
+            line-height: 1.4;
+            /* Tighter line height */
         }
 
         .google-btn {
@@ -48,14 +59,16 @@
             max-width: 320px;
             border-radius: 24px;
             border: 1px solid rgba(0, 0, 0, 0.1);
-            padding: 14px 24px;
+            padding: 12px 24px;
+            /* Reduced from 14px */
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
             font-weight: 500;
             font-family: 'Outfit', sans-serif;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
+            /* Slightly smaller */
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             transition: all 0.2s ease;
@@ -74,13 +87,15 @@
         }
 
         .divider {
-            margin: 30px 0;
+            margin: 15px 0;
+            /* Reduced from 30px */
             display: flex;
             align-items: center;
             width: 100%;
             max-width: 280px;
             color: var(--deep-purple-light);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            /* Slightly smaller */
         }
 
         .divider::before,
@@ -199,7 +214,7 @@
         <!-- Manual Login Form -->
         <div style="width: 100%; max-width: 320px; text-align: left;">
             <input type="text" id="email-input" placeholder="Email or Username"
-                style="width: 100%; padding: 12px 16px; margin-bottom: 10px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.9);">
+                style="width: 100%; padding: 12px 16px; margin-bottom: 8px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.9);">
             <div class="password-container">
                 <input type="password" id="password-input" placeholder="Password"
                     style="width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.9); padding-right: 45px;">
@@ -213,18 +228,18 @@
             </div>
 
             <button id="manual-login-btn" class="google-btn"
-                style="background: var(--deep-purple); color: white; justify-content: center; width: 100%; padding: 12px; margin-bottom: 15px;">
+                style="background: var(--deep-purple); color: white; justify-content: center; width: 100%; padding: 12px; margin-bottom: 10px;">
                 Sign In
             </button>
 
-            <div style="text-align: center; margin-bottom: 20px;">
+            <div style="text-align: center; margin-bottom: 12px;">
                 <a href="#" id="forgot-password-link"
                     style="color: var(--deep-purple); font-size: 0.9rem; text-decoration: none; font-weight: 500;">Forgot
                     Password?</a>
             </div>
 
-            <div style="text-align: center; margin-bottom: 15px;">
-                <p style="color: var(--deep-purple); margin-bottom: 10px;">Don't have an account?</p>
+            <div style="text-align: center; margin-bottom: 10px;">
+                <p style="color: var(--deep-purple); margin-bottom: 8px;">Don't have an account?</p>
                 <a href="signup.html" class="google-btn"
                     style="background: white; color: var(--deep-purple); border: 1px solid var(--deep-purple); justify-content: center; text-decoration: none; display: flex; box-sizing: border-box;">
                     Get Started
@@ -233,13 +248,12 @@
         </div>
 
         <div
-            style="margin-top: auto; padding-bottom: 30px; width: 100%; display: flex; flex-direction: column; align-items: center;">
-            <div class="divider" style="margin-top: 20px;">
-                <span>or skip for now</span>
+            style="margin-top: auto; padding-bottom: 10px; width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="divider" style="margin-top: 10px; margin-bottom: 0;">
+                <span style="font-size: 0.8rem; color: var(--deep-purple-lighter);">or skip for now</span>
             </div>
-
             <button id="guest-btn" class="google-btn"
-                style="background: white; color: var(--deep-purple); border: 1px solid var(--deep-purple); width: auto; padding: 10px 30px; font-size: 0.95rem; margin-top: 10px; display: inline-flex; min-height: unset; border-radius: 20px;">
+                style="background: white; color: var(--deep-purple); border: 1px solid var(--deep-purple); width: auto; padding: 8px 24px; font-size: 0.9rem; margin-top: 8px; display: inline-flex; min-height: unset; border-radius: 20px;">
                 Continue as Guest
             </button>
         </div>
