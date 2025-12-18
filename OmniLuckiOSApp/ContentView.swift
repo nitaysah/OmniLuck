@@ -22,7 +22,7 @@ struct ContentView: View {
     @State private var errorMessage = ""
     @State private var showLogoutAlert = false
     @State private var activeSheet: SheetType?
-    @State private var timeSelected = false
+
 
     enum SheetType: Identifiable {
         case about, contact, settings
@@ -615,47 +615,17 @@ struct ContentView: View {
                 }
                 
                 if !useNAForTime {
-                    ZStack(alignment: .leading) {
-                        // 1. The Real Picker (Always acting as the touch target)
-                        DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
-                            .datePickerStyle(.compact)
-                            .labelsHidden()
-                            .colorScheme(.light)
-                            // When not selected, it is invisible but INTERACTIVE (0.02 opacity)
-                            .opacity(timeSelected ? 1 : 0.02)
-                            .onChange(of: birthTime) { _, _ in
-                                withAnimation {
-                                    timeSelected = true
-                                }
-                            }
-                        
-                        // 2. The Visual Placeholder (Only visible when not selected)
-                        if !timeSelected {
-                            HStack {
-                                Image(systemName: "clock")
-                                    .foregroundColor(deepPurple.opacity(0.4))
-                                Text("-- : --")
-                                    .font(.subheadline)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(deepPurple.opacity(0.7))
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(accentPurple.opacity(0.1))
-                            .cornerRadius(10)
-                            // CRITICAL: This allows taps to go through to the DatePicker below
-                            .allowsHitTesting(false)
-                        }
-                    }
-                    // We let the DatePicker (or Placeholder) determine the size, which is naturally "compact"
-                    // We DO NOT force it to fill the infinity width, preventing accidental side-taps.
-                    .padding(12)
-                    .background(Color.white.opacity(0.9))
-                    .cornerRadius(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(accentPurple.opacity(0.5), lineWidth: 1)
-                    )
+                    DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
+                        .datePickerStyle(.compact)
+                        .labelsHidden()
+                        .colorScheme(.light)
+                        .padding(12)
+                        .background(Color.white.opacity(0.9))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(accentPurple.opacity(0.5), lineWidth: 1)
+                        )
                 } else {
                     Text("Midday Alignment Active: Following the Astrology standard for unknown birth times, your chart is anchored to 12:00 PM to maximize planetary accuracy and ensure a reliable luck forecast.")
                         .font(.caption)
@@ -722,8 +692,8 @@ struct ContentView: View {
                 .shadow(color: (name.isEmpty || birthPlace.isEmpty) ? .clear : accentGold.opacity(0.4), radius: 10, x: 0, y: 5)
                 .scaleEffect(isButtonPressed ? 0.95 : 1.0)
             }
-            .disabled(name.isEmpty || birthPlace.isEmpty || (!useNAForTime && !timeSelected) || manualDateText.isEmpty)
-            .opacity((name.isEmpty || birthPlace.isEmpty || (!useNAForTime && !timeSelected) || manualDateText.isEmpty) ? 0.6 : 1)
+            .disabled(name.isEmpty || birthPlace.isEmpty || manualDateText.isEmpty)
+            .opacity((name.isEmpty || birthPlace.isEmpty || manualDateText.isEmpty) ? 0.6 : 1)
             .padding(.horizontal)
             .padding(.bottom, 10)
             
