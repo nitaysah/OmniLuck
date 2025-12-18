@@ -630,14 +630,16 @@ struct ContentView: View {
                         .background(accentPurple.opacity(0.1))
                         .cornerRadius(10)
                         
-                        // The actual picker layered on top
+                        // The actual picker layered on top, expanded to fill the entire hit area
                         DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
                             .datePickerStyle(.compact)
                             .labelsHidden()
                             .colorScheme(.light)
-                            // When not selected, we keep it nearly transparent so the placeholder shows
-                            // but it still captures the tap to open the system picker popover.
+                            // We make it nearly transparent or fully visible depending on selection
                             .opacity(timeSelected ? 1 : 0.015)
+                            // CRITICAL: Stretch the picker and its hit area to cover the entire row
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+                            .contentShape(Rectangle()) 
                             .onChange(of: birthTime) { _, _ in
                                 withAnimation {
                                     timeSelected = true

@@ -361,6 +361,8 @@ struct SignupView: View {
                             .labelsHidden()
                             .colorScheme(.light)
                             .opacity(timeSelected ? 1 : 0.015)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+                            .contentShape(Rectangle())
                             .onChange(of: birthTime) { _, _ in
                                 withAnimation {
                                     timeSelected = true
