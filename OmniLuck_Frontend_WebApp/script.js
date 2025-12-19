@@ -597,178 +597,176 @@ document.addEventListener('DOMContentLoaded', () => {
             revealBtn.classList.remove('loading');
             btnText.style.display = 'inline-block';
         }
-        // --- Text-to-Speech Logic ---
-        const listenBtn = document.getElementById('listen-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        let synth = window.speechSynthesis;
-        let currentUtterance = null;
-
-        if (listenBtn && stopBtn) {
-            listenBtn.addEventListener('click', () => {
-                const text = document.getElementById('fortune-text').innerText;
-                if (!text) return;
-
-                // Cancel any current speech
-                synth.cancel();
-
-                currentUtterance = new SpeechSynthesisUtterance(text);
-                currentUtterance.rate = 1.0;
-                currentUtterance.pitch = 1.0;
-
-                // Try to select a pleasant voice
-                const voices = synth.getVoices();
-                // Prefer "Samantha" on Mac or Google US English
-                const preferredVoice = voices.find(v => v.name.includes("Samantha") || v.name.includes("Google US English"));
-                if (preferredVoice) currentUtterance.voice = preferredVoice;
-
-                currentUtterance.onend = () => {
-                    listenBtn.style.display = 'inline-block';
-                    stopBtn.style.display = 'none';
-                };
-
-                listenBtn.style.display = 'none';
-                stopBtn.style.display = 'inline-block';
-
-                synth.speak(currentUtterance);
-            });
-
-            stopBtn.addEventListener('click', () => {
-                synth.cancel();
-                listenBtn.style.display = 'inline-block';
-                stopBtn.style.display = 'none';
-            });
-        }
-
-        // Ensure voices are loaded (Chrome edge case)
-        if (synth.onvoiceschanged !== undefined) {
-            synth.onvoiceschanged = () => { };
-        }
-
     });
 
+    // --- Text-to-Speech Logic ---
+    const listenBtn = document.getElementById('listen-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    let synth = window.speechSynthesis;
+    let currentUtterance = null;
 
-    // --- Helper Functions ---
+    if (listenBtn && stopBtn) {
+        listenBtn.addEventListener('click', () => {
+            const text = document.getElementById('fortune-text').innerText;
+            if (!text) return;
 
-    function renderTraits(score) {
-        // Simple logic to generate trait pills based on score if backend doesn't provide them
-        const traitsList = document.getElementById('traits-list');
-        traitsList.innerHTML = '';
+            synth.cancel();
 
-        let tags = [];
-        if (score >= 90) tags = ["Cosmic", "Unstoppable", "Lucky"];
-        else if (score >= 75) tags = ["Bold", "Positive", "Radiant"];
-        else if (score >= 50) tags = ["Steady", "Balanced", "Calm"];
-        else tags = ["Grounded", "Caution", "Introspective"];
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.rate = 1.0;
+            currentUtterance.pitch = 1.0;
 
-        tags.forEach(tag => {
-            const span = document.createElement('span');
-            span.className = 'trait-pill'; // Defined in style.css hopefully, or use inline
-            span.style.cssText = "display: inline-block; background: rgba(124, 77, 255, 0.15); color: var(--deep-purple); padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1px solid rgba(124, 77, 255, 0.3);";
-            span.textContent = tag;
-            traitsList.appendChild(span);
+            const voices = synth.getVoices();
+            const preferredVoice = voices.find(v => v.name.includes("Samantha") || v.name.includes("Google US English"));
+            if (preferredVoice) currentUtterance.voice = preferredVoice;
+
+            currentUtterance.onend = () => {
+                listenBtn.style.display = 'inline-block';
+                stopBtn.style.display = 'none';
+            };
+
+            listenBtn.style.display = 'none';
+            stopBtn.style.display = 'inline-block';
+
+            synth.speak(currentUtterance);
+        });
+
+        stopBtn.addEventListener('click', () => {
+            synth.cancel();
+            listenBtn.style.display = 'inline-block';
+            stopBtn.style.display = 'none';
         });
     }
 
-    function renderStrategy(strategy, slots) {
-        const strategyBtn = document.getElementById('strategy-btn');
-        const powerHoursBtn = document.getElementById('power-hours-btn');
-
-        // Strategy Button
-        if (!strategy) {
-            strategyBtn.style.display = 'none';
-        } else {
-            strategyBtn.style.display = 'flex';
-            document.getElementById('strategy-text').textContent = strategy;
-        }
-
-        // Power Hours Button
-        const slotsList = document.getElementById('time-slots-list');
-        slotsList.innerHTML = '';
-
-        if (slots && slots.length > 0) {
-            powerHoursBtn.style.display = 'flex';
-            slots.forEach(slot => {
-                const div = document.createElement('div');
-                div.style.cssText = "background: white; border: 1.5px solid var(--accent-gold); color: var(--deep-purple); font-size: 0.9rem; font-weight: 500; padding: 14px; border-radius: 12px; line-height: 1.5;";
-                div.textContent = slot;
-                slotsList.appendChild(div);
-            });
-        } else {
-            powerHoursBtn.style.display = 'none';
-        }
+    if (synth.onvoiceschanged !== undefined) {
+        synth.onvoiceschanged = () => { };
     }
 
-    // Modal Functions (Global)
-    window.openModal = function (modalName) {
-        const modal = document.getElementById(modalName + '-modal');
-        if (modal) {
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden'; // Prevent background scroll
+});
 
-            // Special handling for Astro Insights modal - fetch natal chart
-            if (modalName === 'astro-insights') {
-                loadAstroInsights();
-            }
+
+// --- Helper Functions ---
+
+function renderTraits(score) {
+    // Simple logic to generate trait pills based on score if backend doesn't provide them
+    const traitsList = document.getElementById('traits-list');
+    traitsList.innerHTML = '';
+
+    let tags = [];
+    if (score >= 90) tags = ["Cosmic", "Unstoppable", "Lucky"];
+    else if (score >= 75) tags = ["Bold", "Positive", "Radiant"];
+    else if (score >= 50) tags = ["Steady", "Balanced", "Calm"];
+    else tags = ["Grounded", "Caution", "Introspective"];
+
+    tags.forEach(tag => {
+        const span = document.createElement('span');
+        span.className = 'trait-pill'; // Defined in style.css hopefully, or use inline
+        span.style.cssText = "display: inline-block; background: rgba(124, 77, 255, 0.15); color: var(--deep-purple); padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1px solid rgba(124, 77, 255, 0.3);";
+        span.textContent = tag;
+        traitsList.appendChild(span);
+    });
+}
+
+function renderStrategy(strategy, slots) {
+    const strategyBtn = document.getElementById('strategy-btn');
+    const powerHoursBtn = document.getElementById('power-hours-btn');
+
+    // Strategy Button
+    if (!strategy) {
+        strategyBtn.style.display = 'none';
+    } else {
+        strategyBtn.style.display = 'flex';
+        document.getElementById('strategy-text').textContent = strategy;
+    }
+
+    // Power Hours Button
+    const slotsList = document.getElementById('time-slots-list');
+    slotsList.innerHTML = '';
+
+    if (slots && slots.length > 0) {
+        powerHoursBtn.style.display = 'flex';
+        slots.forEach(slot => {
+            const div = document.createElement('div');
+            div.style.cssText = "background: white; border: 1.5px solid var(--accent-gold); color: var(--deep-purple); font-size: 0.9rem; font-weight: 500; padding: 14px; border-radius: 12px; line-height: 1.5;";
+            div.textContent = slot;
+            slotsList.appendChild(div);
+        });
+    } else {
+        powerHoursBtn.style.display = 'none';
+    }
+}
+
+// Modal Functions (Global)
+window.openModal = function (modalName) {
+    const modal = document.getElementById(modalName + '-modal');
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Prevent background scroll
+
+        // Special handling for Astro Insights modal - fetch natal chart
+        if (modalName === 'astro-insights') {
+            loadAstroInsights();
         }
-    };
+    }
+};
 
-    // Load Astro Insights (Natal Chart Data)
-    async function loadAstroInsights() {
-        const contentDiv = document.getElementById('kundali-report-content');
-        contentDiv.innerHTML = '<p style="text-align: center; padding: 40px;">✨ Consulting the stars...</p>';
+// Load Astro Insights (Natal Chart Data)
+async function loadAstroInsights() {
+    const contentDiv = document.getElementById('kundali-report-content');
+    contentDiv.innerHTML = '<p style="text-align: center; padding: 40px;">✨ Consulting the stars...</p>';
 
-        try {
-            // Get birth info from form inputs (same as luck calculation)
-            const dobInput = document.getElementById('dob');
-            const birthTimeInput = document.getElementById('birth-time');
-            const birthPlaceInput = document.getElementById('birth-place');
-            const tobNaCheckbox = document.getElementById('tob-na-checkbox');
+    try {
+        // Get birth info from form inputs (same as luck calculation)
+        const dobInput = document.getElementById('dob');
+        const birthTimeInput = document.getElementById('birth-time');
+        const birthPlaceInput = document.getElementById('birth-place');
+        const tobNaCheckbox = document.getElementById('tob-na-checkbox');
 
-            const dob = dobInput ? dobInput.value : '';
-            const birthTime = (tobNaCheckbox && tobNaCheckbox.checked) ? '12:00' : (birthTimeInput ? birthTimeInput.value : '12:00');
+        const dob = dobInput ? dobInput.value : '';
+        const birthTime = (tobNaCheckbox && tobNaCheckbox.checked) ? '12:00' : (birthTimeInput ? birthTimeInput.value : '12:00');
 
-            if (!dob) {
-                contentDiv.innerHTML = '<p style="text-align: center; color: orange;">⚠️ Please enter your date of birth first.</p>';
-                return;
-            }
+        if (!dob) {
+            contentDiv.innerHTML = '<p style="text-align: center; color: orange;">⚠️ Please enter your date of birth first.</p>';
+            return;
+        }
 
-            // Get birth location (geocode if needed)
-            let birthLat = 0, birthLon = 0;
-            const birthPlace = birthPlaceInput ? birthPlaceInput.value : '';
-            if (birthPlace) {
-                try {
-                    const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(birthPlace)}`;
-                    const geoResponse = await fetch(geoUrl);
-                    const geoData = await geoResponse.json();
-                    if (geoData && geoData.length > 0) {
-                        birthLat = parseFloat(geoData[0].lat);
-                        birthLon = parseFloat(geoData[0].lon);
-                    }
-                } catch (e) { console.error('Geocoding error:', e); }
-            }
+        // Get birth location (geocode if needed)
+        let birthLat = 0, birthLon = 0;
+        const birthPlace = birthPlaceInput ? birthPlaceInput.value : '';
+        if (birthPlace) {
+            try {
+                const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(birthPlace)}`;
+                const geoResponse = await fetch(geoUrl);
+                const geoData = await geoResponse.json();
+                if (geoData && geoData.length > 0) {
+                    birthLat = parseFloat(geoData[0].lat);
+                    birthLon = parseFloat(geoData[0].lon);
+                }
+            } catch (e) { console.error('Geocoding error:', e); }
+        }
 
-            // Prepare birth info (matching backend BirthInfo schema)
-            const birthInfo = {
-                dob: dob,
-                time: birthTime || '12:00',
-                lat: birthLat,
-                lon: birthLon,
-                timezone: 'UTC'
-            };
+        // Prepare birth info (matching backend BirthInfo schema)
+        const birthInfo = {
+            dob: dob,
+            time: birthTime || '12:00',
+            lat: birthLat,
+            lon: birthLon,
+            timezone: 'UTC'
+        };
 
-            // Fetch natal chart from API
-            const response = await fetch(`${window.celestialAPI?.baseURL || 'https://omniluck.onrender.com'}/api/astrology/natal-chart`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(birthInfo)
-            });
+        // Fetch natal chart from API
+        const response = await fetch(`${window.celestialAPI?.baseURL || 'https://omniluck.onrender.com'}/api/astrology/natal-chart`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(birthInfo)
+        });
 
-            if (!response.ok) throw new Error('Failed to fetch chart');
+        if (!response.ok) throw new Error('Failed to fetch chart');
 
-            const chart = await response.json();
+        const chart = await response.json();
 
-            // Render the chart data
-            let html = `
+        // Render the chart data
+        let html = `
                 <div style="margin-bottom: 20px; padding: 16px; background: rgba(192, 153, 240, 0.1); border-radius: 12px;">
                     <h4 style="color: var(--accent-purple); margin: 0 0 8px 0;">🌅 Your Rising Sign (Ascendant)</h4>
                     <p style="font-size: 1.1rem; font-weight: 600; color: var(--deep-purple); margin: 0 0 8px 0;">${chart.ascendant || 'Unknown'}</p>
@@ -778,23 +776,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h4 style="color: var(--deep-purple); margin: 0 0 12px 0;">🌟 Key Planetary Influences</h4>
             `;
 
-            // Planet keywords
-            const planetKeywords = {
-                'Sun': 'vitality and purpose',
-                'Moon': 'emotional depth',
-                'Mars': 'action and drive',
-                'Jupiter': 'expansion and luck',
-                'Venus': 'love and harmony',
-                'Mercury': 'communication',
-                'Saturn': 'discipline'
-            };
+        // Planet keywords
+        const planetKeywords = {
+            'Sun': 'vitality and purpose',
+            'Moon': 'emotional depth',
+            'Mars': 'action and drive',
+            'Jupiter': 'expansion and luck',
+            'Venus': 'love and harmony',
+            'Mercury': 'communication',
+            'Saturn': 'discipline'
+        };
 
-            const keyPlanets = ['Sun', 'Moon', 'Mars', 'Jupiter', 'Venus'];
+        const keyPlanets = ['Sun', 'Moon', 'Mars', 'Jupiter', 'Venus'];
 
-            if (chart.planets) {
-                keyPlanets.forEach(planet => {
-                    if (chart.planets[planet]) {
-                        html += `
+        if (chart.planets) {
+            keyPlanets.forEach(planet => {
+                if (chart.planets[planet]) {
+                    html += `
                             <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px;">
                                 <span style="color: var(--accent-gold);">•</span>
                                 <div>
@@ -803,45 +801,45 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </div>
                             </div>
                         `;
-                    }
-                });
-            }
+                }
+            });
+        }
 
-            // Chart strength
-            html += `
+        // Chart strength
+        html += `
                 <div style="margin-top: 20px; padding: 16px; background: rgba(255, 200, 100, 0.2); border-radius: 12px; text-align: center;">
                     <h4 style="color: var(--deep-purple); margin: 0 0 8px 0;">Chart Strength: ${chart.strength_score || 50}/100</h4>
                     <p style="font-size: 0.8rem; opacity: 0.7; margin: 0;">A higher score indicates stronger planetary support.</p>
                 </div>
             `;
 
-            contentDiv.innerHTML = html;
+        contentDiv.innerHTML = html;
 
-        } catch (error) {
-            console.error('Astro Insights Error:', error);
-            contentDiv.innerHTML = `
+    } catch (error) {
+        console.error('Astro Insights Error:', error);
+        contentDiv.innerHTML = `
                 <div style="text-align: center; padding: 40px;">
                     <span style="font-size: 3rem;">⚠️</span>
                     <h4 style="color: var(--deep-purple); margin: 16px 0 8px 0;">Insights Unavailable</h4>
                     <p style="font-size: 0.85rem; opacity: 0.7;">Please ensure you have entered your birth information and have an internet connection.</p>
                 </div>
             `;
-        }
     }
+}
 
-    if (modal) {
-        modal.classList.remove('active');
-        document.body.style.overflow = ''; // Restore scroll
+if (modal) {
+    modal.classList.remove('active');
+    document.body.style.overflow = ''; // Restore scroll
 
-        // Stop speech if modal closes
-        if (window.speechSynthesis) window.speechSynthesis.cancel();
-        const listenBtn = document.getElementById('listen-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        if (listenBtn && stopBtn) {
-            listenBtn.style.display = 'inline-block';
-            stopBtn.style.display = 'none';
-        }
+    // Stop speech if modal closes
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    const listenBtn = document.getElementById('listen-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    if (listenBtn && stopBtn) {
+        listenBtn.style.display = 'inline-block';
+        stopBtn.style.display = 'none';
     }
+}
 };
 
 window.closeModalOnOverlay = function (event, modalName) {
