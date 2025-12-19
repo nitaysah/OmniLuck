@@ -109,11 +109,16 @@ async def calculate_luck(request: LuckCalculationRequest):
     }
     
     # AI explains the DATA, it does not invent the score
-    ai_result = llm_service.analyze_luck_and_generate_content(
-        user_data=user_context,
-        cosmic_signals=signals_dict,
-        astrology_data=astro_data,
-        numerology_data=numerology_result
+    # Run in thread pool to prevent blocking
+    loop = asyncio.get_running_loop()
+    ai_result = await loop.run_in_executor(
+        None,
+        lambda: llm_service.analyze_luck_and_generate_content(
+            user_data=user_context,
+            cosmic_signals=signals_dict,
+            astrology_data=astro_data,
+            numerology_data=numerology_result
+        )
     )
     
     ai_intuition_score = ai_result.get("score", 70)
