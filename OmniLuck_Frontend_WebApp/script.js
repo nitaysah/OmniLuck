@@ -597,7 +597,55 @@ document.addEventListener('DOMContentLoaded', () => {
             revealBtn.classList.remove('loading');
             btnText.style.display = 'inline-block';
         }
+        // --- Text-to-Speech Logic ---
+        const listenBtn = document.getElementById('listen-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        let synth = window.speechSynthesis;
+        let currentUtterance = null;
+
+        if (listenBtn && stopBtn) {
+            listenBtn.addEventListener('click', () => {
+                const text = document.getElementById('fortune-text').innerText;
+                if (!text) return;
+
+                // Cancel any current speech
+                synth.cancel();
+
+                currentUtterance = new SpeechSynthesisUtterance(text);
+                currentUtterance.rate = 1.0;
+                currentUtterance.pitch = 1.0;
+
+                // Try to select a pleasant voice
+                const voices = synth.getVoices();
+                // Prefer "Samantha" on Mac or Google US English
+                const preferredVoice = voices.find(v => v.name.includes("Samantha") || v.name.includes("Google US English"));
+                if (preferredVoice) currentUtterance.voice = preferredVoice;
+
+                currentUtterance.onend = () => {
+                    listenBtn.style.display = 'inline-block';
+                    stopBtn.style.display = 'none';
+                };
+
+                listenBtn.style.display = 'none';
+                stopBtn.style.display = 'inline-block';
+
+                synth.speak(currentUtterance);
+            });
+
+            stopBtn.addEventListener('click', () => {
+                synth.cancel();
+                listenBtn.style.display = 'inline-block';
+                stopBtn.style.display = 'none';
+            });
+        }
+
+        // Ensure voices are loaded (Chrome edge case)
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = () => { };
+        }
+
     });
+
 
     // --- Helper Functions ---
 
@@ -781,46 +829,53 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    window.closeModal = function (modalName) {
-        const modal = document.getElementById(modalName + '-modal');
-        if (modal) {
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = ''; // Restore scroll
+
+        // Stop speech if modal closes
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        const listenBtn = document.getElementById('listen-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        if (listenBtn && stopBtn) {
+            listenBtn.style.display = 'inline-block';
+            stopBtn.style.display = 'none';
+        }
+    }
+};
+
+window.closeModalOnOverlay = function (event, modalName) {
+    // Only close if clicking directly on overlay (not the card)
+    if (event.target.classList.contains('modal-overlay')) {
+        closeModal(modalName);
+    }
+};
+
+// Close modal with Escape key
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.active').forEach(modal => {
             modal.classList.remove('active');
-            document.body.style.overflow = ''; // Restore scroll
-        }
-    };
+        });
+        document.body.style.overflow = '';
+    }
+});
 
-    window.closeModalOnOverlay = function (event, modalName) {
-        // Only close if clicking directly on overlay (not the card)
-        if (event.target.classList.contains('modal-overlay')) {
-            closeModal(modalName);
-        }
-    };
+function renderPowerball(personalPB, dailyPBs) {
+    const powerballBtn = document.getElementById('powerball-btn');
 
-    // Close modal with Escape key
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-            document.querySelectorAll('.modal-overlay.active').forEach(modal => {
-                modal.classList.remove('active');
-            });
-            document.body.style.overflow = '';
-        }
-    });
+    // Only show if we have powerball data
+    if (!personalPB && (!dailyPBs || dailyPBs.length === 0)) {
+        powerballBtn.style.display = 'none';
+        return;
+    }
 
-    function renderPowerball(personalPB, dailyPBs) {
-        const powerballBtn = document.getElementById('powerball-btn');
+    powerballBtn.style.display = 'flex';
 
-        // Only show if we have powerball data
-        if (!personalPB && (!dailyPBs || dailyPBs.length === 0)) {
-            powerballBtn.style.display = 'none';
-            return;
-        }
-
-        powerballBtn.style.display = 'flex';
-
-        // Helper function to create a ball element
-        function createBall(number, isRed = false) {
-            const ball = document.createElement('div');
-            ball.style.cssText = `
+    // Helper function to create a ball element
+    function createBall(number, isRed = false) {
+        const ball = document.createElement('div');
+        ball.style.cssText = `
                 width: 40px;
                 height: 40px;
                 border-radius: 50%;
@@ -830,54 +885,54 @@ document.addEventListener('DOMContentLoaded', () => {
                 font-weight: 700;
                 font-size: 0.95rem;
                 ${isRed
-                    ? 'background: linear-gradient(135deg, #dc2626, #991b1b); color: white; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);'
-                    : 'background: white; color: var(--deep-purple); border: 2px solid var(--accent-purple); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);'
-                }
+                ? 'background: linear-gradient(135deg, #dc2626, #991b1b); color: white; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);'
+                : 'background: white; color: var(--deep-purple); border: 2px solid var(--accent-purple); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);'
+            }
             `;
-            ball.textContent = number;
-            return ball;
-        }
+        ball.textContent = number;
+        return ball;
+    }
 
-        // Render Personal Powerball
-        if (personalPB) {
-            const personalDisplay = document.getElementById('personal-powerball-display');
-            personalDisplay.innerHTML = '';
+    // Render Personal Powerball
+    if (personalPB) {
+        const personalDisplay = document.getElementById('personal-powerball-display');
+        personalDisplay.innerHTML = '';
 
-            // Add white balls
-            personalPB.white_balls.forEach(num => {
-                personalDisplay.appendChild(createBall(num, false));
-            });
+        // Add white balls
+        personalPB.white_balls.forEach(num => {
+            personalDisplay.appendChild(createBall(num, false));
+        });
 
-            // Add separator
-            const separator = document.createElement('div');
-            separator.style.cssText = 'width: 2px; height: 30px; background: var(--accent-gold); margin: 0 4px; opacity: 0.3;';
-            personalDisplay.appendChild(separator);
+        // Add separator
+        const separator = document.createElement('div');
+        separator.style.cssText = 'width: 2px; height: 30px; background: var(--accent-gold); margin: 0 4px; opacity: 0.3;';
+        personalDisplay.appendChild(separator);
 
-            // Add powerball
-            personalDisplay.appendChild(createBall(personalPB.powerball, true));
-        }
+        // Add powerball
+        personalDisplay.appendChild(createBall(personalPB.powerball, true));
+    }
 
-        // Render Daily Powerballs
-        if (dailyPBs && dailyPBs.length > 0) {
-            const dailyList = document.getElementById('daily-powerballs-list');
-            dailyList.innerHTML = '';
+    // Render Daily Powerballs
+    if (dailyPBs && dailyPBs.length > 0) {
+        const dailyList = document.getElementById('daily-powerballs-list');
+        dailyList.innerHTML = '';
 
-            dailyPBs.forEach((combo, idx) => {
-                const comboDiv = document.createElement('div');
-                comboDiv.style.cssText = 'margin-bottom: 12px; padding: 12px; background: rgba(192, 153, 240, 0.05); border-radius: 10px; border: 1px solid rgba(192, 153, 240, 0.1);';
+        dailyPBs.forEach((combo, idx) => {
+            const comboDiv = document.createElement('div');
+            comboDiv.style.cssText = 'margin-bottom: 12px; padding: 12px; background: rgba(192, 153, 240, 0.05); border-radius: 10px; border: 1px solid rgba(192, 153, 240, 0.1);';
 
-                const header = document.createElement('div');
-                header.style.cssText = 'font-size: 0.75rem; color: var(--deep-purple); opacity: 0.6; margin-bottom: 8px; font-weight: 600;';
-                header.textContent = `Combination #${idx + 1}`;
-                comboDiv.appendChild(header);
+            const header = document.createElement('div');
+            header.style.cssText = 'font-size: 0.75rem; color: var(--deep-purple); opacity: 0.6; margin-bottom: 8px; font-weight: 600;';
+            header.textContent = `Combination #${idx + 1}`;
+            comboDiv.appendChild(header);
 
-                const ballsContainer = document.createElement('div');
-                ballsContainer.style.cssText = 'display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;';
+            const ballsContainer = document.createElement('div');
+            ballsContainer.style.cssText = 'display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;';
 
-                // Add white balls (smaller)
-                combo.white_balls.forEach(num => {
-                    const ball = document.createElement('div');
-                    ball.style.cssText = `
+            // Add white balls (smaller)
+            combo.white_balls.forEach(num => {
+                const ball = document.createElement('div');
+                ball.style.cssText = `
                         width: 32px;
                         height: 32px;
                         border-radius: 50%;
@@ -891,18 +946,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         border: 1.5px solid var(--accent-purple);
                         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
                     `;
-                    ball.textContent = num;
-                    ballsContainer.appendChild(ball);
-                });
+                ball.textContent = num;
+                ballsContainer.appendChild(ball);
+            });
 
-                // Add separator
-                const sep = document.createElement('div');
-                sep.style.cssText = 'width: 1px; height: 24px; background: var(--accent-purple); margin: 0 4px; opacity: 0.2;';
-                ballsContainer.appendChild(sep);
+            // Add separator
+            const sep = document.createElement('div');
+            sep.style.cssText = 'width: 1px; height: 24px; background: var(--accent-purple); margin: 0 4px; opacity: 0.2;';
+            ballsContainer.appendChild(sep);
 
-                // Add powerball (smaller)
-                const powerball = document.createElement('div');
-                powerball.style.cssText = `
+            // Add powerball (smaller)
+            const powerball = document.createElement('div');
+            powerball.style.cssText = `
                     width: 32px;
                     height: 32px;
                     border-radius: 50%;
@@ -915,109 +970,109 @@ document.addEventListener('DOMContentLoaded', () => {
                     color: white;
                     box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
                 `;
-                powerball.textContent = combo.powerball;
-                ballsContainer.appendChild(powerball);
+            powerball.textContent = combo.powerball;
+            ballsContainer.appendChild(powerball);
 
-                comboDiv.appendChild(ballsContainer);
-                dailyList.appendChild(comboDiv);
-            });
-        }
-    }
-
-    function renderForecast(data) {
-        const card = document.getElementById('forecast-flip-card');
-        card.style.display = 'block';
-
-        // Listeners for Flip
-        const inner = document.getElementById('forecast-flip-inner');
-        card.onclick = (e) => {
-            // Prevent drag/select issues
-            e.preventDefault();
-            card.classList.toggle('flipped');
-        };
-
-        // Populate Top Stats
-        // Find best day
-        let best = data.trajectory[0];
-        data.trajectory.forEach(d => { if (d.luck_score > best.luck_score) best = d; });
-
-        document.getElementById('forecast-trend').textContent = data.trend_direction;
-
-        // Format date: YYYY-MM-DD -> MMM DD
-        const formatDate = (ds) => {
-            const d = new Date(ds);
-            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }); // Force UTC to avoid shift
-        };
-
-        document.getElementById('forecast-best').textContent = `${formatDate(best.date)} (${best.luck_score}%)`;
-
-        // Render Bar Chart
-        const list = document.getElementById('forecast-list');
-        list.innerHTML = '';
-
-        data.trajectory.forEach(day => {
-            // Day Name
-            const dateObj = new Date(day.date);
-            const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
-
-            const container = document.createElement('div');
-            container.style.cssText = "display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0;";
-
-            const scoreLabel = document.createElement('span');
-            scoreLabel.textContent = day.luck_score;
-            scoreLabel.style.cssText = "font-size: 9px; font-weight: bold; color: var(--deep-purple); margin-bottom: 2px;";
-
-            const barHeight = Math.max(10, day.luck_score * 0.7); // scale
-            const bar = document.createElement('div');
-            // Gradient based on score
-            let colorStart = day.luck_score >= 80 ? '#4CAF50' : (day.luck_score < 50 ? '#FF9800' : '#FFD700');
-
-            bar.style.cssText = `width: 100%; height: ${barHeight}px; background: linear-gradient(to bottom, ${colorStart}, rgba(255,255,255,0.5)); border-radius: 4px 4px 0 0; opacity: 0.8;`;
-
-            const dateLabel = document.createElement('span');
-            dateLabel.textContent = dayName;
-            dateLabel.style.cssText = "font-size: 9px; color: var(--deep-purple); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;";
-
-            container.appendChild(scoreLabel);
-            container.appendChild(bar);
-            container.appendChild(dateLabel);
-            list.appendChild(container);
+            comboDiv.appendChild(ballsContainer);
+            dailyList.appendChild(comboDiv);
         });
     }
+}
 
-    function goBack() {
-        resultView.classList.remove('active');
+function renderForecast(data) {
+    const card = document.getElementById('forecast-flip-card');
+    card.style.display = 'block';
 
-        const currentUser = localStorage.getItem('currentUser');
-        if (currentUser && dashboardView) {
-            dashboardView.classList.add('active');
-            // Show Menu again if logged in
-            const userMenuContainer = document.getElementById('user-menu-container');
-            if (userMenuContainer) userMenuContainer.style.display = 'block';
-        } else {
-            inputView.classList.add('active');
-            // Hide Menu if guest (should be handled by initUserSession but safe to ensure)
-            const userMenuContainer = document.getElementById('user-menu-container');
-            if (userMenuContainer) userMenuContainer.style.display = 'none';
-        }
+    // Listeners for Flip
+    const inner = document.getElementById('forecast-flip-inner');
+    card.onclick = (e) => {
+        // Prevent drag/select issues
+        e.preventDefault();
+        card.classList.toggle('flipped');
+    };
 
-        const progressRing = document.querySelector('.progress-ring-fill');
-        if (progressRing) {
-            progressRing.style.strokeDashoffset = 565.48; // Circumference
-        }
-        resultPercentage.textContent = '0';
+    // Populate Top Stats
+    // Find best day
+    let best = data.trajectory[0];
+    data.trajectory.forEach(d => { if (d.luck_score > best.luck_score) best = d; });
+
+    document.getElementById('forecast-trend').textContent = data.trend_direction;
+
+    // Format date: YYYY-MM-DD -> MMM DD
+    const formatDate = (ds) => {
+        const d = new Date(ds);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }); // Force UTC to avoid shift
+    };
+
+    document.getElementById('forecast-best').textContent = `${formatDate(best.date)} (${best.luck_score}%)`;
+
+    // Render Bar Chart
+    const list = document.getElementById('forecast-list');
+    list.innerHTML = '';
+
+    data.trajectory.forEach(day => {
+        // Day Name
+        const dateObj = new Date(day.date);
+        const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
+
+        const container = document.createElement('div');
+        container.style.cssText = "display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0;";
+
+        const scoreLabel = document.createElement('span');
+        scoreLabel.textContent = day.luck_score;
+        scoreLabel.style.cssText = "font-size: 9px; font-weight: bold; color: var(--deep-purple); margin-bottom: 2px;";
+
+        const barHeight = Math.max(10, day.luck_score * 0.7); // scale
+        const bar = document.createElement('div');
+        // Gradient based on score
+        let colorStart = day.luck_score >= 80 ? '#4CAF50' : (day.luck_score < 50 ? '#FF9800' : '#FFD700');
+
+        bar.style.cssText = `width: 100%; height: ${barHeight}px; background: linear-gradient(to bottom, ${colorStart}, rgba(255,255,255,0.5)); border-radius: 4px 4px 0 0; opacity: 0.8;`;
+
+        const dateLabel = document.createElement('span');
+        dateLabel.textContent = dayName;
+        dateLabel.style.cssText = "font-size: 9px; color: var(--deep-purple); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;";
+
+        container.appendChild(scoreLabel);
+        container.appendChild(bar);
+        container.appendChild(dateLabel);
+        list.appendChild(container);
+    });
+}
+
+function goBack() {
+    resultView.classList.remove('active');
+
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser && dashboardView) {
+        dashboardView.classList.add('active');
+        // Show Menu again if logged in
+        const userMenuContainer = document.getElementById('user-menu-container');
+        if (userMenuContainer) userMenuContainer.style.display = 'block';
+    } else {
+        inputView.classList.add('active');
+        // Hide Menu if guest (should be handled by initUserSession but safe to ensure)
+        const userMenuContainer = document.getElementById('user-menu-container');
+        if (userMenuContainer) userMenuContainer.style.display = 'none';
     }
 
-    if (backBtn) backBtn.addEventListener('click', goBack);
-    tryAgainBtn.addEventListener('click', goBack);
-
-    // Guest Home Button Logic
-    const guestHomeBtn = document.getElementById('guest-home-btn');
-    if (guestHomeBtn) {
-        guestHomeBtn.addEventListener('click', () => {
-            window.location.href = 'index.html';
-        });
+    const progressRing = document.querySelector('.progress-ring-fill');
+    if (progressRing) {
+        progressRing.style.strokeDashoffset = 565.48; // Circumference
     }
+    resultPercentage.textContent = '0';
+}
+
+if (backBtn) backBtn.addEventListener('click', goBack);
+tryAgainBtn.addEventListener('click', goBack);
+
+// Guest Home Button Logic
+const guestHomeBtn = document.getElementById('guest-home-btn');
+if (guestHomeBtn) {
+    guestHomeBtn.addEventListener('click', () => {
+        window.location.href = 'index.html';
+    });
+}
 });
 
 // Helper for human-readable planet keywords

@@ -1,4 +1,27 @@
 import SwiftUI
+import AVFoundation
+
+// Helper for TTS
+class SpeechManager: ObservableObject {
+    private let synthesizer = AVSpeechSynthesizer()
+    
+    func speak(_ text: String) {
+        // Correct stopping behavior
+        if synthesizer.isSpeaking {
+            synthesizer.stopSpeaking(at: .immediate)
+            return 
+        }
+        
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+        utterance.rate = 0.5
+        synthesizer.speak(utterance)
+    }
+    
+    func stop() {
+        synthesizer.stopSpeaking(at: .immediate)
+    }
+}
 
 struct ResultView: View {
     let percentage: Int
@@ -23,7 +46,8 @@ struct ResultView: View {
     var strategicAdvice: String? = nil
     var luckyTimeSlots: [String]? = nil
     
-    @Environment(\.dismiss) var dismiss
+    @Environment(\.presentationMode) var presentationMode
+    @StateObject private var speechManager = SpeechManager()
     
     @State private var displayedPercentage = 0
     @State private var isAnimating = false
@@ -426,7 +450,7 @@ struct ResultView: View {
                 }
                 
                 // Home Button
-                Button(action: { dismiss() }) {
+                Button(action: { presentationMode.wrappedValue.dismiss() }) {
                     HStack(spacing: 10) { Image(systemName: "house.fill"); Text("Home") }
                         .font(.headline).foregroundColor(deepPurple).padding(.vertical, 16).frame(maxWidth: .infinity)
                         .background(LinearGradient(colors: [accentGold, accentGold.opacity(0.8)], startPoint: .leading, endPoint: .trailing))
@@ -479,12 +503,23 @@ struct ResultView: View {
                     // Content
                     ScrollView {
                         VStack(alignment: .leading, spacing: 16) {
-                            Text(explanation.text)
-                                .font(.body)
-                                .foregroundColor(deepPurple)
-                                .lineSpacing(6)
-                            
-                            // Traits
+                            HStack(alignment: .top) {
+                                Text(explanation.text)
+                                    .font(.body)
+                                    .foregroundColor(deepPurple)
+                                    .multilineTextAlignment(.leading)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                
+                                Spacer()
+                                
+                                Button(action: {
+                                    speechManager.speak(explanation.text)
+                                }) {
+                                    Image(systemName: "speaker.wave.2.circle.fill")
+                                        .font(.title2)
+                                        .foregroundColor(accentGold)
+                                }
+                            }
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 85), spacing: 6)], spacing: 8) {
                                 ForEach(explanation.traits, id: \.self) { trait in
                                     Text(trait)
