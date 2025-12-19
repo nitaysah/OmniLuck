@@ -263,6 +263,20 @@ class NetworkService {
         return try await performRequest(endpoint: "/api/luck/forecast", body: payload)
     }
     
+    // MARK: - Delete Account
+    struct DeleteRequest: Codable {
+        let idToken: String
+    }
+    struct DeleteResponse: Codable {
+        let success: Bool
+        let message: String
+    }
+    
+    func deleteAccount(idToken: String) async throws -> DeleteResponse {
+        let payload = DeleteRequest(idToken: idToken)
+        return try await performRequest(endpoint: "/api/auth/delete", body: payload)
+    }
+
     // Generic Request
     private func performRequest<T: Codable, U: Codable>(endpoint: String, body: U) async throws -> T {
         guard let url = URL(string: "\(baseURL)\(endpoint)") else { throw URLError(.badURL) }

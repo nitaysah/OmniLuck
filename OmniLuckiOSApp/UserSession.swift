@@ -7,6 +7,8 @@ struct UserProfile: Codable {
     let username: String?
     let birth_place: String?
     let birth_time: String?
+    let uid: String? // New
+    let idToken: String? // New
 }
 
 class UserSession: ObservableObject {

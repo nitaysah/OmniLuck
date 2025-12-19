@@ -206,6 +206,25 @@ class CelestialAPI {
         });
         return response.json();
     }
+
+    /**
+     * Delete user account
+     * @param {string} idToken - User's Firebase ID Token
+     * @returns {Promise<Object>} Status
+     */
+    async deleteAccount(idToken) {
+        const response = await fetch(`${this.baseURL}/api/auth/delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Deletion failed: ${response.statusText}`);
+        }
+
+        return response.json();
+    }
 }
 
 // ============================================================================

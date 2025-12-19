@@ -395,6 +395,10 @@
 
                 await setDoc(doc(db, "users", user.uid), userData);
 
+                // Get ID Token
+                const idToken = await user.getIdToken();
+                userData.idToken = idToken;
+
                 // 5. Save to LocalStorage (Session Cache for Speed)
                 // We keep this so existing app.html logic works instantly without rewrite
                 localStorage.setItem('currentUser', JSON.stringify(userData));

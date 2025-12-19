@@ -401,7 +401,9 @@ struct SignupView: View {
                                 email: email,
                                 username: username,
                                 birth_place: birthPlace,
-                                birth_time: timeStr
+                                birth_time: timeStr,
+                                uid: response.uid,
+                                idToken: response.idToken
                             )
                             userSession.login(with: profile)
                             print("Signup Success: \(response.message)")

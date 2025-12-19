@@ -80,7 +80,8 @@
                 <a href="about.html" class="menu-item">ℹ️ About Us</a>
                 <a href="contact.html" class="menu-item">📞 Contact Us</a>
                 <a href="settings.html" class="menu-item" style="background: rgba(191,153,242,0.1);">⚙️ Settings</a>
-                <div id="menu-logout-btn" class="menu-item" style="color: #d32f2f;">🚪 Logout</div>
+                <div id="menu-logout-btn" class="menu-item" style="color: #d32f2f;" onclick="handleLogout()">🚪 Logout
+                </div>
             </div>
         </div>
 
@@ -125,15 +126,15 @@
                 Account</h3>
 
             <div class="setting-item" style="padding: 16px 0; border-bottom: 1px solid rgba(191,153,242,0.2);">
-                <button id="logout-btn-settings" class="secondary-btn"
+                <button id="logout-btn-settings" class="secondary-btn" onclick="handleLogout()"
                     style="background: white; border: 1px solid var(--card-border);">
                     Sign Out
                 </button>
             </div>
 
             <div class="setting-item" style="padding: 16px 0;">
-                <button class="secondary-btn"
-                    style="background: transparent; border: 1px solid #ffcdd2; color: #d32f2f; box-shadow: none;">
+                <button id="delete-account-btn" class="secondary-btn" onclick="triggerDeleteAccount()"
+                    style="background: transparent; border: 1px solid #ffcdd2; color: #d32f2f; box-shadow: none; position: relative; z-index: 9999;">
                     Delete Account
                 </button>
             </div>
@@ -141,19 +142,102 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initUserSession } from './user-session.js';
+    <!-- Inline script with global functions for robustness -->
+    <script>
+        // Global Logout Function
+        window.handleLogout = function () {
+            if (confirm('Sign out now?')) {
+                localStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            }
+        };
 
+        // Global Delete Function
+        window.triggerDeleteAccount = async function () {
+            if (!confirm('Are you sure you want to delete your account? This action cannot be undone and will permanently erase all your data.')) {
+                return;
+            }
+
+            try {
+                // Resolve User
+                let user = null;
+                try {
+                    user = JSON.parse(localStorage.getItem('currentUser'));
+                } catch (e) { console.error("User parse error", e); }
+
+                if (!user || !user.idToken) {
+                    alert("Security Token Missing (Session Old). Please Sign Out and Sign In again.");
+                    localStorage.removeItem('currentUser');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                const deleteBtn = document.getElementById('delete-account-btn');
+                if (deleteBtn) {
+                    deleteBtn.textContent = "Deleting...";
+                    deleteBtn.disabled = true;
+                    deleteBtn.style.opacity = "0.5";
+                }
+
+                // Determine URL
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const baseURL = isLocal ? 'http://localhost:8000' : 'https://omniluck.onrender.com';
+
+                const response = await fetch(`${baseURL}/api/auth/delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken: user.idToken })
+                });
+
+                if (!response.ok) throw new Error(response.statusText);
+
+                // Success Sequence:
+                // 1. Notify User (Matches iOS "Success Alert" behavior)
+                alert('Your account has been successfully deleted.');
+
+                // 2. Clear Session
+                localStorage.removeItem('currentUser');
+
+                // 3. Redirect Home
+                window.location.href = 'index.html';
+
+            } catch (err) {
+                alert("Error: " + err.message);
+                const deleteBtn = document.getElementById('delete-account-btn');
+                if (deleteBtn) {
+                    deleteBtn.textContent = "Delete Account";
+                    deleteBtn.disabled = false;
+                    deleteBtn.style.opacity = "1";
+                }
+            }
+        };
+
+        // On Load Logic (UI Setup)
         document.addEventListener('DOMContentLoaded', () => {
-            initUserSession();
+            console.log("Settings: Page Loaded (v3)");
+            try {
+                const stored = localStorage.getItem('currentUser');
+                if (stored) {
+                    const user = JSON.parse(stored);
+                    const greeting = document.getElementById('user-greeting');
+                    if (greeting && user.name) greeting.textContent = "Hi, " + user.name.split(' ')[0];
+                    const menuContainer = document.getElementById('user-menu-container');
+                    if (menuContainer) menuContainer.style.display = 'block';
+                }
+            } catch (e) {
+                console.error("User parse error", e);
+            }
 
-            const logoutBtn = document.getElementById('logout-btn-settings');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', () => {
-                    if (confirm('Sign out now?')) {
-                        localStorage.removeItem('currentUser');
-                        window.location.href = 'index.html';
-                    }
+            // Menu Toggle
+            const menuBtn = document.getElementById('user-menu-btn');
+            const dropdown = document.getElementById('user-dropdown');
+            if (menuBtn && dropdown) {
+                menuBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                });
+                window.addEventListener('click', () => {
+                    dropdown.style.display = 'none';
                 });
             }
         });

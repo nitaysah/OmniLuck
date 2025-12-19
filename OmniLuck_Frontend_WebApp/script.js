@@ -98,6 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
             inputView.classList.remove('active');
         }
 
+
+
         // Show User Menu
         const userMenuContainer = document.getElementById('user-menu-container');
         if (userMenuContainer) userMenuContainer.style.display = 'block';

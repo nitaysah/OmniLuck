@@ -18,6 +18,7 @@ struct LoginView: View {
     @State private var showResetSuccess = false
     @State private var isRotating = false
     @State private var showPassword = false
+    @State private var showPrivacy = false
     
     // Floating Animation State
     @State private var floatOffset: CGFloat = 0
@@ -28,6 +29,7 @@ struct LoginView: View {
     @FocusState private var focusedField: Field?
     
     var body: some View {
+
         ZStack {
             // Background
             LinearGradient(colors: [
@@ -187,7 +189,9 @@ struct LoginView: View {
                                         email: response.email,
                                         username: nil,
                                         birth_place: response.profile.birth_place,
-                                        birth_time: response.profile.birth_time
+                                        birth_time: response.profile.birth_time,
+                                        uid: response.uid,
+                                        idToken: response.idToken
                                     )
                                     userSession.login(with: profile)
                                 }
@@ -285,6 +289,15 @@ struct LoginView: View {
                             .overlay(RoundedRectangle(cornerRadius: 20).stroke(deepPurple, lineWidth: 1))
                             .foregroundColor(deepPurple)
                     }
+                    
+                    // Privacy Policy
+                    Button(action: { showPrivacy = true }) {
+                        Text("Privacy Policy")
+                            .font(.caption)
+                            .foregroundColor(deepPurple.opacity(0.7))
+                            .underline()
+                    }
+                    .padding(.top, 10)
                 }
                 .padding(.bottom, 20)
             }
@@ -294,6 +307,9 @@ struct LoginView: View {
         }
         .sheet(isPresented: $showSignup) {
             SignupView(userSession: userSession)
+        }
+        .sheet(isPresented: $showPrivacy) {
+            PrivacyView()
         }
         .alert("Reset Password", isPresented: $showForgotPassword) {
             TextField("Enter your email", text: $forgotEmail)

@@ -113,7 +113,7 @@ struct ContentView: View {
                 switch item {
                 case .about: AboutView()
                 case .contact: ContactView()
-                case .settings: SettingsView()
+                case .settings: SettingsView(userSession: userSession)
                 }
             }
             #if os(iOS)

@@ -256,6 +256,9 @@
                 style="background: white; color: var(--deep-purple); border: 1px solid var(--deep-purple); width: auto; padding: 8px 24px; font-size: 0.9rem; margin-top: 8px; display: inline-flex; min-height: unset; border-radius: 20px;">
                 Continue as Guest
             </button>
+            <div style="margin-top: 20px; font-size: 0.75rem; color: var(--deep-purple-lighter); opacity: 0.8;">
+                <a href="privacy.html" style="text-decoration: none; color: inherit;">Privacy Policy</a>
+            </div>
         </div>
     </div>
 
@@ -380,7 +383,9 @@
 
                 // Use preloaded data if available (SKIP second Firestore call!)
                 if (preloadedData && preloadedData.uid === user.uid) {
-                    localStorage.setItem('currentUser', JSON.stringify(preloadedData));
+                    const idToken = await user.getIdToken();
+                    const finalData = { ...preloadedData, idToken };
+                    localStorage.setItem('currentUser', JSON.stringify(finalData));
                     window.location.href = 'app.html';
                 } else {
                     // Only fetch if we don't have it yet
@@ -389,7 +394,9 @@
 
                     if (docSnap.exists()) {
                         const userData = docSnap.data();
-                        localStorage.setItem('currentUser', JSON.stringify(userData));
+                        const idToken = await user.getIdToken();
+                        const finalData = { ...userData, idToken };
+                        localStorage.setItem('currentUser', JSON.stringify(finalData));
                         window.location.href = 'app.html';
                     } else {
                         alert("User profile not found. Please contact support.");
