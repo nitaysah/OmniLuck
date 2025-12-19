@@ -497,7 +497,7 @@ struct ResultView: View {
                             
                             if let sum = summary {
                                 Divider().padding(.vertical, 8)
-                                Text("Why this score?").font(.subheadline).fontWeight(.bold).foregroundColor(deepPurple)
+                                Text("Aggregation of below scores:").font(.subheadline).fontWeight(.bold).foregroundColor(deepPurple)
                                 Text(sum).font(.caption).foregroundColor(deepPurple.opacity(0.8))
                             }
                         }
