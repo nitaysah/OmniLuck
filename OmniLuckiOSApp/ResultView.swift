@@ -154,37 +154,7 @@ struct ResultView: View {
         .opacity(isAnimating ? 1 : 0)
         .offset(y: isAnimating ? 0 : 20)
         .animation(.easeOut(duration: 0.5), value: isAnimating)
-        .onAppear {
-            withAnimation { isAnimating = true }
-            // Counter animation
-            let steps = 60; let stepTime = 1.5 / Double(steps)
-            for i in 0...steps {
-                DispatchQueue.main.asyncAfter(deadline: .now() + (stepTime * Double(i))) {
-                    self.displayedPercentage = Int(Double(self.percentage) * (Double(i) / Double(steps)))
-                }
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) { showCard = true }
-            }
-            
-            // Fetch Forecast
-            if let info = birthInfo {
-                Task {
-                    do {
-                        let forecast = try await NetworkService.shared.fetchForecast(
-                            name: "User",
-                            dob: info.dob,
-                            birthTime: info.time,
-                            birthPlace: info.place,
-                            timeIsNA: info.timeIsNA
-                        )
-                        await MainActor.run { self.forecastData = forecast }
-                    } catch {
-                        print("Forecast Error: \(error)")
-                    }
-                }
-            }
-        }
+        .onAppear(perform: handleAppear)
     }
     
     private var luckScoreHeader: some View {
@@ -249,6 +219,38 @@ struct ResultView: View {
         }
         .padding(.top, 8)
         .transition(.opacity.combined(with: .move(edge: .top)))
+    }
+
+    private func handleAppear() {
+        withAnimation { isAnimating = true }
+        // Counter animation
+        let steps = 60; let stepTime = 1.5 / Double(steps)
+        for i in 0...steps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + (stepTime * Double(i))) {
+                self.displayedPercentage = Int(Double(self.percentage) * (Double(i) / Double(steps)))
+            }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) { showCard = true }
+        }
+        
+        // Fetch Forecast
+        if let info = birthInfo {
+            Task {
+                do {
+                    let forecast = try await NetworkService.shared.fetchForecast(
+                        name: "User",
+                        dob: info.dob,
+                        birthTime: info.time,
+                        birthPlace: info.place,
+                        timeIsNA: info.timeIsNA
+                    )
+                    await MainActor.run { self.forecastData = forecast }
+                } catch {
+                    print("Forecast Error: \(error)")
+                }
+            }
+        }
     }
     
     private var actionButtons: some View {
