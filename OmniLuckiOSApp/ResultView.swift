@@ -134,68 +134,10 @@ struct ResultView: View {
     
     private var luckScoreCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Card Header
-            HStack {
-                HStack(spacing: 8) {
-                    Text("🎯")
-                        .font(.title3)
-                    Text("Daily Luck Score")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .foregroundColor(deepPurple)
-                }
-                
-                Spacer()
-                
-                Image(systemName: isLuckCardExpanded ? "chevron.down" : "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(accentPurple)
-                    .rotationEffect(.degrees(isLuckCardExpanded ? 0 : -90))
-                    .animation(.spring(response: 0.3), value: isLuckCardExpanded)
-            }
-            .contentShape(Rectangle())
-            .onTapGesture {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                    isLuckCardExpanded.toggle()
-                }
-            }
+            luckScoreHeader
             
-            // Card Content
             if isLuckCardExpanded {
-                VStack(spacing: 20) {
-                    ZStack {
-                        // Background Ring
-                        Circle().stroke(accentPurple.opacity(0.2), lineWidth: 12).frame(width: 200, height: 200)
-                        // Progress Ring
-                        Circle()
-                            .trim(from: 0, to: isAnimating ? CGFloat(percentage) / 100.0 : 0)
-                            .stroke(
-                                AngularGradient(colors: [luckColor, luckColor.opacity(0.5), luckColor], center: .center),
-                                style: StrokeStyle(lineWidth: 12, lineCap: .round)
-                            )
-                            .frame(width: 200, height: 200).rotationEffect(.degrees(-90))
-                            .animation(.easeOut(duration: 1.5), value: isAnimating)
-                        
-                        // Percentage Text
-                        VStack(spacing: 5) {
-                            Text("\(displayedPercentage)")
-                                .font(.system(size: 72, weight: .bold, design: .rounded)).foregroundColor(deepPurple)
-                            Text("%").font(.title).fontWeight(.light).foregroundColor(deepPurple.opacity(0.7))
-                        }
-                    }
-                    .shadow(color: luckColor.opacity(0.5), radius: 20, x: 0, y: 10)
-                    
-                    // Caption (Inside Card)
-                    if showCard {
-                        Text(displayCaption)
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .foregroundColor(accentPurple)
-                            .multilineTextAlignment(.center)
-                    }
-                }
-                .padding(.top, 8)
-                .transition(.opacity.combined(with: .move(edge: .top)))
+                luckScoreDetails
             }
         }
         .padding(cardPadding)
@@ -243,6 +185,70 @@ struct ResultView: View {
                 }
             }
         }
+    }
+    
+    private var luckScoreHeader: some View {
+        HStack {
+            HStack(spacing: 8) {
+                Text("🎯")
+                    .font(.title3)
+                Text("Daily Luck Score")
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .foregroundColor(deepPurple)
+            }
+            
+            Spacer()
+            
+            Image(systemName: isLuckCardExpanded ? "chevron.down" : "chevron.right")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(accentPurple)
+                .rotationEffect(.degrees(isLuckCardExpanded ? 0 : -90))
+                .animation(.spring(response: 0.3), value: isLuckCardExpanded)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                isLuckCardExpanded.toggle()
+            }
+        }
+    }
+    
+    private var luckScoreDetails: some View {
+        VStack(spacing: 20) {
+            ZStack {
+                // Background Ring
+                Circle().stroke(accentPurple.opacity(0.2), lineWidth: 12).frame(width: 200, height: 200)
+                // Progress Ring
+                Circle()
+                    .trim(from: 0, to: isAnimating ? CGFloat(percentage) / 100.0 : 0)
+                    .stroke(
+                        AngularGradient(colors: [luckColor, luckColor.opacity(0.5), luckColor], center: .center),
+                        style: StrokeStyle(lineWidth: 12, lineCap: .round)
+                    )
+                    .frame(width: 200, height: 200).rotationEffect(.degrees(-90))
+                    .animation(.easeOut(duration: 1.5), value: isAnimating)
+                
+                // Percentage Text
+                VStack(spacing: 5) {
+                    Text("\(displayedPercentage)")
+                        .font(.system(size: 72, weight: .bold, design: .rounded)).foregroundColor(deepPurple)
+                    Text("%").font(.title).fontWeight(.light).foregroundColor(deepPurple.opacity(0.7))
+                }
+            }
+            .shadow(color: luckColor.opacity(0.5), radius: 20, x: 0, y: 10)
+            
+            // Caption (Inside Card)
+            if showCard {
+                Text(displayCaption)
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(accentPurple)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .padding(.top, 8)
+        .transition(.opacity.combined(with: .move(edge: .top)))
     }
     
     private var actionButtons: some View {
