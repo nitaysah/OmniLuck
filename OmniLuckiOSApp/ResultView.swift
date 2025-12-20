@@ -92,388 +92,391 @@ struct ResultView: View {
     
     var body: some View {
         ZStack {
-            // Background
-            LinearGradient(colors: [
+            backgroundLayer
+            
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: 16) {
+                    luckScoreCard
+                    actionButtons
+                    forecastCardView
+                    homeButton
+                }
+                .padding(.bottom, 60)
+            }
+            .frame(maxWidth: UIScreen.main.bounds.width)
+            .clipped()
+            .padding(.top, 20)
+            .scrollBounceBehavior(.basedOnSize)
+        }
+        .navigationBarBackButtonHidden(true)
+        .preferredColorScheme(.light)
+        .overlay(analysisModalOverlay)
+        .overlay(strategyModalOverlay)
+        .overlay(powerHoursModalOverlay)
+        .overlay(astroInsightsModalOverlay)
+        .overlay(powerballModalOverlay)
+    }
+
+    // MARK: - Subviews
+    
+    private var backgroundLayer: some View {
+        ZStack {
+             LinearGradient(colors: [
                     Color(red: 1.0, green: 0.98, blue: 0.9),
                     Color(red: 0.95, green: 0.9, blue: 1.0),
                     Color(red: 0.98, green: 0.95, blue: 1.0)
                 ], startPoint: .topLeading, endPoint: .bottomTrailing)
                 .ignoresSafeArea()
             
-            // Decorative Glow
             Circle().fill(accentPurple.opacity(0.3)).frame(width: 300, height: 300).blur(radius: 80).offset(y: -100)
-            
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 10) {
-                    // Prevent horizontal overflow
-                
-                // Daily Luck Score Card (Collapsible, Expanded by Default)
-                VStack(alignment: .leading, spacing: 12) {
-                    // Card Header
-                    HStack {
-                        HStack(spacing: 8) {
-                            Text("🎯")
-                                .font(.title3)
-                            Text("Daily Luck Score")
-                                .font(.headline)
-                                .fontWeight(.bold)
-                                .foregroundColor(deepPurple)
-                        }
-                        
-                        Spacer()
-                        
-                        Image(systemName: isLuckCardExpanded ? "chevron.down" : "chevron.right")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(accentPurple)
-                            .rotationEffect(.degrees(isLuckCardExpanded ? 0 : -90))
-                            .animation(.spring(response: 0.3), value: isLuckCardExpanded)
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                            isLuckCardExpanded.toggle()
-                        }
-                    }
-                    
-                    // Card Content
-                    if isLuckCardExpanded {
-                        VStack(spacing: 20) {
-                            ZStack {
-                                // Background Ring
-                                Circle().stroke(accentPurple.opacity(0.2), lineWidth: 12).frame(width: 200, height: 200)
-                                // Progress Ring
-                                Circle()
-                                    .trim(from: 0, to: isAnimating ? CGFloat(percentage) / 100.0 : 0)
-                                    .stroke(
-                                        AngularGradient(colors: [luckColor, luckColor.opacity(0.5), luckColor], center: .center),
-                                        style: StrokeStyle(lineWidth: 12, lineCap: .round)
-                                    )
-                                    .frame(width: 200, height: 200).rotationEffect(.degrees(-90))
-                                    .animation(.easeOut(duration: 1.5), value: isAnimating)
-                                
-                                // Percentage Text
-                                VStack(spacing: 5) {
-                                    Text("\(displayedPercentage)")
-                                        .font(.system(size: 72, weight: .bold, design: .rounded)).foregroundColor(deepPurple)
-                                    Text("%").font(.title).fontWeight(.light).foregroundColor(deepPurple.opacity(0.7))
-                                }
-                            }
-                            .shadow(color: luckColor.opacity(0.5), radius: 20, x: 0, y: 10)
-                            
-                            // Caption (Inside Card)
-                            if showCard {
-                                Text(displayCaption)
-                                    .font(.title3)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(accentPurple)
-                                    .multilineTextAlignment(.center)
-                            }
-                        }
-                        .padding(.top, 8)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                    }
-                }
-                .padding(cardPadding)
-                .background(
-                    RoundedRectangle(cornerRadius: isLuckCardExpanded ? 20 : 14)
-                        .fill(Color.white.opacity(0.8))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: isLuckCardExpanded ? 20 : 14)
-                                .stroke(accentPurple.opacity(0.3), lineWidth: 1)
-                        )
-                        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
-                )
-                .padding(.horizontal, 16)
-                .opacity(isAnimating ? 1 : 0)
-                .offset(y: isAnimating ? 0 : 20)
-                .animation(.easeOut(duration: 0.5), value: isAnimating)
-                .onAppear {
-                    withAnimation { isAnimating = true }
-                    // Counter animation
-                    let steps = 60; let stepTime = 1.5 / Double(steps)
-                    for i in 0...steps {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + (stepTime * Double(i))) {
-                            self.displayedPercentage = Int(Double(self.percentage) * (Double(i) / Double(steps)))
-                        }
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) { showCard = true }
-                    }
-                    
-                    // Fetch Forecast
-                    if let info = birthInfo {
-                        Task {
-                            do {
-                                let forecast = try await NetworkService.shared.fetchForecast(
-                                    name: "User",
-                                    dob: info.dob,
-                                    birthTime: info.time,
-                                    birthPlace: info.place,
-                                    timeIsNA: info.timeIsNA
-                                )
-                                await MainActor.run { self.forecastData = forecast }
-                            } catch {
-                                print("Forecast Error: \(error)")
-                            }
-                        }
-                    }
-                }
-                    
-                    // SECTION 1: Daily Luck Analysis Button
-                    Button(action: { showAnalysisModal = true }) {
-                        HStack {
-                            Text("📜").font(.title3)
-                            Text("Read Daily Luck Analysis").font(.subheadline).fontWeight(.semibold).foregroundColor(deepPurple)
-                            Spacer()
-                            Image(systemName: "arrow.right.circle.fill").foregroundColor(accentPurple)
-                        }
-                        .padding(.vertical, 14).padding(.horizontal, 18)
-                        .background(Color.white.opacity(0.6))
-                        .cornerRadius(14)
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(accentPurple.opacity(0.4), lineWidth: 1))
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .padding(.horizontal)
-                    
-                    // SECTION 2: Cosmic Strategy Button
-                    if strategicAdvice != nil {
-                        Button(action: { showStrategyModal = true }) {
-                            HStack {
-                                Text("🧭").font(.title3)
-                                Text("Read Cosmic Strategy").font(.subheadline).fontWeight(.semibold).foregroundColor(deepPurple)
-                                Spacer()
-                                Image(systemName: "arrow.right.circle.fill").foregroundColor(accentPurple)
-                            }
-                            .padding(.vertical, 14).padding(.horizontal, 18)
-                            .background(Color.white.opacity(0.6))
-                            .cornerRadius(14)
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(accentPurple.opacity(0.4), lineWidth: 1))
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .padding(.horizontal)
-                    }
-                    
-                    // SECTION 3: Power Hours Button
-                    if let slots = luckyTimeSlots, !slots.isEmpty {
-                        Button(action: { showPowerHoursModal = true }) {
-                            HStack {
-                                Text("⏰").font(.title3)
-                                Text("View Power Hours").font(.subheadline).fontWeight(.semibold).foregroundColor(deepPurple)
-                                Spacer()
-                                Image(systemName: "arrow.right.circle.fill").foregroundColor(accentGold)
-                            }
-                            .padding(.vertical, 14).padding(.horizontal, 18)
-                            .background(Color.white.opacity(0.6))
-                            .cornerRadius(14)
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(accentGold.opacity(0.6), lineWidth: 1))
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .padding(.horizontal)
-                    }
-                    
-                    // Daily Astro Insights Button
-                    Button(action: {
-                        // Fetch chart data when opening modal
-                        Task {
-                            if chartData == nil, let info = birthInfo {
-                                isLoadingChart = true
-                                do {
-                                    chartData = try await NetworkService.shared.fetchNatalChart(
-                                        dob: info.dob,
-                                        birthTime: info.time,
-                                        birthPlace: info.place,
-                                        timeIsNA: info.timeIsNA
-                                    )
-                                } catch {
-                                    print("Chart Error: \(error)")
-                                }
-                                isLoadingChart = false
-                            }
-                        }
-                        showReport = true
-                    }) {
-                        HStack {
-                            Text("🌟").font(.title3)
-                            Text("Read Daily Astro Insights").font(.subheadline).fontWeight(.semibold).foregroundColor(deepPurple)
-                            Spacer()
-                            Image(systemName: "arrow.right.circle.fill").foregroundColor(accentPurple)
-                        }
-                        .padding(.vertical, 14).padding(.horizontal, 18)
-                        .background(Color.white.opacity(0.6))
-                        .cornerRadius(14)
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(accentPurple.opacity(0.4), lineWidth: 1))
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .padding(.horizontal)
-                    
-                // NEW: Powerball Section
-                Button(action: { showPowerballModal = true }) {
-                    HStack(spacing: 12) {
-                        Text("🎱")
-                            .font(.title2)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Lucky Powerball Numbers")
-                                .font(.headline)
-                                .foregroundColor(deepPurple)
-                            Text("Astro-Numerology combinations")
-                                .font(.caption)
-                                .foregroundColor(deepPurple.opacity(0.6))
-                        }
-                        
-                        Spacer()
-                        
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(accentPurple)
-                    }
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.white.opacity(0.95))
-                            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
-                    )
-                }
-                .padding(.horizontal)
-                // Removed extra bottom padding, relying on VStack(spacing: 10)
-
-                // 7-Day Forecast FLIP Card
-                if let forecast = forecastData {
-                    ZStack {
-                        // BACK SIDE (The Chart)
-                        VStack(alignment: .leading, spacing: 10) {
-                            // Header with close hint
-                            HStack {
-                                Text("").font(.title3)
-                                Text("7-Day Luck Trajectory").font(.headline).foregroundColor(deepPurple)
-                                Spacer()
-                                Image(systemName: "arrow.uturn.backward.circle.fill")
-                                    .foregroundColor(accentPurple.opacity(0.6))
-                            }
-                            
-                            // Trend and Peak Row
-                            HStack {
-                                Text("Trend:").font(.caption).foregroundColor(deepPurple.opacity(0.7))
-                                Text(forecast.trend_direction).font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
-                                Spacer()
-                                Text("Peak:").font(.caption).foregroundColor(deepPurple.opacity(0.7))
-                                if let best = forecast.trajectory.max(by: { $0.luck_score < $1.luck_score }) {
-                                    Text("\(formatDayMonth(best.date)) (\(best.luck_score)%)")
-                                        .font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
-                                } else {
-                                    Text(formatDayMonth(forecast.best_day)).font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
-                                }
-                            }
-                            
-                            // Bar Chart
-                            HStack(alignment: .bottom, spacing: 4) {
-                                ForEach(forecast.trajectory) { day in
-                                    VStack(spacing: 2) {
-                                        Text("\(day.luck_score)")
-                                            .font(.system(size: 9, weight: .bold))
-                                            .foregroundColor(deepPurple)
-                                        
-                                        RoundedRectangle(cornerRadius: 3)
-                                            .fill(
-                                                LinearGradient(
-                                                    colors: [
-                                                        day.luck_score >= 80 ? Color.green : (day.luck_score < 50 ? Color.orange : accentGold),
-                                                        (day.luck_score >= 80 ? Color.green : (day.luck_score < 50 ? Color.orange : accentGold)).opacity(0.5)
-                                                    ],
-                                                    startPoint: .top,
-                                                    endPoint: .bottom
-                                                )
-                                            )
-                                            .frame(height: max(10, CGFloat(day.luck_score) * 0.7))
-                                        
-                                        Text(getDayName(day.date))
-                                            .font(.system(size: 10, weight: .medium))
-                                            .foregroundColor(deepPurple.opacity(0.8))
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                }
-                            }
-                            .frame(height: 90)
-                            .clipped() // Prevent Horizontal Overflow from Chart
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color.white.opacity(0.95))
-                                .overlay(RoundedRectangle(cornerRadius: 20).stroke(accentPurple.opacity(0.3), lineWidth: 1))
-                        )
-                        .rotation3DEffect(.degrees(isForecastFlipped ? 0 : -180), axis: (x: 0, y: 1, z: 0))
-                        .opacity(isForecastFlipped ? 1 : 0) // Hide when not flipped to prevent hit testing issues
-                        
-                        // FRONT SIDE (The Teaser)
-                        VStack(spacing: 16) {
-                            Text("🔮").font(.system(size: 44))
-                            
-                            Text("7-Day Cosmic Forecast")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .foregroundColor(deepPurple)
-                            
-                            Text("Tap to reveal your luck trajectory")
-                                .font(.subheadline)
-                                .foregroundColor(deepPurple.opacity(0.7))
-                            
-                            HStack(spacing: 8) {
-                                Image(systemName: "hand.tap.fill")
-                                    .foregroundColor(accentPurple)
-                                Text("Tap to flip")
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(accentPurple)
-                            }
-                            .padding(.top, 4)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 200) // Match height of back side approx
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(LinearGradient(colors: [Color.white.opacity(0.9), accentPurple.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                .overlay(RoundedRectangle(cornerRadius: 20).stroke(accentPurple.opacity(0.4), lineWidth: 1))
-                        )
-                        .rotation3DEffect(.degrees(isForecastFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
-                        .opacity(isForecastFlipped ? 0 : 1)
-                    }
-                    .frame(height: 200) // Fixed height container
-                    .padding(.horizontal)
-                    .onTapGesture {
-                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                            isForecastFlipped.toggle()
-                        }
-                    }
-                    .transition(.scale.combined(with: .opacity))
+        }
+    }
+    
+    private var luckScoreCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Card Header
+            HStack {
+                HStack(spacing: 8) {
+                    Text("🎯")
+                        .font(.title3)
+                    Text("Daily Luck Score")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(deepPurple)
                 }
                 
-                // Home Button
-                Button(action: { presentationMode.wrappedValue.dismiss() }) {
-                    HStack(spacing: 10) { Image(systemName: "house.fill"); Text("Home") }
-                        .font(.headline).foregroundColor(deepPurple).padding(.vertical, 16).frame(maxWidth: .infinity)
-                        .background(LinearGradient(colors: [accentGold, accentGold.opacity(0.8)], startPoint: .leading, endPoint: .trailing))
-                        .cornerRadius(16).shadow(color: accentGold.opacity(0.3), radius: 10, x: 0, y: 5)
-                }
-                .padding(.horizontal).padding(.bottom, 60) // Increased bottom padding for safe scroll area
+                Spacer()
+                
+                Image(systemName: isLuckCardExpanded ? "chevron.down" : "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(accentPurple)
+                    .rotationEffect(.degrees(isLuckCardExpanded ? 0 : -90))
+                    .animation(.spring(response: 0.3), value: isLuckCardExpanded)
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    isLuckCardExpanded.toggle()
                 }
             }
-            .frame(maxWidth: UIScreen.main.bounds.width) // Hard constrain to screen width
-            .clipped() // Prevent horizontal overflow
-            .padding(.top, 20) // Add some top padding inside scroll
-            .scrollBounceBehavior(.basedOnSize) // iOS 16.4+ only bounces when content overflows
-
-
+            
+            // Card Content
+            if isLuckCardExpanded {
+                VStack(spacing: 20) {
+                    ZStack {
+                        // Background Ring
+                        Circle().stroke(accentPurple.opacity(0.2), lineWidth: 12).frame(width: 200, height: 200)
+                        // Progress Ring
+                        Circle()
+                            .trim(from: 0, to: isAnimating ? CGFloat(percentage) / 100.0 : 0)
+                            .stroke(
+                                AngularGradient(colors: [luckColor, luckColor.opacity(0.5), luckColor], center: .center),
+                                style: StrokeStyle(lineWidth: 12, lineCap: .round)
+                            )
+                            .frame(width: 200, height: 200).rotationEffect(.degrees(-90))
+                            .animation(.easeOut(duration: 1.5), value: isAnimating)
+                        
+                        // Percentage Text
+                        VStack(spacing: 5) {
+                            Text("\(displayedPercentage)")
+                                .font(.system(size: 72, weight: .bold, design: .rounded)).foregroundColor(deepPurple)
+                            Text("%").font(.title).fontWeight(.light).foregroundColor(deepPurple.opacity(0.7))
+                        }
+                    }
+                    .shadow(color: luckColor.opacity(0.5), radius: 20, x: 0, y: 10)
+                    
+                    // Caption (Inside Card)
+                    if showCard {
+                        Text(displayCaption)
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundColor(accentPurple)
+                            .multilineTextAlignment(.center)
+                    }
+                }
+                .padding(.top, 8)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
-        .navigationBarBackButtonHidden(true)
-        .preferredColorScheme(.light)
-        // MODAL OVERLAYS
-        .overlay(analysisModalOverlay)
-        .overlay(strategyModalOverlay)
-        .overlay(powerHoursModalOverlay)
-        .overlay(astroInsightsModalOverlay)
-        .overlay(powerballModalOverlay)
+        .padding(cardPadding)
+        .background(
+            RoundedRectangle(cornerRadius: isLuckCardExpanded ? 20 : 14)
+                .fill(Color.white.opacity(0.8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: isLuckCardExpanded ? 20 : 14)
+                        .stroke(accentPurple.opacity(0.3), lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+        )
+        .padding(.horizontal, 16)
+        .opacity(isAnimating ? 1 : 0)
+        .offset(y: isAnimating ? 0 : 20)
+        .animation(.easeOut(duration: 0.5), value: isAnimating)
+        .onAppear {
+            withAnimation { isAnimating = true }
+            // Counter animation
+            let steps = 60; let stepTime = 1.5 / Double(steps)
+            for i in 0...steps {
+                DispatchQueue.main.asyncAfter(deadline: .now() + (stepTime * Double(i))) {
+                    self.displayedPercentage = Int(Double(self.percentage) * (Double(i) / Double(steps)))
+                }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) { showCard = true }
+            }
+            
+            // Fetch Forecast
+            if let info = birthInfo {
+                Task {
+                    do {
+                        let forecast = try await NetworkService.shared.fetchForecast(
+                            name: "User",
+                            dob: info.dob,
+                            birthTime: info.time,
+                            birthPlace: info.place,
+                            timeIsNA: info.timeIsNA
+                        )
+                        await MainActor.run { self.forecastData = forecast }
+                    } catch {
+                        print("Forecast Error: \(error)")
+                    }
+                }
+            }
+        }
+    }
+    
+    private var actionButtons: some View {
+        VStack(spacing: 16) {
+            // SECTION 1: Daily Luck Analysis Button
+            Button(action: { showAnalysisModal = true }) {
+                HStack {
+                    Text("📜").font(.title3)
+                    Text("Read Daily Luck Analysis").font(.subheadline).fontWeight(.semibold).foregroundColor(deepPurple)
+                    Spacer()
+                    Image(systemName: "arrow.right.circle.fill").foregroundColor(accentPurple)
+                }
+                .padding(.vertical, 14).padding(.horizontal, 18)
+                .background(Color.white.opacity(0.6))
+                .cornerRadius(14)
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(accentPurple.opacity(0.4), lineWidth: 1))
+            }
+            .buttonStyle(PlainButtonStyle())
+            .padding(.horizontal)
+            
+            // SECTION 2: Cosmic Strategy Button
+            if strategicAdvice != nil {
+                Button(action: { showStrategyModal = true }) {
+                    HStack {
+                        Text("🧭").font(.title3)
+                        Text("Read Cosmic Strategy").font(.subheadline).fontWeight(.semibold).foregroundColor(deepPurple)
+                        Spacer()
+                        Image(systemName: "arrow.right.circle.fill").foregroundColor(accentPurple)
+                    }
+                    .padding(.vertical, 14).padding(.horizontal, 18)
+                    .background(Color.white.opacity(0.6))
+                    .cornerRadius(14)
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(accentPurple.opacity(0.4), lineWidth: 1))
+                }
+                .buttonStyle(PlainButtonStyle())
+                .padding(.horizontal)
+            }
+            
+            // SECTION 3: Power Hours Button
+            if let slots = luckyTimeSlots, !slots.isEmpty {
+                Button(action: { showPowerHoursModal = true }) {
+                    HStack {
+                        Text("⏰").font(.title3)
+                        Text("View Power Hours").font(.subheadline).fontWeight(.semibold).foregroundColor(deepPurple)
+                        Spacer()
+                        Image(systemName: "arrow.right.circle.fill").foregroundColor(accentGold)
+                    }
+                    .padding(.vertical, 14).padding(.horizontal, 18)
+                    .background(Color.white.opacity(0.6))
+                    .cornerRadius(14)
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(accentGold.opacity(0.6), lineWidth: 1))
+                }
+                .buttonStyle(PlainButtonStyle())
+                .padding(.horizontal)
+            }
+            
+            // Daily Astro Insights Button
+            Button(action: {
+                Task {
+                    if chartData == nil, let info = birthInfo {
+                        isLoadingChart = true
+                        do {
+                            chartData = try await NetworkService.shared.fetchNatalChart(
+                                dob: info.dob,
+                                birthTime: info.time,
+                                birthPlace: info.place,
+                                timeIsNA: info.timeIsNA
+                            )
+                        } catch {
+                            print("Chart Error: \(error)")
+                        }
+                        isLoadingChart = false
+                    }
+                }
+                showReport = true
+            }) {
+                HStack {
+                    Text("🌟").font(.title3)
+                    Text("Read Daily Astro Insights").font(.subheadline).fontWeight(.semibold).foregroundColor(deepPurple)
+                    Spacer()
+                    Image(systemName: "arrow.right.circle.fill").foregroundColor(accentPurple)
+                }
+                .padding(.vertical, 14).padding(.horizontal, 18)
+                .background(Color.white.opacity(0.6))
+                .cornerRadius(14)
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(accentPurple.opacity(0.4), lineWidth: 1))
+            }
+            .buttonStyle(PlainButtonStyle())
+            .padding(.horizontal)
+            
+            // Powerball Section
+            Button(action: { showPowerballModal = true }) {
+                HStack(spacing: 12) {
+                    Text("🎱").font(.title2)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Lucky Powerball Numbers").font(.headline).foregroundColor(deepPurple)
+                        Text("Astro-Numerology combinations").font(.caption).foregroundColor(deepPurple.opacity(0.6))
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right").font(.system(size: 14, weight: .bold)).foregroundColor(accentPurple)
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.white.opacity(0.95))
+                        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+                )
+            }
+            .padding(.horizontal)
+        }
+    }
+    
+    @ViewBuilder
+    private var forecastCardView: some View {
+        if let forecast = forecastData {
+            ZStack {
+                // BACK SIDE (The Chart)
+                VStack(alignment: .leading, spacing: 10) {
+                    // Header with close hint
+                    HStack {
+                        Text("").font(.title3)
+                        Text("7-Day Luck Trajectory").font(.headline).foregroundColor(deepPurple)
+                        Spacer()
+                        Image(systemName: "arrow.uturn.backward.circle.fill")
+                            .foregroundColor(accentPurple.opacity(0.6))
+                    }
+                    
+                    // Trend and Peak Row
+                    HStack {
+                        Text("Trend:").font(.caption).foregroundColor(deepPurple.opacity(0.7))
+                        Text(forecast.trend_direction).font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
+                        Spacer()
+                        Text("Peak:").font(.caption).foregroundColor(deepPurple.opacity(0.7))
+                        if let best = forecast.trajectory.max(by: { $0.luck_score < $1.luck_score }) {
+                            Text("\(formatDayMonth(best.date)) (\(best.luck_score)%)")
+                                .font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
+                        } else {
+                            Text(formatDayMonth(forecast.best_day)).font(.caption).fontWeight(.bold).foregroundColor(accentPurple)
+                        }
+                    }
+                    
+                    // Bar Chart
+                    HStack(alignment: .bottom, spacing: 4) {
+                        ForEach(forecast.trajectory) { day in
+                            VStack(spacing: 2) {
+                                Text("\(day.luck_score)")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundColor(deepPurple)
+                                
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                day.luck_score >= 80 ? Color.green : (day.luck_score < 50 ? Color.orange : accentGold),
+                                                (day.luck_score >= 80 ? Color.green : (day.luck_score < 50 ? Color.orange : accentGold)).opacity(0.5)
+                                            ],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                                    .frame(height: max(10, CGFloat(day.luck_score) * 0.7))
+                                
+                                Text(getDayName(day.date))
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundColor(deepPurple.opacity(0.8))
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                    }
+                    .frame(height: 90)
+                    .clipped() // Prevent Horizontal Overflow from Chart
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.white.opacity(0.95))
+                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(accentPurple.opacity(0.3), lineWidth: 1))
+                )
+                .rotation3DEffect(.degrees(isForecastFlipped ? 0 : -180), axis: (x: 0, y: 1, z: 0))
+                .opacity(isForecastFlipped ? 1 : 0) // Hide when not flipped to prevent hit testing issues
+                
+                // FRONT SIDE (The Teaser)
+                VStack(spacing: 16) {
+                    Text("🔮").font(.system(size: 44))
+                    
+                    Text("7-Day Cosmic Forecast")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(deepPurple)
+                    
+                    Text("Tap to reveal your luck trajectory")
+                        .font(.subheadline)
+                        .foregroundColor(deepPurple.opacity(0.7))
+                    
+                    HStack(spacing: 8) {
+                        Image(systemName: "hand.tap.fill")
+                            .foregroundColor(accentPurple)
+                        Text("Tap to flip")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(accentPurple)
+                    }
+                    .padding(.top, 4)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 200) // Match height of back side approx
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(LinearGradient(colors: [Color.white.opacity(0.9), accentPurple.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(accentPurple.opacity(0.4), lineWidth: 1))
+                )
+                .rotation3DEffect(.degrees(isForecastFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
+                .opacity(isForecastFlipped ? 0 : 1)
+            }
+            .frame(height: 200) // Fixed height container
+            .padding(.horizontal)
+            .onTapGesture {
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                    isForecastFlipped.toggle()
+                }
+            }
+            .transition(.scale.combined(with: .opacity))
+        }
+    }
+    
+    private var homeButton: some View {
+        Button(action: { presentationMode.wrappedValue.dismiss() }) {
+            HStack(spacing: 10) { Image(systemName: "house.fill"); Text("Home") }
+                .font(.headline).foregroundColor(deepPurple).padding(.vertical, 16).frame(maxWidth: .infinity)
+                .background(LinearGradient(colors: [accentGold, accentGold.opacity(0.8)], startPoint: .leading, endPoint: .trailing))
+                .cornerRadius(16).shadow(color: accentGold.opacity(0.3), radius: 10, x: 0, y: 5)
+        }
+        .padding(.horizontal).padding(.bottom, 60)
     }
     
     // MARK: - Analysis Modal

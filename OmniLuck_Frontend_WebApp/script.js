@@ -642,131 +642,129 @@ document.addEventListener('DOMContentLoaded', () => {
         synth.onvoiceschanged = () => { };
     }
 
-});
 
+    // --- Helper Functions ---
 
-// --- Helper Functions ---
+    function renderTraits(score) {
+        // Simple logic to generate trait pills based on score if backend doesn't provide them
+        const traitsList = document.getElementById('traits-list');
+        traitsList.innerHTML = '';
 
-function renderTraits(score) {
-    // Simple logic to generate trait pills based on score if backend doesn't provide them
-    const traitsList = document.getElementById('traits-list');
-    traitsList.innerHTML = '';
+        let tags = [];
+        if (score >= 90) tags = ["Cosmic", "Unstoppable", "Lucky"];
+        else if (score >= 75) tags = ["Bold", "Positive", "Radiant"];
+        else if (score >= 50) tags = ["Steady", "Balanced", "Calm"];
+        else tags = ["Grounded", "Caution", "Introspective"];
 
-    let tags = [];
-    if (score >= 90) tags = ["Cosmic", "Unstoppable", "Lucky"];
-    else if (score >= 75) tags = ["Bold", "Positive", "Radiant"];
-    else if (score >= 50) tags = ["Steady", "Balanced", "Calm"];
-    else tags = ["Grounded", "Caution", "Introspective"];
-
-    tags.forEach(tag => {
-        const span = document.createElement('span');
-        span.className = 'trait-pill'; // Defined in style.css hopefully, or use inline
-        span.style.cssText = "display: inline-block; background: rgba(124, 77, 255, 0.15); color: var(--deep-purple); padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1px solid rgba(124, 77, 255, 0.3);";
-        span.textContent = tag;
-        traitsList.appendChild(span);
-    });
-}
-
-function renderStrategy(strategy, slots) {
-    const strategyBtn = document.getElementById('strategy-btn');
-    const powerHoursBtn = document.getElementById('power-hours-btn');
-
-    // Strategy Button
-    if (!strategy) {
-        strategyBtn.style.display = 'none';
-    } else {
-        strategyBtn.style.display = 'flex';
-        document.getElementById('strategy-text').textContent = strategy;
-    }
-
-    // Power Hours Button
-    const slotsList = document.getElementById('time-slots-list');
-    slotsList.innerHTML = '';
-
-    if (slots && slots.length > 0) {
-        powerHoursBtn.style.display = 'flex';
-        slots.forEach(slot => {
-            const div = document.createElement('div');
-            div.style.cssText = "background: white; border: 1.5px solid var(--accent-gold); color: var(--deep-purple); font-size: 0.9rem; font-weight: 500; padding: 14px; border-radius: 12px; line-height: 1.5;";
-            div.textContent = slot;
-            slotsList.appendChild(div);
+        tags.forEach(tag => {
+            const span = document.createElement('span');
+            span.className = 'trait-pill'; // Defined in style.css hopefully, or use inline
+            span.style.cssText = "display: inline-block; background: rgba(124, 77, 255, 0.15); color: var(--deep-purple); padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1px solid rgba(124, 77, 255, 0.3);";
+            span.textContent = tag;
+            traitsList.appendChild(span);
         });
-    } else {
-        powerHoursBtn.style.display = 'none';
     }
-}
 
-// Modal Functions (Global)
-window.openModal = function (modalName) {
-    const modal = document.getElementById(modalName + '-modal');
-    if (modal) {
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden'; // Prevent background scroll
+    function renderStrategy(strategy, slots) {
+        const strategyBtn = document.getElementById('strategy-btn');
+        const powerHoursBtn = document.getElementById('power-hours-btn');
 
-        // Special handling for Astro Insights modal - fetch natal chart
-        if (modalName === 'astro-insights') {
-            loadAstroInsights();
+        // Strategy Button
+        if (!strategy) {
+            strategyBtn.style.display = 'none';
+        } else {
+            strategyBtn.style.display = 'flex';
+            document.getElementById('strategy-text').textContent = strategy;
+        }
+
+        // Power Hours Button
+        const slotsList = document.getElementById('time-slots-list');
+        slotsList.innerHTML = '';
+
+        if (slots && slots.length > 0) {
+            powerHoursBtn.style.display = 'flex';
+            slots.forEach(slot => {
+                const div = document.createElement('div');
+                div.style.cssText = "background: white; border: 1.5px solid var(--accent-gold); color: var(--deep-purple); font-size: 0.9rem; font-weight: 500; padding: 14px; border-radius: 12px; line-height: 1.5;";
+                div.textContent = slot;
+                slotsList.appendChild(div);
+            });
+        } else {
+            powerHoursBtn.style.display = 'none';
         }
     }
-};
 
-// Load Astro Insights (Natal Chart Data)
-async function loadAstroInsights() {
-    const contentDiv = document.getElementById('kundali-report-content');
-    contentDiv.innerHTML = '<p style="text-align: center; padding: 40px;">✨ Consulting the stars...</p>';
+    // Modal Functions (Global)
+    window.openModal = function (modalName) {
+        const modal = document.getElementById(modalName + '-modal');
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent background scroll
 
-    try {
-        // Get birth info from form inputs (same as luck calculation)
-        const dobInput = document.getElementById('dob');
-        const birthTimeInput = document.getElementById('birth-time');
-        const birthPlaceInput = document.getElementById('birth-place');
-        const tobNaCheckbox = document.getElementById('tob-na-checkbox');
-
-        const dob = dobInput ? dobInput.value : '';
-        const birthTime = (tobNaCheckbox && tobNaCheckbox.checked) ? '12:00' : (birthTimeInput ? birthTimeInput.value : '12:00');
-
-        if (!dob) {
-            contentDiv.innerHTML = '<p style="text-align: center; color: orange;">⚠️ Please enter your date of birth first.</p>';
-            return;
+            // Special handling for Astro Insights modal - fetch natal chart
+            if (modalName === 'astro-insights') {
+                loadAstroInsights();
+            }
         }
+    };
 
-        // Get birth location (geocode if needed)
-        let birthLat = 0, birthLon = 0;
-        const birthPlace = birthPlaceInput ? birthPlaceInput.value : '';
-        if (birthPlace) {
-            try {
-                const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(birthPlace)}`;
-                const geoResponse = await fetch(geoUrl);
-                const geoData = await geoResponse.json();
-                if (geoData && geoData.length > 0) {
-                    birthLat = parseFloat(geoData[0].lat);
-                    birthLon = parseFloat(geoData[0].lon);
-                }
-            } catch (e) { console.error('Geocoding error:', e); }
-        }
+    // Load Astro Insights (Natal Chart Data)
+    async function loadAstroInsights() {
+        const contentDiv = document.getElementById('kundali-report-content');
+        contentDiv.innerHTML = '<p style="text-align: center; padding: 40px;">✨ Consulting the stars...</p>';
 
-        // Prepare birth info (matching backend BirthInfo schema)
-        const birthInfo = {
-            dob: dob,
-            time: birthTime || '12:00',
-            lat: birthLat,
-            lon: birthLon,
-            timezone: 'UTC'
-        };
+        try {
+            // Get birth info from form inputs (same as luck calculation)
+            const dobInput = document.getElementById('dob');
+            const birthTimeInput = document.getElementById('birth-time');
+            const birthPlaceInput = document.getElementById('birth-place');
+            const tobNaCheckbox = document.getElementById('tob-na-checkbox');
 
-        // Fetch natal chart from API
-        const response = await fetch(`${window.celestialAPI?.baseURL || 'https://omniluck.onrender.com'}/api/astrology/natal-chart`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(birthInfo)
-        });
+            const dob = dobInput ? dobInput.value : '';
+            const birthTime = (tobNaCheckbox && tobNaCheckbox.checked) ? '12:00' : (birthTimeInput ? birthTimeInput.value : '12:00');
 
-        if (!response.ok) throw new Error('Failed to fetch chart');
+            if (!dob) {
+                contentDiv.innerHTML = '<p style="text-align: center; color: orange;">⚠️ Please enter your date of birth first.</p>';
+                return;
+            }
 
-        const chart = await response.json();
+            // Get birth location (geocode if needed)
+            let birthLat = 0, birthLon = 0;
+            const birthPlace = birthPlaceInput ? birthPlaceInput.value : '';
+            if (birthPlace) {
+                try {
+                    const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(birthPlace)}`;
+                    const geoResponse = await fetch(geoUrl);
+                    const geoData = await geoResponse.json();
+                    if (geoData && geoData.length > 0) {
+                        birthLat = parseFloat(geoData[0].lat);
+                        birthLon = parseFloat(geoData[0].lon);
+                    }
+                } catch (e) { console.error('Geocoding error:', e); }
+            }
 
-        // Render the chart data
-        let html = `
+            // Prepare birth info (matching backend BirthInfo schema)
+            const birthInfo = {
+                dob: dob,
+                time: birthTime || '12:00',
+                lat: birthLat,
+                lon: birthLon,
+                timezone: 'UTC'
+            };
+
+            // Fetch natal chart from API
+            const response = await fetch(`${window.celestialAPI?.baseURL || 'https://omniluck.onrender.com'}/api/astrology/natal-chart`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(birthInfo)
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch chart');
+
+            const chart = await response.json();
+
+            // Render the chart data
+            let html = `
                 <div style="margin-bottom: 20px; padding: 16px; background: rgba(192, 153, 240, 0.1); border-radius: 12px;">
                     <h4 style="color: var(--accent-purple); margin: 0 0 8px 0;">🌅 Your Rising Sign (Ascendant)</h4>
                     <p style="font-size: 1.1rem; font-weight: 600; color: var(--deep-purple); margin: 0 0 8px 0;">${chart.ascendant || 'Unknown'}</p>
@@ -776,23 +774,23 @@ async function loadAstroInsights() {
                 <h4 style="color: var(--deep-purple); margin: 0 0 12px 0;">🌟 Key Planetary Influences</h4>
             `;
 
-        // Planet keywords
-        const planetKeywords = {
-            'Sun': 'vitality and purpose',
-            'Moon': 'emotional depth',
-            'Mars': 'action and drive',
-            'Jupiter': 'expansion and luck',
-            'Venus': 'love and harmony',
-            'Mercury': 'communication',
-            'Saturn': 'discipline'
-        };
+            // Planet keywords
+            const planetKeywords = {
+                'Sun': 'vitality and purpose',
+                'Moon': 'emotional depth',
+                'Mars': 'action and drive',
+                'Jupiter': 'expansion and luck',
+                'Venus': 'love and harmony',
+                'Mercury': 'communication',
+                'Saturn': 'discipline'
+            };
 
-        const keyPlanets = ['Sun', 'Moon', 'Mars', 'Jupiter', 'Venus'];
+            const keyPlanets = ['Sun', 'Moon', 'Mars', 'Jupiter', 'Venus'];
 
-        if (chart.planets) {
-            keyPlanets.forEach(planet => {
-                if (chart.planets[planet]) {
-                    html += `
+            if (chart.planets) {
+                keyPlanets.forEach(planet => {
+                    if (chart.planets[planet]) {
+                        html += `
                             <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px;">
                                 <span style="color: var(--accent-gold);">•</span>
                                 <div>
@@ -801,79 +799,81 @@ async function loadAstroInsights() {
                                 </div>
                             </div>
                         `;
-                }
-            });
-        }
+                    }
+                });
+            }
 
-        // Chart strength
-        html += `
+            // Chart strength
+            html += `
                 <div style="margin-top: 20px; padding: 16px; background: rgba(255, 200, 100, 0.2); border-radius: 12px; text-align: center;">
                     <h4 style="color: var(--deep-purple); margin: 0 0 8px 0;">Chart Strength: ${chart.strength_score || 50}/100</h4>
                     <p style="font-size: 0.8rem; opacity: 0.7; margin: 0;">A higher score indicates stronger planetary support.</p>
                 </div>
             `;
 
-        contentDiv.innerHTML = html;
+            contentDiv.innerHTML = html;
 
-    } catch (error) {
-        console.error('Astro Insights Error:', error);
-        contentDiv.innerHTML = `
+        } catch (error) {
+            console.error('Astro Insights Error:', error);
+            contentDiv.innerHTML = `
                 <div style="text-align: center; padding: 40px;">
                     <span style="font-size: 3rem;">⚠️</span>
                     <h4 style="color: var(--deep-purple); margin: 16px 0 8px 0;">Insights Unavailable</h4>
                     <p style="font-size: 0.85rem; opacity: 0.7;">Please ensure you have entered your birth information and have an internet connection.</p>
                 </div>
             `;
+        }
     }
-}
 
-if (modal) {
-    modal.classList.remove('active');
-    document.body.style.overflow = ''; // Restore scroll
-
-    // Stop speech if modal closes
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
-    const listenBtn = document.getElementById('listen-btn');
-    const stopBtn = document.getElementById('stop-btn');
-    if (listenBtn && stopBtn) {
-        listenBtn.style.display = 'inline-block';
-        stopBtn.style.display = 'none';
-    }
-}
-};
-
-window.closeModalOnOverlay = function (event, modalName) {
-    // Only close if clicking directly on overlay (not the card)
-    if (event.target.classList.contains('modal-overlay')) {
-        closeModal(modalName);
-    }
-};
-
-// Close modal with Escape key
-document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') {
-        document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+    window.closeModal = function (modalName) {
+        const modal = document.getElementById(modalName + '-modal');
+        if (modal) {
             modal.classList.remove('active');
-        });
-        document.body.style.overflow = '';
-    }
-});
+            document.body.style.overflow = ''; // Restore scroll
 
-function renderPowerball(personalPB, dailyPBs) {
-    const powerballBtn = document.getElementById('powerball-btn');
+            // Stop speech if modal closes
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+            const listenBtn = document.getElementById('listen-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            if (listenBtn && stopBtn) {
+                listenBtn.style.display = 'inline-block';
+                stopBtn.style.display = 'none';
+            }
+        }
+    };
 
-    // Only show if we have powerball data
-    if (!personalPB && (!dailyPBs || dailyPBs.length === 0)) {
-        powerballBtn.style.display = 'none';
-        return;
-    }
+    window.closeModalOnOverlay = function (event, modalName) {
+        // Only close if clicking directly on overlay (not the card)
+        if (event.target.classList.contains('modal-overlay')) {
+            closeModal(modalName);
+        }
+    };
 
-    powerballBtn.style.display = 'flex';
+    // Close modal with Escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                modal.classList.remove('active');
+            });
+            document.body.style.overflow = '';
+        }
+    });
 
-    // Helper function to create a ball element
-    function createBall(number, isRed = false) {
-        const ball = document.createElement('div');
-        ball.style.cssText = `
+    function renderPowerball(personalPB, dailyPBs) {
+        const powerballBtn = document.getElementById('powerball-btn');
+
+        // Only show if we have powerball data
+        if (!personalPB && (!dailyPBs || dailyPBs.length === 0)) {
+            powerballBtn.style.display = 'none';
+            return;
+        }
+
+        powerballBtn.style.display = 'flex';
+
+        // Helper function to create a ball element
+        function createBall(number, isRed = false) {
+            const ball = document.createElement('div');
+            ball.style.cssText = `
                 width: 40px;
                 height: 40px;
                 border-radius: 50%;
@@ -883,54 +883,54 @@ function renderPowerball(personalPB, dailyPBs) {
                 font-weight: 700;
                 font-size: 0.95rem;
                 ${isRed
-                ? 'background: linear-gradient(135deg, #dc2626, #991b1b); color: white; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);'
-                : 'background: white; color: var(--deep-purple); border: 2px solid var(--accent-purple); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);'
-            }
+                    ? 'background: linear-gradient(135deg, #dc2626, #991b1b); color: white; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);'
+                    : 'background: white; color: var(--deep-purple); border: 2px solid var(--accent-purple); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);'
+                }
             `;
-        ball.textContent = number;
-        return ball;
-    }
+            ball.textContent = number;
+            return ball;
+        }
 
-    // Render Personal Powerball
-    if (personalPB) {
-        const personalDisplay = document.getElementById('personal-powerball-display');
-        personalDisplay.innerHTML = '';
+        // Render Personal Powerball
+        if (personalPB) {
+            const personalDisplay = document.getElementById('personal-powerball-display');
+            personalDisplay.innerHTML = '';
 
-        // Add white balls
-        personalPB.white_balls.forEach(num => {
-            personalDisplay.appendChild(createBall(num, false));
-        });
+            // Add white balls
+            personalPB.white_balls.forEach(num => {
+                personalDisplay.appendChild(createBall(num, false));
+            });
 
-        // Add separator
-        const separator = document.createElement('div');
-        separator.style.cssText = 'width: 2px; height: 30px; background: var(--accent-gold); margin: 0 4px; opacity: 0.3;';
-        personalDisplay.appendChild(separator);
+            // Add separator
+            const separator = document.createElement('div');
+            separator.style.cssText = 'width: 2px; height: 30px; background: var(--accent-gold); margin: 0 4px; opacity: 0.3;';
+            personalDisplay.appendChild(separator);
 
-        // Add powerball
-        personalDisplay.appendChild(createBall(personalPB.powerball, true));
-    }
+            // Add powerball
+            personalDisplay.appendChild(createBall(personalPB.powerball, true));
+        }
 
-    // Render Daily Powerballs
-    if (dailyPBs && dailyPBs.length > 0) {
-        const dailyList = document.getElementById('daily-powerballs-list');
-        dailyList.innerHTML = '';
+        // Render Daily Powerballs
+        if (dailyPBs && dailyPBs.length > 0) {
+            const dailyList = document.getElementById('daily-powerballs-list');
+            dailyList.innerHTML = '';
 
-        dailyPBs.forEach((combo, idx) => {
-            const comboDiv = document.createElement('div');
-            comboDiv.style.cssText = 'margin-bottom: 12px; padding: 12px; background: rgba(192, 153, 240, 0.05); border-radius: 10px; border: 1px solid rgba(192, 153, 240, 0.1);';
+            dailyPBs.forEach((combo, idx) => {
+                const comboDiv = document.createElement('div');
+                comboDiv.style.cssText = 'margin-bottom: 12px; padding: 12px; background: rgba(192, 153, 240, 0.05); border-radius: 10px; border: 1px solid rgba(192, 153, 240, 0.1);';
 
-            const header = document.createElement('div');
-            header.style.cssText = 'font-size: 0.75rem; color: var(--deep-purple); opacity: 0.6; margin-bottom: 8px; font-weight: 600;';
-            header.textContent = `Combination #${idx + 1}`;
-            comboDiv.appendChild(header);
+                const header = document.createElement('div');
+                header.style.cssText = 'font-size: 0.75rem; color: var(--deep-purple); opacity: 0.6; margin-bottom: 8px; font-weight: 600;';
+                header.textContent = `Combination #${idx + 1}`;
+                comboDiv.appendChild(header);
 
-            const ballsContainer = document.createElement('div');
-            ballsContainer.style.cssText = 'display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;';
+                const ballsContainer = document.createElement('div');
+                ballsContainer.style.cssText = 'display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;';
 
-            // Add white balls (smaller)
-            combo.white_balls.forEach(num => {
-                const ball = document.createElement('div');
-                ball.style.cssText = `
+                // Add white balls (smaller)
+                combo.white_balls.forEach(num => {
+                    const ball = document.createElement('div');
+                    ball.style.cssText = `
                         width: 32px;
                         height: 32px;
                         border-radius: 50%;
@@ -944,18 +944,18 @@ function renderPowerball(personalPB, dailyPBs) {
                         border: 1.5px solid var(--accent-purple);
                         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
                     `;
-                ball.textContent = num;
-                ballsContainer.appendChild(ball);
-            });
+                    ball.textContent = num;
+                    ballsContainer.appendChild(ball);
+                });
 
-            // Add separator
-            const sep = document.createElement('div');
-            sep.style.cssText = 'width: 1px; height: 24px; background: var(--accent-purple); margin: 0 4px; opacity: 0.2;';
-            ballsContainer.appendChild(sep);
+                // Add separator
+                const sep = document.createElement('div');
+                sep.style.cssText = 'width: 1px; height: 24px; background: var(--accent-purple); margin: 0 4px; opacity: 0.2;';
+                ballsContainer.appendChild(sep);
 
-            // Add powerball (smaller)
-            const powerball = document.createElement('div');
-            powerball.style.cssText = `
+                // Add powerball (smaller)
+                const powerball = document.createElement('div');
+                powerball.style.cssText = `
                     width: 32px;
                     height: 32px;
                     border-radius: 50%;
@@ -968,109 +968,109 @@ function renderPowerball(personalPB, dailyPBs) {
                     color: white;
                     box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
                 `;
-            powerball.textContent = combo.powerball;
-            ballsContainer.appendChild(powerball);
+                powerball.textContent = combo.powerball;
+                ballsContainer.appendChild(powerball);
 
-            comboDiv.appendChild(ballsContainer);
-            dailyList.appendChild(comboDiv);
+                comboDiv.appendChild(ballsContainer);
+                dailyList.appendChild(comboDiv);
+            });
+        }
+    }
+
+    function renderForecast(data) {
+        const card = document.getElementById('forecast-flip-card');
+        card.style.display = 'block';
+
+        // Listeners for Flip
+        const inner = document.getElementById('forecast-flip-inner');
+        card.onclick = (e) => {
+            // Prevent drag/select issues
+            e.preventDefault();
+            card.classList.toggle('flipped');
+        };
+
+        // Populate Top Stats
+        // Find best day
+        let best = data.trajectory[0];
+        data.trajectory.forEach(d => { if (d.luck_score > best.luck_score) best = d; });
+
+        document.getElementById('forecast-trend').textContent = data.trend_direction;
+
+        // Format date: YYYY-MM-DD -> MMM DD
+        const formatDate = (ds) => {
+            const d = new Date(ds);
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }); // Force UTC to avoid shift
+        };
+
+        document.getElementById('forecast-best').textContent = `${formatDate(best.date)} (${best.luck_score}%)`;
+
+        // Render Bar Chart
+        const list = document.getElementById('forecast-list');
+        list.innerHTML = '';
+
+        data.trajectory.forEach(day => {
+            // Day Name
+            const dateObj = new Date(day.date);
+            const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
+
+            const container = document.createElement('div');
+            container.style.cssText = "display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0;";
+
+            const scoreLabel = document.createElement('span');
+            scoreLabel.textContent = day.luck_score;
+            scoreLabel.style.cssText = "font-size: 9px; font-weight: bold; color: var(--deep-purple); margin-bottom: 2px;";
+
+            const barHeight = Math.max(10, day.luck_score * 0.7); // scale
+            const bar = document.createElement('div');
+            // Gradient based on score
+            let colorStart = day.luck_score >= 80 ? '#4CAF50' : (day.luck_score < 50 ? '#FF9800' : '#FFD700');
+
+            bar.style.cssText = `width: 100%; height: ${barHeight}px; background: linear-gradient(to bottom, ${colorStart}, rgba(255,255,255,0.5)); border-radius: 4px 4px 0 0; opacity: 0.8;`;
+
+            const dateLabel = document.createElement('span');
+            dateLabel.textContent = dayName;
+            dateLabel.style.cssText = "font-size: 9px; color: var(--deep-purple); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;";
+
+            container.appendChild(scoreLabel);
+            container.appendChild(bar);
+            container.appendChild(dateLabel);
+            list.appendChild(container);
         });
     }
-}
 
-function renderForecast(data) {
-    const card = document.getElementById('forecast-flip-card');
-    card.style.display = 'block';
+    function goBack() {
+        resultView.classList.remove('active');
 
-    // Listeners for Flip
-    const inner = document.getElementById('forecast-flip-inner');
-    card.onclick = (e) => {
-        // Prevent drag/select issues
-        e.preventDefault();
-        card.classList.toggle('flipped');
-    };
+        const currentUser = localStorage.getItem('currentUser');
+        if (currentUser && dashboardView) {
+            dashboardView.classList.add('active');
+            // Show Menu again if logged in
+            const userMenuContainer = document.getElementById('user-menu-container');
+            if (userMenuContainer) userMenuContainer.style.display = 'block';
+        } else {
+            inputView.classList.add('active');
+            // Hide Menu if guest (should be handled by initUserSession but safe to ensure)
+            const userMenuContainer = document.getElementById('user-menu-container');
+            if (userMenuContainer) userMenuContainer.style.display = 'none';
+        }
 
-    // Populate Top Stats
-    // Find best day
-    let best = data.trajectory[0];
-    data.trajectory.forEach(d => { if (d.luck_score > best.luck_score) best = d; });
-
-    document.getElementById('forecast-trend').textContent = data.trend_direction;
-
-    // Format date: YYYY-MM-DD -> MMM DD
-    const formatDate = (ds) => {
-        const d = new Date(ds);
-        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }); // Force UTC to avoid shift
-    };
-
-    document.getElementById('forecast-best').textContent = `${formatDate(best.date)} (${best.luck_score}%)`;
-
-    // Render Bar Chart
-    const list = document.getElementById('forecast-list');
-    list.innerHTML = '';
-
-    data.trajectory.forEach(day => {
-        // Day Name
-        const dateObj = new Date(day.date);
-        const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
-
-        const container = document.createElement('div');
-        container.style.cssText = "display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0;";
-
-        const scoreLabel = document.createElement('span');
-        scoreLabel.textContent = day.luck_score;
-        scoreLabel.style.cssText = "font-size: 9px; font-weight: bold; color: var(--deep-purple); margin-bottom: 2px;";
-
-        const barHeight = Math.max(10, day.luck_score * 0.7); // scale
-        const bar = document.createElement('div');
-        // Gradient based on score
-        let colorStart = day.luck_score >= 80 ? '#4CAF50' : (day.luck_score < 50 ? '#FF9800' : '#FFD700');
-
-        bar.style.cssText = `width: 100%; height: ${barHeight}px; background: linear-gradient(to bottom, ${colorStart}, rgba(255,255,255,0.5)); border-radius: 4px 4px 0 0; opacity: 0.8;`;
-
-        const dateLabel = document.createElement('span');
-        dateLabel.textContent = dayName;
-        dateLabel.style.cssText = "font-size: 9px; color: var(--deep-purple); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;";
-
-        container.appendChild(scoreLabel);
-        container.appendChild(bar);
-        container.appendChild(dateLabel);
-        list.appendChild(container);
-    });
-}
-
-function goBack() {
-    resultView.classList.remove('active');
-
-    const currentUser = localStorage.getItem('currentUser');
-    if (currentUser && dashboardView) {
-        dashboardView.classList.add('active');
-        // Show Menu again if logged in
-        const userMenuContainer = document.getElementById('user-menu-container');
-        if (userMenuContainer) userMenuContainer.style.display = 'block';
-    } else {
-        inputView.classList.add('active');
-        // Hide Menu if guest (should be handled by initUserSession but safe to ensure)
-        const userMenuContainer = document.getElementById('user-menu-container');
-        if (userMenuContainer) userMenuContainer.style.display = 'none';
+        const progressRing = document.querySelector('.progress-ring-fill');
+        if (progressRing) {
+            progressRing.style.strokeDashoffset = 565.48; // Circumference
+        }
+        resultPercentage.textContent = '0';
     }
 
-    const progressRing = document.querySelector('.progress-ring-fill');
-    if (progressRing) {
-        progressRing.style.strokeDashoffset = 565.48; // Circumference
+    if (backBtn) backBtn.addEventListener('click', goBack);
+    tryAgainBtn.addEventListener('click', goBack);
+
+    // Guest Home Button Logic
+    const guestHomeBtn = document.getElementById('guest-home-btn');
+    if (guestHomeBtn) {
+        guestHomeBtn.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
     }
-    resultPercentage.textContent = '0';
-}
-
-if (backBtn) backBtn.addEventListener('click', goBack);
-tryAgainBtn.addEventListener('click', goBack);
-
-// Guest Home Button Logic
-const guestHomeBtn = document.getElementById('guest-home-btn');
-if (guestHomeBtn) {
-    guestHomeBtn.addEventListener('click', () => {
-        window.location.href = 'index.html';
-    });
-}
 });
 
 // Helper for human-readable planet keywords
