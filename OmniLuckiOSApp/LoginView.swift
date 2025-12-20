@@ -74,7 +74,7 @@ struct LoginView: View {
                     Image("Logo")
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 120, height: 120)
+                         .frame(width: 100, height: 100)
                         .clipShape(Circle())
                         .rotationEffect(.degrees(isRotating ? 360 : 0))
                     
@@ -340,7 +340,7 @@ struct LoginView: View {
                 email = cachedEmail
             }
             
-            withAnimation(.linear(duration: 20).repeatForever(autoreverses: false)) {
+            withAnimation(.linear(duration: 60).repeatForever(autoreverses: false)) {
                 isRotating = true
             }
             withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
