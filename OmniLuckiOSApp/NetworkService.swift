@@ -93,10 +93,15 @@ struct SignupRequest: Codable {
 }
 
 struct SignupResponse: Codable {
-    let success: Bool
+    let message: String
     let uid: String
+}
+
+struct ForgotUsernameRequest: Codable {
     let email: String
-    let idToken: String
+}
+
+struct ForgotUsernameResponse: Codable {
     let message: String
 }
 
@@ -164,7 +169,6 @@ class NetworkService {
     }
     
     // 0b. Auth: Signup
-    // 0b. Auth: Signup
     func signup(username: String, firstName: String, middleName: String, lastName: String, phoneNumber: String, email: String, password: String, dob: String, birthPlace: String, birthTime: Date, timeIsNA: Bool = false) async throws -> SignupResponse {
         // Geocode Birth Place First
         guard let coords = await getCoordinates(for: birthPlace) else {
@@ -195,6 +199,11 @@ class NetworkService {
     func resetPassword(email: String) async throws -> ResetPasswordResponse {
         let payload = ResetPasswordRequest(email: email)
         return try await performRequest(endpoint: "/api/auth/reset-password", body: payload)
+    }
+
+    func forgotUsername(email: String) async throws -> ForgotUsernameResponse {
+        let payload = ForgotUsernameRequest(email: email)
+        return try await performRequest(endpoint: "/api/auth/forgot-username", body: payload)
     }
     
     // 1. Fetch Daily Luck

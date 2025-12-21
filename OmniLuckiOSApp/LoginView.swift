@@ -16,6 +16,13 @@ struct LoginView: View {
     @State private var errorMessage = ""
     @State private var forgotEmail = ""
     @State private var showResetSuccess = false
+    
+    // Forgot Username Flow
+    @State private var showForgotUsername = false
+    @State private var forgotUsernameEmail = ""
+    @State private var showUsernameSuccess = false
+    @State private var usernameSuccessMessage = ""
+    
     @State private var isRotating = false
     @State private var showPassword = false
     @State private var showPrivacy = false
@@ -226,11 +233,22 @@ struct LoginView: View {
                     .disabled(email.isEmpty || password.isEmpty)
                     .opacity((email.isEmpty || password.isEmpty) ? 0.6 : 1)
                     
-                    Button(action: { showForgotPassword = true }) {
-                        Text("Forgot Password?")
-                            .font(.footnote)
-                            .foregroundColor(deepPurple)
-                            .fontWeight(.medium)
+                    HStack(spacing: 8) {
+                        Button(action: { showForgotPassword = true; forgotEmail = "" }) {
+                            Text("Forgot Password?")
+                                .font(.footnote)
+                                .foregroundColor(deepPurple)
+                                .fontWeight(.medium)
+                        }
+                        
+                        Text("|").font(.footnote).foregroundColor(deepPurple.opacity(0.5))
+                        
+                        Button(action: { showForgotUsername = true; forgotUsernameEmail = "" }) {
+                            Text("Forgot Username?")
+                                .font(.footnote)
+                                .foregroundColor(deepPurple)
+                                .fontWeight(.medium)
+                        }
                     }
                     .padding(.top, 5)
                     
@@ -333,6 +351,39 @@ struct LoginView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text("If an account exists for \(forgotEmail), a reset link has been sent.")
+        }
+        // Forgot Username Alerts
+        .alert("Recover Username", isPresented: $showForgotUsername) {
+            TextField("Enter your email", text: $forgotUsernameEmail)
+                .textInputAutocapitalization(.never)
+                .keyboardType(.emailAddress)
+            Button("Send Username") {
+                Task {
+                    do {
+                        let resp = try await NetworkService.shared.forgotUsername(email: forgotUsernameEmail)
+                        await MainActor.run {
+                            usernameSuccessMessage = resp.message
+                            showUsernameSuccess = true
+                        }
+                    } catch {
+                       await MainActor.run {
+                           // Show error logic or just print for now, maybe set error message in another alert?
+                           // Re-using showUsernameSuccess for error display simplicy or just reusing the main errorMessage if I wasn't inside an alert flow
+                           // Actually, let's just trigger a separate alert or modify message
+                            usernameSuccessMessage = "Email address not exist or error occurred." // As requested: "email address not exist"
+                            showUsernameSuccess = true
+                       }
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Enter your email address to receive your username.")
+        }
+        .alert("Usage Recovery", isPresented: $showUsernameSuccess) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(usernameSuccessMessage)
         }
         .onAppear {
             // Pre-fill email from cache for faster login

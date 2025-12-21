@@ -240,3 +240,51 @@ async def delete_account(request: DeleteAccountRequest):
             raise HTTPException(status_code=400, detail="Failed to delete account. Session may be expired.")
             
         return {"success": True, "message": "Account deleted"}
+
+class ForgotUsernameRequest(BaseModel):
+    email: str
+
+@router.post("/forgot-username")
+async def forgot_username(request: ForgotUsernameRequest):
+    async with httpx.AsyncClient() as client:
+        # Query Firestore for User by Email
+        query_url = f"https://firestore.googleapis.com/v1/projects/{FIREBASE_PROJECT_ID}/databases/(default)/documents:runQuery"
+        query_payload = {
+            "structuredQuery": {
+                "from": [{"collectionId": "users"}],
+                "where": {
+                    "fieldFilter": {
+                        "field": {"fieldPath": "email"},
+                        "op": "EQUAL",
+                        "value": {"stringValue": request.email}
+                    }
+                },
+                "limit": 1
+            }
+        }
+        
+        try:
+            resp = await client.post(query_url, json=query_payload)
+            results = resp.json()
+            username = None
+            if results and len(results) > 0 and "document" in results[0]:
+                fields = results[0]["document"].get("fields", {})
+                if "username" in fields:
+                    username = fields["username"]["stringValue"]
+            
+            if not username:
+                raise HTTPException(status_code=404, detail="Email address not exist")
+            
+            # Simulate Email Sending (In production, replace with SendGrid/SMTP)
+            print(f"\n[EMAIL SERVICE] Sending Username Recovery")
+            print(f"To: {request.email}")
+            print(f"Subject: Your OmniLuck Username")
+            print(f"Content: Your username is: {username}\n")
+            
+            return {"message": f"Username sent to {request.email}"}
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            print(f"Error checking email: {e}")
+            raise HTTPException(status_code=500, detail="Internal Server Error")
