@@ -17,6 +17,7 @@ struct SignupView: View {
     @State private var password = ""
     @State private var confirmPassword = ""
     @State private var phoneNumber = ""
+    @State private var countryCode = "+1"
     @State private var dob = Date()
     @State private var showDatePicker = false
     @State private var manualDateText = ""
@@ -38,6 +39,24 @@ struct SignupView: View {
     
     private func formatDate(_ date: Date) -> String {
         let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; return f.string(from: date)
+    }
+
+    private func formatPhoneNumber(_ source: String) -> String {
+        // Mask: (XXX) XXX-XXXX
+        var result = ""
+        let mask = "(XXX) XXX-XXXX"
+        var index = source.startIndex
+        
+        for ch in mask {
+            if index == source.endIndex { break }
+            if ch == "X" {
+                result.append(source[index])
+                index = source.index(after: index)
+            } else {
+                result.append(ch)
+            }
+        }
+        return result
     }
     
     var body: some View {
@@ -162,16 +181,42 @@ struct SignupView: View {
             // Phone Number
             VStack(alignment: .leading, spacing: 6) {
                 Text("Phone Number").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
-                TextField("", text: $phoneNumber)
-                    .padding(14)
-                    .background(Color.white.opacity(0.9))
-                    .cornerRadius(12)
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(accentPurple.opacity(0.5), lineWidth: 1))
-                    .foregroundColor(deepPurple)
-                    .keyboardType(.phonePad)
-                    .submitLabel(.next)
-                    .focused($focusedField, equals: .phoneNumber)
-                    .onSubmit { focusedField = .email }
+                HStack(spacing: 8) {
+                    Menu {
+                        Button("🇺🇸 +1 United States") { countryCode = "+1" }
+                        Button("🇮🇳 +91 India") { countryCode = "+91" }
+                        Button("🇬🇧 +44 UK") { countryCode = "+44" }
+                        Button("🇦🇺 +61 Australia") { countryCode = "+61" }
+                        Button("🇨🇦 +1 Canada") { countryCode = "+1" }
+                    } label: {
+                        Text(countryCode)
+                            .frame(width: 60)
+                            .padding(14)
+                            .background(Color.white.opacity(0.9))
+                            .cornerRadius(12)
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(accentPurple.opacity(0.5), lineWidth: 1))
+                            .foregroundColor(deepPurple)
+                    }
+
+                    TextField("(555) 000-0000", text: $phoneNumber)
+                        .padding(14)
+                        .background(Color.white.opacity(0.9))
+                        .cornerRadius(12)
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(accentPurple.opacity(0.5), lineWidth: 1))
+                        .foregroundColor(deepPurple)
+                        .keyboardType(.phonePad)
+                        .submitLabel(.next)
+                        .focused($focusedField, equals: .phoneNumber)
+                        .onSubmit { focusedField = .email }
+                        .onChange(of: phoneNumber) { _, newValue in
+                            let filtered = newValue.filter { "0123456789".contains($0) }
+                            if filtered.count > 10 {
+                                phoneNumber = String(filtered.prefix(10))
+                            } else {
+                                phoneNumber = formatPhoneNumber(filtered)
+                            }
+                        }
+                }
             }
             
             // Email
@@ -395,7 +440,7 @@ struct SignupView: View {
                             firstName: firstName,
                             middleName: middleName,
                             lastName: lastName,
-                            phoneNumber: phoneNumber,
+                            phoneNumber: "\(countryCode) \(phoneNumber)",
                             email: email,
                             password: password,
                             dob: formatDate(dob),
