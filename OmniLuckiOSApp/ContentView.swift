@@ -444,10 +444,11 @@ struct ContentView: View {
             
             // Name Field
             VStack(alignment: .leading, spacing: 8) {
-                Label("YOUR NAME", systemImage: "person.fill")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(deepPurple.opacity(0.8))
+                HStack(spacing: 4) {
+                    Label("YOUR NAME", systemImage: "person.fill")
+                    Text("*").foregroundColor(.red)
+                }
+                .font(.caption).fontWeight(.semibold).foregroundColor(deepPurple.opacity(0.8))
                 
                 ZStack(alignment: .leading) {
                     if name.isEmpty {
@@ -476,10 +477,11 @@ struct ContentView: View {
             
             // Date Field
             VStack(alignment: .leading, spacing: 8) {
-                Label("DATE OF BIRTH", systemImage: "calendar")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(deepPurple.opacity(0.8))
+                HStack(spacing: 4) {
+                    Label("DATE OF BIRTH", systemImage: "calendar")
+                    Text("*").foregroundColor(.red)
+                }
+                .font(.caption).fontWeight(.semibold).foregroundColor(deepPurple.opacity(0.8))
                 
                 VStack(spacing: 0) {
                     // Manual Input with Calendar Icon
@@ -560,10 +562,11 @@ struct ContentView: View {
             
             // Place Field
             VStack(alignment: .leading, spacing: 8) {
-                Label("PLACE OF BIRTH", systemImage: "mappin.and.ellipse")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(deepPurple.opacity(0.8))
+                HStack(spacing: 4) {
+                    Label("PLACE OF BIRTH", systemImage: "mappin.and.ellipse")
+                    Text("*").foregroundColor(.red)
+                }
+                .font(.caption).fontWeight(.semibold).foregroundColor(deepPurple.opacity(0.8))
                 
                 TextField("City, Country (e.g. Dallas, USA)", text: $birthPlace)
                     .padding()
@@ -587,10 +590,11 @@ struct ContentView: View {
             // Time Field
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Label("TIME OF BIRTH", systemImage: "clock")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(deepPurple.opacity(0.8))
+                    HStack(spacing: 4) {
+                        Label("TIME OF BIRTH", systemImage: "clock")
+                        Text("*").foregroundColor(.red)
+                    }
+                    .font(.caption).fontWeight(.semibold).foregroundColor(deepPurple.opacity(0.8))
                     
                     Button(action: {
                         showTimeInfo = true

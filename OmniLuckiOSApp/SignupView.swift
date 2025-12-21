@@ -123,7 +123,7 @@ struct SignupView: View {
         VStack(spacing: 16) {
             // Username
             VStack(alignment: .leading, spacing: 6) {
-                Text("Username").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
+                Text("Username").font(.caption).fontWeight(.medium).foregroundColor(deepPurple) + Text(" *").foregroundColor(.red)
                 TextField("Choose a unique username", text: $username)
                     .padding(14)
                     .background(Color.white.opacity(0.9))
@@ -138,7 +138,7 @@ struct SignupView: View {
             
             // First Name
             VStack(alignment: .leading, spacing: 6) {
-                Text("First Name").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
+                Text("First Name").font(.caption).fontWeight(.medium).foregroundColor(deepPurple) + Text(" *").foregroundColor(.red)
                 TextField("", text: $firstName)
                     .padding(14)
                     .background(Color.white.opacity(0.9))
@@ -166,7 +166,7 @@ struct SignupView: View {
             
             // Last Name
             VStack(alignment: .leading, spacing: 6) {
-                Text("Last Name").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
+                Text("Last Name").font(.caption).fontWeight(.medium).foregroundColor(deepPurple) + Text(" *").foregroundColor(.red)
                 TextField("", text: $lastName)
                     .padding(14)
                     .background(Color.white.opacity(0.9))
@@ -180,7 +180,7 @@ struct SignupView: View {
             
             // Phone Number
             VStack(alignment: .leading, spacing: 6) {
-                Text("Phone Number").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
+                Text("Phone Number").font(.caption).fontWeight(.medium).foregroundColor(deepPurple) + Text(" *").foregroundColor(.red)
                 HStack(spacing: 8) {
                     Menu {
                         Button("🇺🇸 +1 United States") { countryCode = "+1" }
@@ -221,7 +221,7 @@ struct SignupView: View {
             
             // Email
             VStack(alignment: .leading, spacing: 6) {
-                Text("Email Address").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
+                Text("Email Address").font(.caption).fontWeight(.medium).foregroundColor(deepPurple) + Text(" *").foregroundColor(.red)
                 TextField("", text: $email)
                     .padding(14)
                     .background(Color.white.opacity(0.9))
@@ -237,7 +237,7 @@ struct SignupView: View {
             
             // Password
             VStack(alignment: .leading, spacing: 6) {
-                Text("Password").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
+                Text("Password").font(.caption).fontWeight(.medium).foregroundColor(deepPurple) + Text(" *").foregroundColor(.red)
                 HStack {
                     if showPassword {
                         TextField("", text: $password)
@@ -264,7 +264,7 @@ struct SignupView: View {
             
             // Confirm Password
             VStack(alignment: .leading, spacing: 6) {
-                Text("Confirm Password").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
+                Text("Confirm Password").font(.caption).fontWeight(.medium).foregroundColor(deepPurple) + Text(" *").foregroundColor(.red)
                 HStack {
                     if showConfirmPassword {
                         TextField("", text: $confirmPassword)
@@ -295,7 +295,7 @@ struct SignupView: View {
         VStack(spacing: 16) {
             // DOB
             VStack(alignment: .leading, spacing: 6) {
-                Text("Date of Birth").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
+                Text("Date of Birth").font(.caption).fontWeight(.medium).foregroundColor(deepPurple) + Text(" *").foregroundColor(.red)
                 
                 VStack(spacing: 0) {
                     // Manual Input with Calendar Icon
@@ -367,7 +367,7 @@ struct SignupView: View {
             
             // Place of Birth
             VStack(alignment: .leading, spacing: 6) {
-                Text("Place of Birth").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
+                Text("Place of Birth").font(.caption).fontWeight(.medium).foregroundColor(deepPurple) + Text(" *").foregroundColor(.red)
                 TextField("City, Country (e.g. Dallas, USA)", text: $birthPlace)
                     .padding(14)
                     .background(Color.white.opacity(0.9))
@@ -382,7 +382,7 @@ struct SignupView: View {
             // Time of Birth
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Text("Time of Birth").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
+                    Text("Time of Birth").font(.caption).fontWeight(.medium).foregroundColor(deepPurple) + Text(" *").foregroundColor(.red)
                     
                     Button(action: { showTimeInfo = true }) {
                         Image(systemName: "info.circle")
