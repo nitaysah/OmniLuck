@@ -16,6 +16,7 @@ struct SignupView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var confirmPassword = ""
+    @State private var phoneNumber = ""
     @State private var dob = Date()
     @State private var showDatePicker = false
     @State private var manualDateText = ""
@@ -30,7 +31,7 @@ struct SignupView: View {
 
     
     enum Field {
-        case username, firstName, middleName, lastName, email, password, confirmPassword, birthPlace
+        case username, firstName, middleName, lastName, phoneNumber, email, password, confirmPassword, birthPlace
     }
     @FocusState private var focusedField: Field?
     @FocusState private var isDateFieldFocused: Bool
@@ -155,6 +156,21 @@ struct SignupView: View {
                     .foregroundColor(deepPurple)
                     .submitLabel(.next)
                     .focused($focusedField, equals: .lastName)
+                    .onSubmit { focusedField = .phoneNumber }
+            }
+            
+            // Phone Number
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Phone Number").font(.caption).fontWeight(.medium).foregroundColor(deepPurple)
+                TextField("", text: $phoneNumber)
+                    .padding(14)
+                    .background(Color.white.opacity(0.9))
+                    .cornerRadius(12)
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(accentPurple.opacity(0.5), lineWidth: 1))
+                    .foregroundColor(deepPurple)
+                    .keyboardType(.phonePad)
+                    .submitLabel(.next)
+                    .focused($focusedField, equals: .phoneNumber)
                     .onSubmit { focusedField = .email }
             }
             
@@ -379,6 +395,7 @@ struct SignupView: View {
                             firstName: firstName,
                             middleName: middleName,
                             lastName: lastName,
+                            phoneNumber: phoneNumber,
                             email: email,
                             password: password,
                             dob: formatDate(dob),

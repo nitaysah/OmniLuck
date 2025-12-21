@@ -119,6 +119,7 @@ class SignupRequest(BaseModel):
     birth_time: str = ""
     lat: float = 0.0
     lon: float = 0.0
+    phoneNumber: str = ""
 
 @router.post("/signup")
 async def signup(request: SignupRequest):
@@ -157,6 +158,7 @@ async def signup(request: SignupRequest):
                     "firstName": {"stringValue": request.firstName},
                     "middleName": {"stringValue": request.middleName},
                     "lastName": {"stringValue": request.lastName},
+                    "phoneNumber": {"stringValue": request.phoneNumber},
                     "dob": {"stringValue": request.dob},
                     "birth_place": {"stringValue": request.birth_place},
                     "birth_time": {"stringValue": request.birth_time},

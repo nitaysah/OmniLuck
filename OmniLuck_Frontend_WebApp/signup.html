@@ -138,6 +138,11 @@
                 </div>
 
                 <div class="input-row">
+                    <label>Phone Number (Optional)</label>
+                    <input type="tel" id="phone" placeholder="+1 (555) 000-0000">
+                </div>
+
+                <div class="input-row">
                     <label>Email Address</label>
                     <input type="email" id="email" required>
                 </div>
@@ -319,6 +324,7 @@
             const fname = document.getElementById('fname').value.trim();
             const mname = document.getElementById('mname').value.trim();
             const lname = document.getElementById('lname').value.trim();
+            const phoneNumber = document.getElementById('phone').value.trim();
             const email = document.getElementById('email').value.trim().toLowerCase();
             const password = document.getElementById('password').value.trim();
             const confirmPassword = document.getElementById('confirm-password').value.trim();
@@ -385,6 +391,7 @@
                     firstName: fname,
                     middleName: mname,
                     lastName: lname,
+                    phoneNumber: phoneNumber,
                     dob: dob,
                     birth_place: birthPlace,
                     birth_time: birthTimeVal,

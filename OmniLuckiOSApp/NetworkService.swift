@@ -89,6 +89,7 @@ struct SignupRequest: Codable {
     let birth_time: String
     let lat: Double
     let lon: Double
+    let phoneNumber: String
 }
 
 struct SignupResponse: Codable {
@@ -164,8 +165,8 @@ class NetworkService {
     
     // 0b. Auth: Signup
     // 0b. Auth: Signup
-    func signup(username: String, firstName: String, middleName: String, lastName: String, email: String, password: String, dob: String, birthPlace: String, birthTime: Date) async throws -> SignupResponse {
-        // Geocode
+    func signup(username: String, firstName: String, middleName: String, lastName: String, phoneNumber: String, email: String, password: String, dob: String, birthPlace: String, birthTime: Date, timeIsNA: Bool = false) async throws -> SignupResponse {
+        // Geocode Birth Place First
         guard let coords = await getCoordinates(for: birthPlace) else {
             throw NSError(domain: "NetworkService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Could not validate location '\(birthPlace)'. Please use City, Country format (e.g. Dallas, USA)."])
         }
@@ -184,7 +185,8 @@ class NetworkService {
             birth_place: birthPlace,
             birth_time: timeStr,
             lat: lat,
-            lon: lon
+            lon: lon,
+            phoneNumber: phoneNumber
         )
         return try await performRequest(endpoint: "/api/auth/signup", body: payload)
     }
