@@ -93,8 +93,11 @@ struct SignupRequest: Codable {
 }
 
 struct SignupResponse: Codable {
-    let message: String
+    let success: Bool?
     let uid: String
+    let email: String?
+    let idToken: String
+    let message: String
 }
 
 struct ForgotUsernameRequest: Codable {
