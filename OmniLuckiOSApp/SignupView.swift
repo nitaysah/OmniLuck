@@ -488,8 +488,8 @@ struct SignupView: View {
                 .foregroundColor(.white)
                 .cornerRadius(12)
             }
-            .disabled(username.isEmpty || firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty || birthPlace.isEmpty || manualDateText.isEmpty)
-            .opacity((username.isEmpty || firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty || birthPlace.isEmpty || manualDateText.isEmpty) ? 0.6 : 1)
+            .disabled(username.isEmpty || firstName.isEmpty || lastName.isEmpty || phoneNumber.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty || birthPlace.isEmpty || manualDateText.isEmpty)
+            .opacity((username.isEmpty || firstName.isEmpty || lastName.isEmpty || phoneNumber.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty || birthPlace.isEmpty || manualDateText.isEmpty) ? 0.6 : 1)
             .padding(.top, 8)
             
             Button("Wait, I have an account") { dismiss() }

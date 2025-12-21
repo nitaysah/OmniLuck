@@ -139,7 +139,7 @@
                 </div>
 
                 <div class="input-row">
-                    <label>Phone Number (Optional)</label>
+                    <label>Phone Number</label>
                     <div style="display: flex; gap: 8px;">
                         <select id="country-code"
                             style="width: 90px; padding: 12px 8px; border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; background: rgba(255,255,255,0.9); font-size: 0.9rem;">
@@ -149,7 +149,7 @@
                             <option value="+61">🇦🇺 +61</option>
                             <option value="+1">🇨🇦 +1</option>
                         </select>
-                        <input type="tel" id="phone" placeholder="(555) 000-0000" style="flex: 1;">
+                        <input type="tel" id="phone" placeholder="(555) 000-0000" style="flex: 1;" required>
                     </div>
                 </div>
 
@@ -362,7 +362,7 @@
             }
 
             // Simple Validation
-            if (!username || !fname || !lname || !email || !password || !confirmPassword || !dob || !birthPlace || !birthTimeVal) {
+            if (!username || !fname || !lname || !email || !password || !confirmPassword || !dob || !birthPlace || !birthTimeVal || !rawPhone) {
                 alert('Please fill in all required fields.');
                 submitBtn.textContent = originalBtnText;
                 submitBtn.disabled = false;
