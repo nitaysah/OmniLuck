@@ -480,6 +480,68 @@
             }
         });
 
+        // Forgot Username Logic
+        const fuModal = document.getElementById('forgot-username-modal');
+        const fuEmailInput = document.getElementById('forgot-username-email-input');
+        const fuCancel = document.getElementById('forgot-username-cancel-btn');
+        const fuSend = document.getElementById('forgot-username-send-btn');
+        const fuMsg = document.getElementById('forgot-username-message');
+
+        if (forgotUsernameLink) forgotUsernameLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (fuModal) fuModal.style.display = 'flex';
+            if (fuMsg) fuMsg.style.display = 'none';
+            if (fuEmailInput) fuEmailInput.value = '';
+        });
+
+        if (fuCancel) fuCancel.addEventListener('click', () => { if (fuModal) fuModal.style.display = 'none'; });
+
+        if (fuSend) fuSend.addEventListener('click', async () => {
+             const email = fuEmailInput ? fuEmailInput.value.trim() : "";
+             if (!email) {
+                 alert("Please enter your email.");
+                 return;
+             }
+             
+             fuSend.textContent = "Sending...";
+             fuSend.disabled = true;
+             
+             try {
+                // Call Python Backend
+                const response = await fetch('http://localhost:8000/api/auth/forgot-username', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if (fuMsg) {
+                        fuMsg.style.display = 'block';
+                        fuMsg.style.color = 'green';
+                        fuMsg.textContent = `Username sent to ${email}`;
+                    }
+                    setTimeout(() => { if (fuModal) fuModal.style.display = 'none'; }, 3000);
+                } else {
+                    if (fuMsg) {
+                        fuMsg.style.display = 'block';
+                        fuMsg.style.color = 'red';
+                        fuMsg.textContent = data.detail || "Email address not exist";
+                    }
+                }
+             } catch (err) {
+                 if (fuMsg) {
+                     fuMsg.style.display = 'block';
+                     fuMsg.style.color = 'red';
+                     fuMsg.textContent = "Connection error.";
+                 }
+             } finally {
+                 fuSend.textContent = "Send";
+                 fuSend.disabled = false;
+             }
+        });
+
         if (guestBtn) guestBtn.addEventListener('click', () => {
             // Logic moved to separate script below for robustness
         });
