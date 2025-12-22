@@ -100,13 +100,7 @@ struct SignupResponse: Codable {
     let message: String
 }
 
-struct ForgotUsernameRequest: Codable {
-    let email: String
-}
 
-struct ForgotUsernameResponse: Codable {
-    let message: String
-}
 
 struct ResetPasswordRequest: Codable {
     let email: String
@@ -204,10 +198,7 @@ class NetworkService {
         return try await performRequest(endpoint: "/api/auth/reset-password", body: payload)
     }
 
-    func forgotUsername(email: String) async throws -> ForgotUsernameResponse {
-        let payload = ForgotUsernameRequest(email: email)
-        return try await performRequest(endpoint: "/api/auth/forgot-username", body: payload)
-    }
+
     
     // 1. Fetch Daily Luck
     func fetchLuck(name: String, dob: Date, birthTime: Date, birthPlace: String, timeIsNA: Bool = false) async throws -> LuckResponse {

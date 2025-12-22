@@ -236,10 +236,7 @@
                 <a href="#" id="forgot-password-link"
                     style="color: var(--deep-purple); font-size: 0.9rem; text-decoration: none; font-weight: 500;">Forgot
                     Password?</a>
-                <span style="color:var(--deep-purple-lighter);margin:0 8px;">|</span>
-                <a href="#" id="forgot-username-link"
-                    style="color: var(--deep-purple); font-size: 0.9rem; text-decoration: none; font-weight: 500;">Forgot
-                    Username?</a>
+
             </div>
 
             <div style="text-align: center; margin-bottom: 10px;">
@@ -291,25 +288,7 @@
         </div>
     </div>
 
-    <!-- Forgot Username Modal -->
-    <div id="forgot-username-modal" class="loading-overlay"
-        style="align-items: center; justify-content: center; z-index: 200;">
-        <div
-            style="background: white; padding: 24px; border-radius: 20px; width: 90%; max-width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-            <h3 style="color: var(--deep-purple); margin-bottom: 6px; font-weight: 700;">Recover Username</h3>
-            <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">Enter your email to receive your username.
-            </p>
-            <input type="email" id="forgot-username-email-input" placeholder="Your Email"
-                style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 10px; border: 1px solid #ddd; outline: none;">
-            <div style="display: flex; gap: 10px;">
-                <button id="forgot-username-cancel-btn"
-                    style="flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #ddd; background: #f5f5f5; color: #666; cursor: pointer; font-weight: 600;">Cancel</button>
-                <button id="forgot-username-send-btn"
-                    style="flex: 1; padding: 10px; border-radius: 10px; border: none; background: var(--deep-purple); color: white; cursor: pointer; font-weight: 600;">Send</button>
-            </div>
-            <p id="forgot-username-message" style="margin-top:10px; font-size:0.85rem; display:none;"></p>
-        </div>
-    </div>
+
 
     <script type="module">
         import { auth, db } from './firebase-config.js';
@@ -318,7 +297,6 @@
 
         const manualBtn = document.getElementById('manual-login-btn');
         const forgotLink = document.getElementById('forgot-password-link');
-        const forgotUsernameLink = document.getElementById('forgot-username-link');
         const emailInput = document.getElementById('email-input');
         const passwordInput = document.getElementById('password-input');
         const guestBtn = document.getElementById('guest-btn');
@@ -480,67 +458,7 @@
             }
         });
 
-        // Forgot Username Logic
-        const fuModal = document.getElementById('forgot-username-modal');
-        const fuEmailInput = document.getElementById('forgot-username-email-input');
-        const fuCancel = document.getElementById('forgot-username-cancel-btn');
-        const fuSend = document.getElementById('forgot-username-send-btn');
-        const fuMsg = document.getElementById('forgot-username-message');
 
-        if (forgotUsernameLink) forgotUsernameLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (fuModal) fuModal.style.display = 'flex';
-            if (fuMsg) fuMsg.style.display = 'none';
-            if (fuEmailInput) fuEmailInput.value = '';
-        });
-
-        if (fuCancel) fuCancel.addEventListener('click', () => { if (fuModal) fuModal.style.display = 'none'; });
-
-        if (fuSend) fuSend.addEventListener('click', async () => {
-             const email = fuEmailInput ? fuEmailInput.value.trim() : "";
-             if (!email) {
-                 alert("Please enter your email.");
-                 return;
-             }
-             
-             fuSend.textContent = "Sending...";
-             fuSend.disabled = true;
-             
-             try {
-                // Call Python Backend
-                const response = await fetch('http://localhost:8000/api/auth/forgot-username', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    if (fuMsg) {
-                        fuMsg.style.display = 'block';
-                        fuMsg.style.color = 'green';
-                        fuMsg.textContent = `Username sent to ${email}`;
-                    }
-                    setTimeout(() => { if (fuModal) fuModal.style.display = 'none'; }, 3000);
-                } else {
-                    if (fuMsg) {
-                        fuMsg.style.display = 'block';
-                        fuMsg.style.color = 'red';
-                        fuMsg.textContent = data.detail || "Email address not exist";
-                    }
-                }
-             } catch (err) {
-                 if (fuMsg) {
-                     fuMsg.style.display = 'block';
-                     fuMsg.style.color = 'red';
-                     fuMsg.textContent = "Connection error.";
-                 }
-             } finally {
-                 fuSend.textContent = "Send";
-                 fuSend.disabled = false;
-             }
-        });
 
         if (guestBtn) guestBtn.addEventListener('click', () => {
             // Logic moved to separate script below for robustness
