@@ -67,43 +67,30 @@ The algorithm has been upgraded from simple numerology to a **Statistical-Cosmic
 
 ---
 
-## 🚧 TODO (Frontend UI)
+## ✅ COMPLETED (Frontend UI - Web & iOS)
 
-### iOS ResultView
-Need to add:
-1. **State variables** in ResultView:
-   ```swift
-   @State private var showPowerballModal = false
-   @State private var powerballData: (personal: PowerballNumbers?, daily: [PowerballNumbers]?)? = nil
-   ```
-
-2. **Button** after 7-Day Forecast:
-   ```swift
-   Button(action: { showPowerballModal = true }) {
-       HStack {
-           Text("🎱").font(.title3)
-           Text("Lucky Powerball Numbers").font(.subheadline)...
-       }
-   }
-   ```
-
-3. **Modal Overlay** similar to other modals:
-   - Show personal powerball at top
-   - List 10 daily combinations below
-   - Ball number display (circles for white balls,red circle for powerball)
-
-4. **Pass data** from ContentView → ResultView
-
-### Web App (COMPLETED)
-1. **Button** added after 7-day forecast.
-2. **Modal** structure implemented with:
+### Web App
+1. **Modal UI**:
    - Personal Powerball section
-   - Daily Powerball section
-   - **Manual Control**: Input box to generate 1-50 lines (Default 5).
-3. **JavaScript** implemented:
-   - `renderPowerball` function handles display
-   - `refreshPowerballs` handles manual generation requests
-   - Validation ensures 1-50 limit
+   - Daily Powerball section with manual line control (1-50, default 5).
+2. **Retailer Bridge (Digital Play Slip)**:
+   - **QR Code Generation**: Native generation using `qrcode.min.js`.
+   - **Scan Personal**: Button to generate QR for personal numbers.
+   - **Scan Daily**: Button to generate bulk QR for all daily lines (e.g. 5 lines).
+   - **Individual Row Scan**: Button on each daily line to scan that specific combination.
+   - **Age Verification**: 18+ toggle required to unlock scanning features.
+   - **Retailer Locator**: Mocked/Linked Google Maps search for nearby retailers.
+
+### iOS App
+1. **ResultView Integration**:
+   - Added `showPowerballModal` state and button.
+   - Modal matches Web design with native SwiftUI components.
+2. **Retailer Bridge**:
+   - **Native QR Generation**: Uses `CoreImage` CIFilter.
+   - **Digital Play Slip Overlay**: Modal overlay showing the generated QR code, label, and deterministic seed.
+   - **Features**: Scan Personal, Scan Daily (Bulk), and Age Verification toggle.
+   - **Retalier Locator**: Link to Google Maps.
+3. **Data Sync**: Updated `NetworkService` to request default 5 lines.
 
 ---
 
@@ -121,10 +108,9 @@ Based on your birth chart
 📅 TODAY'S COSMIC COMBINATIONS
 [Lines: 5] [Generate Request]
 
-#1  [03] [21] [45] [52] [68] 🔴[09]
-#2  [07] [14] [33] [41] [65] 🔴[22]
+#1  [03] [21] [45] [52] [68] 🔴[09]  [📱 Scan]
+#2  [07] [14] [33] [41] [65] 🔴[22]  [📱 Scan]
 ...
-#5  [11] [29] [38] [56] [63] 🔴[18]
 ```
 
 ---
@@ -133,22 +119,23 @@ Based on your birth chart
 - White balls: White circles with purple border
 - Powerball: Red circle with white text
 - Personal powerball: Larger, gold accent border
-- Daily combos: Smaller, numbered list
-- Responsive layout for mobile
+- Daily combos: Smaller, numbered list with individual scan buttons
+- **QR Modal**: Clean overlay with high-contrast QR code and seed display
 
 ---
 
 ## 🔐 Security & Determinism
 - Personal numbers: Always same for user (name + DOB seed)
 - Daily numbers: Change each day (includes current date in seed)
-- No randomness - fully deterministic based on cosmic data
-- MD5 hashing ensures consistent seeding
+- **Play Slip**: QR data structure mimics standard lottery format strings (mocked).
+- **Age Gating**: UI-level 18+ verification check.
 
 ---
 
 ## Next Steps
-1. Add UI components to iOS ResultView
-2. Add UI components to Web app
-3. Test on both platforms
-4. Verify numbers stay consistent for personal powerball
-5. Verify daily numbers change each day
+- [x] Backend logic
+- [x] Web App UI
+- [x] iOS App UI
+- [x] Retailer Bridge / QR Codes
+- [ ] User Testing
+

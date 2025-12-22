@@ -1200,7 +1200,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 qrContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
-        if (qrCodeDiv) qrCodeDiv.innerHTML = '';
+
+        if (qrCodeDiv) {
+            qrCodeDiv.innerHTML = '';
+            // Reset & Apply Screen Optimization (High Contrast)
+            qrCodeDiv.style.background = '#ffffff';
+            qrCodeDiv.style.padding = '20px'; // Quiet Zone
+            qrCodeDiv.style.borderRadius = '12px';
+
+            // Gold Border for Personal
+            if (labelText.toLowerCase().includes("personal")) {
+                qrCodeDiv.style.border = '4px solid var(--accent-gold)';
+                qrCodeDiv.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.3)';
+            } else {
+                qrCodeDiv.style.border = '1px solid #eee';
+                qrCodeDiv.style.boxShadow = 'none';
+            }
+        }
+
         if (labelDisplay) labelDisplay.textContent = labelText;
 
         // Default to Personal if no target provided
@@ -1214,19 +1231,19 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Format: GAME:PB|W:01,02,03,04,05|P:06
-        const wb = targetData.white_balls.join(',');
-        const pb = targetData.powerball;
-        const qrString = `GAME:PB|W:${wb}|P:${pb}`;
+        // Format Verification: GAME:PB|SLIP:1|L1:01,02,03,04,05,06 (Last is PB)
+        const wb = targetData.white_balls.map(n => n.toString().padStart(2, '0')).join(',');
+        const pb = targetData.powerball.toString().padStart(2, '0');
+        const qrString = `GAME:PB|SLIP:1|L1:${wb},${pb}`;
 
         try {
             new QRCode(qrCodeDiv, {
                 text: qrString,
-                width: 160,
-                height: 160,
-                colorDark: "#4a148c",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
+                width: 180,
+                height: 180,
+                colorDark: "#000000", // Pure black
+                colorLight: "#ffffff", // Pure white
+                correctLevel: QRCode.CorrectLevel.M
             });
             if (seedDisplay) seedDisplay.textContent = btoa(qrString).substring(0, 12).toUpperCase();
         } catch (e) {
@@ -1252,10 +1269,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Build Bulk String: GAME:PB|COUNT:N|1:W..P..|2:W..P..
-            let qrStr = `GAME:PB|COUNT:${data.daily.length}`;
+            // Build Bulk String: GAME:PB|SLIP:1|L1:..|L2:..
+            let qrStr = `GAME:PB|SLIP:1`;
             data.daily.forEach((set, i) => {
-                qrStr += `|${i + 1}:W${set.white_balls.join(',')}P${set.powerball}`;
+                const wb = set.white_balls.map(n => n.toString().padStart(2, '0')).join(',');
+                const pb = set.powerball.toString().padStart(2, '0');
+                qrStr += `|L${i + 1}:${wb},${pb}`;
             });
 
             const qrContainer = document.getElementById('pb-qr-container');
@@ -1267,7 +1286,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 qrContainer.style.display = 'flex';
                 qrContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
-            if (qrCodeDiv) qrCodeDiv.innerHTML = '';
+            if (qrCodeDiv) {
+                qrCodeDiv.innerHTML = '';
+                // Screen Optimization (High Contrast)
+                qrCodeDiv.style.background = '#ffffff';
+                qrCodeDiv.style.padding = '20px';
+                qrCodeDiv.style.borderRadius = '12px';
+                qrCodeDiv.style.border = '1px solid #7c3aed'; // Normal border for bulk
+                qrCodeDiv.style.boxShadow = 'none';
+            }
+
             if (labelDisplay) labelDisplay.textContent = `Daily Play Slip (${data.daily.length} Lines)`;
 
             try {
@@ -1275,9 +1303,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     text: qrStr,
                     width: 220,
                     height: 220,
-                    colorDark: "#4a148c",
+                    colorDark: "#000000",
                     colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.L // Low ECC for density
+                    correctLevel: QRCode.CorrectLevel.M
                 });
                 if (seedDisplay) seedDisplay.textContent = "BULK-" + btoa(qrStr).substring(0, 8);
             } catch (e) {
@@ -1306,58 +1334,166 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. Retailer Locator (Mocked for Demo)
     const findRetailersBtn = document.getElementById('find-retailers-btn');
     const retailerList = document.getElementById('retailer-list');
+    const zipInput = document.getElementById('retailer-zip');
 
-    if (findRetailersBtn && retailerList) {
+    if (findRetailersBtn && retailerList && zipInput) {
         findRetailersBtn.addEventListener('click', () => {
-            retailerList.innerHTML = '<p style="padding:16px;text-align:center;">Locating nearby stores...</p>';
+            const zip = zipInput.value.trim();
+            if (!zip || zip.length < 5) {
+                alert("Please enter a valid Zip Code.");
+                return;
+            }
+            // Inject Spinner Styles
+            if (!document.getElementById('loader-style')) {
+                const style = document.createElement('style');
+                style.id = 'loader-style';
+                style.innerHTML = `@keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
+                document.head.appendChild(style);
+            }
 
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((pos) => {
-                    const lat = pos.coords.latitude;
-                    const lon = pos.coords.longitude;
+            retailerList.innerHTML = `
+                <div style="padding:24px;text-align:center;color:var(--deep-purple);">
+                    <div style="border: 4px solid #f3f3f3; border-top: 4px solid var(--accent-purple); border-radius: 50%; width: 24px; height: 24px; animation: spinner 1s linear infinite; margin: 0 auto 12px auto;"></div>
+                    <p style="margin:0; font-weight:500;">Locating nearby stores...</p>
+                </div>`;
 
-                    // Specific Google Maps Search URL
-                    // uses 'lottery retailer' query near user location
+            // 1. Geocode Zip (Nominatim)
+            const geoUrl = `https://nominatim.openstreetmap.org/search?postalcode=${zip}&country=USA&format=json&limit=1`;
+
+            fetch(geoUrl)
+                .then(r => r.json())
+                .then(geoData => {
+                    if (!geoData || geoData.length === 0) {
+                        retailerList.innerHTML = '<p style="padding:16px;text-align:center;color:red;">Zip Code not found.</p>';
+                        return;
+                    }
+                    const lat = parseFloat(geoData[0].lat);
+                    const lon = parseFloat(geoData[0].lon);
+
                     const mapsUrl = `https://www.google.com/maps/search/lottery+retailer/@${lat},${lon},14z`;
 
-                    // Mock API latency
-                    setTimeout(() => {
-                        retailerList.innerHTML = '';
+                    // 2. Fetch Retailers (Overpass API)
+                    // Reduced radius to 5km and increased timeout to fix 504s via LZ4 mirror
+                    const radius = 5000;
+                    const query = `[out:json][timeout:45];(node["shop"="lottery"](around:${radius},${lat},${lon});node["shop"="convenience"](around:${radius},${lat},${lon});node["amenity"="fuel"](around:${radius},${lat},${lon}););out body 15;`;
 
-                        // Mock Data (In production, replace with Google Places API)
-                        const stores = [
-                            { name: "Quick Mart #101", dist: "0.3 mi" },
-                            { name: "Shell Station", dist: "0.6 mi" },
-                            { name: "7-Eleven", dist: "1.1 mi" }
-                        ];
+                    const url = `https://lz4.overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
 
-                        stores.forEach(store => {
-                            const item = document.createElement('div');
-                            item.className = 'retailer-item';
-                            item.innerHTML = `
-                                <div>
-                                    <div style="font-weight:600; font-size:0.9rem; color:var(--deep-purple);">${store.name}</div>
-                                    <div style="font-size:0.75rem; color:#666;">${store.dist} • Authorized</div>
-                                </div>
-                                <a href="${mapsUrl}" target="_blank" 
-                                   style="background:var(--accent-purple); color:white; text-decoration:none; padding:6px 12px; border-radius:8px; font-size:0.75rem; font-weight:600;">
-                                    Navigate
-                                </a>
-                            `;
-                            retailerList.appendChild(item);
+                    fetch(url)
+                        .then(r => {
+                            if (!r.ok) throw new Error(`Overpass Status ${r.status}`);
+                            return r.json();
+                        })
+                        .then(data => {
+                            retailerList.innerHTML = '';
+                            let elements = data.elements || [];
+
+                            if (elements.length === 0) {
+                                retailerList.innerHTML = `
+                                    <div style="text-align:center; padding:16px;">
+                                        <p style="color:#666; margin-bottom:8px;">No verified retailers found via API.</p>
+                                        <a href="${mapsUrl}" target="_blank" style="font-weight:600; color:var(--deep-purple);">
+                                            Search on Google Maps &rarr;
+                                        </a>
+                                    </div>`;
+                                return;
+                            }
+
+                            // Calculate distances and process
+                            let realStores = elements.map(e => {
+                                const distKm = getDistanceFromLatLonInKm(lat, lon, e.lat, e.lon);
+                                let name = e.tags.name;
+                                if (!name) {
+                                    const type = e.tags.shop || "Retailer";
+                                    name = type.charAt(0).toUpperCase() + type.slice(1);
+                                }
+
+                                return {
+                                    name: name,
+                                    lat: e.lat,
+                                    lon: e.lon,
+                                    distVal: distKm,
+                                    distStr: (distKm * 0.621371).toFixed(2) + " mi",
+                                    hours: e.tags.opening_hours ? formatHours(e.tags.opening_hours) : "Hours: Check Store",
+                                    phone: e.tags["phone"] || e.tags["contact:phone"] || null
+                                };
+                            })
+                                .filter(s => s.name)
+                                .sort((a, b) => a.distVal - b.distVal)
+                                .slice(0, 10);
+
+                            // Render
+                            realStores.forEach((store, idx) => {
+                                const item = document.createElement('div');
+                                item.className = 'retailer-item';
+
+                                const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(store.name)}&destination_place_id=${store.lat},${store.lon}`;
+
+                                const badge = (idx === 0) ?
+                                    `<span style="background:#22c55e; color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:6px;">Nearest & Open</span>` :
+                                    (store.hours.includes("Check") ? "" : `<span style="color:#22c55e; font-size:0.7rem; margin-left:4px;">● Open</span>`);
+
+                                item.innerHTML = `
+                                    <div style="flex:1;">
+                                        <div style="font-weight:600; font-size:0.9rem; color:var(--deep-purple); display:flex; align-items:center;">
+                                            ${store.name} ${badge}
+                                        </div>
+                                        <div style="font-size:0.75rem; color:#666; margin-top:2px;">
+                                            ${store.distStr} • <span style="font-weight:500;">${store.hours}</span>
+                                        </div>
+                                        <div style="font-size:0.65rem; color:#888; margin-top:3px; font-style:italic;">
+                                            *Call to confirm QR acceptance
+                                        </div>
+                                    </div>
+                                    <a href="${navUrl}" target="_blank" 
+                                       style="background:var(--accent-purple); color:white; text-decoration:none; padding:8px 12px; border-radius:8px; font-size:0.75rem; font-weight:600;">
+                                        Navigate
+                                    </a>
+                                `;
+                                retailerList.appendChild(item);
+                            });
+                        })
+                        .catch(err => {
+                            console.error("Overpass API Error:", err);
+                            retailerList.innerHTML = `<p style="padding:16px;text-align:center;color:red;">Error fetching live data. <a href="${mapsUrl}" target="_blank">Use Map Search</a></p>`;
                         });
-                    }, 1500);
 
-                }, (err) => {
-                    console.error("Geo Error:", err);
-                    retailerList.innerHTML = '<p style="padding:16px;text-align:center;color:red;">Location access denied.</p>';
+                })
+                .catch(err => {
+                    console.error("Geocoding Error:", err);
+                    retailerList.innerHTML = `<p style="padding:16px;text-align:center;color:red;">Error finding zip code location.</p>`;
                 });
-            } else {
-                retailerList.innerHTML = '<p style="padding:16px;text-align:center;">Geolocation not supported.</p>';
-            }
+
         });
     }
 });
+
+// Helper: Haversine Distance (Km)
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+function deg2rad(deg) {
+    return deg * (Math.PI / 180);
+}
+
+// Helper: Simple formatter for OSM opening_hours (often complex strings)
+function formatHours(osmHours) {
+    if (!osmHours) return "Hours: Check Store";
+    // Try to simplify common formats
+    if (osmHours.includes("24/7")) return "Open 24 Hours";
+    if (osmHours.length > 20) return "See hours on map";
+    return osmHours;
+}
+
 
 // Helper for human-readable planet keywords
 function getPlanetKeyword(planet) {
@@ -1374,3 +1510,36 @@ function getPlanetKeyword(planet) {
     };
     return keywords[planet] || 'cosmic';
 }
+
+// 4. Cosmic Countdown
+function startCosmicCountdown() {
+    const timerEl = document.getElementById('cosmic-countdown');
+    if (!timerEl) return;
+
+    function update() {
+        const now = new Date();
+        const tomorrow = new Date(now);
+        tomorrow.setUTCHours(24, 0, 0, 0); // Next UTC Midnight
+
+        const diff = tomorrow - now;
+        if (diff <= 0) {
+            timerEl.textContent = "00:00:00";
+            return;
+        }
+
+        const h = Math.floor(diff / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+        const pad = (n) => n.toString().padStart(2, '0');
+        timerEl.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+    }
+
+    update(); // Init
+    setInterval(update, 1000);
+}
+
+// Start countdown on load (or safely check)
+// We can call this immediately as it looks for element by ID
+startCosmicCountdown();
+

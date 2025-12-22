@@ -698,6 +698,12 @@
                                         style="color: var(--accent-purple); margin: 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
                                         📅 Today's Cosmic Combinations
                                     </h4>
+                                    <!-- Dynamic Potency Timer -->
+                                    <div id="cosmic-expiry-container"
+                                        style="font-size: 0.75rem; color: #dc2626; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 4px;">
+                                        <span>⏳ Cosmic Alignment Expiry:</span>
+                                        <span id="cosmic-countdown">--:--:--</span>
+                                    </div>
                                     <div style="display: flex; gap: 8px; align-items: center;">
                                         <span style="font-size: 0.8rem; color: #666;">Lines:</span>
                                         <input type="number" id="pb-lines-input" value="5" min="1" max="50"
@@ -765,17 +771,19 @@
                                 <!-- Retailer Locator -->
                                 <div style="margin-top: 24px;">
                                     <h5 style="color: var(--deep-purple); margin: 0 0 12px 0;">📍 Nearby Retailers</h5>
-                                    <div id="retailer-list"
-                                        style="background: #f9f9f9; border-radius: 12px; overflow: hidden; min-height: 80px;">
-                                        <p style="padding: 16px; text-align: center; color: #999; font-size: 0.85rem;"
-                                            id="retailer-status-msg">
-                                            Enable location to see nearby stores.
-                                        </p>
+
+                                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                                        <input type="text" id="retailer-zip" placeholder="Zip Code"
+                                            style="width: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 12px; font-family: inherit; text-align: center; font-size: 1rem;">
+                                        <button id="find-retailers-btn"
+                                            style="flex: 1; background: white; border: 1px solid var(--deep-purple); color: var(--deep-purple); padding: 10px; border-radius: 12px; font-weight: 600; cursor: pointer;">
+                                            Search Nearby Stores
+                                        </button>
                                     </div>
-                                    <button id="find-retailers-btn"
-                                        style="width: 100%; margin-top: 10px; background: white; border: 1px solid var(--deep-purple); color: var(--deep-purple); padding: 10px; border-radius: 12px; font-weight: 600; cursor: pointer;">
-                                        Enable Location & Find Stores
-                                    </button>
+
+                                    <div id="retailer-list"
+                                        style="background: #f9f9f9; border-radius: 12px; overflow: hidden; min-height: 0;">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -887,7 +895,7 @@
     <!-- API Client -->
     <script type="module" src="api-client.js?v=5"></script>
     <!-- Main Logic -->
-    <script type="module" src="script.js?v=5"></script>
+    <script type="module" src="script.js?v=10"></script>
 </body>
 
 </html>
