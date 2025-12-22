@@ -1204,15 +1204,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (qrCodeDiv) {
             qrCodeDiv.innerHTML = '';
             // Reset & Apply Screen Optimization (High Contrast)
+            // Reset Basic Styles
             qrCodeDiv.style.background = '#ffffff';
-            qrCodeDiv.style.padding = '20px'; // Quiet Zone
+            qrCodeDiv.style.padding = '20px';
             qrCodeDiv.style.borderRadius = '12px';
 
-            // Gold Border for Personal
+            // Apply Premium Gold Class for Personal Numbers
+            // Logic: Personal = Gold Class, Daily = Standard
             if (labelText.toLowerCase().includes("personal")) {
-                qrCodeDiv.style.border = '4px solid var(--accent-gold)';
-                qrCodeDiv.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.3)';
+                qrCodeDiv.classList.add('personal-qr-container');
+                // Clean up inline styles that might conflict
+                qrCodeDiv.style.border = '';
+                qrCodeDiv.style.boxShadow = '';
             } else {
+                qrCodeDiv.classList.remove('personal-qr-container');
                 qrCodeDiv.style.border = '1px solid #eee';
                 qrCodeDiv.style.boxShadow = 'none';
             }
@@ -1245,7 +1250,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 colorLight: "#ffffff", // Pure white
                 correctLevel: QRCode.CorrectLevel.M
             });
-            if (seedDisplay) seedDisplay.textContent = btoa(qrString).substring(0, 12).toUpperCase();
+            if (seedDisplay) seedDisplay.textContent = "Seed: " + btoa(qrString).substring(0, 12).toUpperCase();
         } catch (e) {
             console.error(e);
             if (qrCodeDiv) qrCodeDiv.textContent = "Error.";
@@ -1289,6 +1294,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (qrCodeDiv) {
                 qrCodeDiv.innerHTML = '';
                 // Screen Optimization (High Contrast)
+                qrCodeDiv.classList.remove('personal-qr-container'); // Ensure Gold Class removed
                 qrCodeDiv.style.background = '#ffffff';
                 qrCodeDiv.style.padding = '20px';
                 qrCodeDiv.style.borderRadius = '12px';
