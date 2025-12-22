@@ -380,7 +380,7 @@ struct LoginView: View {
         } message: {
             Text("Enter your email address to receive your username.")
         }
-        .alert("Usage Recovery", isPresented: $showUsernameSuccess) {
+        .alert("Username Recovery", isPresented: $showUsernameSuccess) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(usernameSuccessMessage)
