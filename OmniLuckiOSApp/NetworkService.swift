@@ -13,6 +13,7 @@ struct LuckRequest: Codable {
     let birth_lon: Double?
     let current_lat: Double?
     let current_lon: Double?
+    let powerball_count: Int? // Default 5
 }
 
 struct PowerballNumbers: Codable {
@@ -218,7 +219,8 @@ class NetworkService {
             birth_lat: lat,
             birth_lon: lon,
             current_lat: lat, // Assume user is at birth place or close for now
-            current_lon: lon
+            current_lon: lon,
+            powerball_count: 5
         )
         
         return try await performRequest(endpoint: "/api/luck/calculate", body: payload)
@@ -262,7 +264,8 @@ class NetworkService {
             birth_lat: lat,
             birth_lon: lon,
             current_lat: lat,
-            current_lon: lon
+            current_lon: lon,
+            powerball_count: 5
         )
         
         return try await performRequest(endpoint: "/api/luck/forecast", body: payload)

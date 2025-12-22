@@ -1,6 +1,8 @@
 import SwiftUI
 import AVFoundation
 
+import CoreImage.CIFilterBuiltins
+
 // Helper for TTS
 class SpeechManager: ObservableObject {
     private let synthesizer = AVSpeechSynthesizer()
@@ -64,6 +66,13 @@ struct ResultView: View {
     @State private var showStrategyModal = false
     @State private var showPowerHoursModal = false
     @State private var showPowerballModal = false
+    
+    // QR & Retailer State
+    @State private var isAgeVerified = false
+    @State private var showingQRModal = false
+    @State private var currentQRImage: UIImage? = nil
+    @State private var currentQRLabel: String = ""
+    @State private var currentQRSeed: String = ""
     
     // Powerball Data
     var personalPowerball: PowerballNumbers? = nil
@@ -886,6 +895,96 @@ struct ResultView: View {
                             .background(Color.white)
                             .cornerRadius(16)
                             .shadow(color: Color.black.opacity(0.03), radius: 5, x: 0, y: 2)
+                            
+                            // Section 3: Retailer Bridge (Digital Play Slip)
+                            VStack(alignment: .leading, spacing: 16) {
+                                HStack {
+                                    Text("🏬").font(.title3)
+                                    Text("RETAILER BRIDGE")
+                                        .font(.caption).fontWeight(.bold).tracking(1)
+                                        .foregroundColor(deepPurple)
+                                    Spacer()
+                                    // Age Toggle
+                                    Toggle("18+", isOn: $isAgeVerified)
+                                        .labelsHidden()
+                                        .toggleStyle(SwitchToggleStyle(tint: accentPurple))
+                                    Text("18+ Only")
+                                        .font(.caption2).foregroundColor(.gray)
+                                }
+                                
+                                HStack(spacing: 12) {
+                                    // Scan Personal
+                                    Button(action: {
+                                        if !isAgeVerified { return }
+                                        if let p = personalPowerball {
+                                            let qrStr = "GAME:PB|W:\(p.white_balls.map{String($0)}.joined(separator: ","))|P:\(p.powerball)"
+                                            currentQRImage = generateQRCode(from: qrStr)
+                                            currentQRLabel = "Personal Numbers"
+                                            currentQRSeed = String(qrStr.hash).prefix(8).uppercased()
+                                            withAnimation { showingQRModal = true }
+                                        }
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "qrcode")
+                                            Text("Scan Personal")
+                                        }
+                                        .font(.caption.bold())
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 12)
+                                        .background(isAgeVerified ? accentGold : Color.gray.opacity(0.3))
+                                        .foregroundColor(isAgeVerified ? .white : .gray)
+                                        .cornerRadius(10)
+                                    }
+                                    .disabled(!isAgeVerified)
+                                    
+                                    // Scan Daily
+                                    Button(action: {
+                                        if !isAgeVerified { return }
+                                        if let d = dailyPowerballs, !d.isEmpty {
+                                            // Bulk Format
+                                            var qrStr = "GAME:PB|COUNT:\(d.count)"
+                                            for (i, set) in d.enumerated() {
+                                                qrStr += "|n\(i+1):W\(set.white_balls.map{String($0)}.joined(separator: ","))P\(set.powerball)"
+                                            }
+                                            currentQRImage = generateQRCode(from: qrStr)
+                                            currentQRLabel = "Daily Play Slip (\(d.count))"
+                                            currentQRSeed = "BULK-" + String(qrStr.hash).prefix(6).uppercased()
+                                            withAnimation { showingQRModal = true }
+                                        }
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "list.number")
+                                            Text("Scan Daily")
+                                        }
+                                        .font(.caption.bold())
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 12)
+                                        .background(isAgeVerified ? deepPurple : Color.gray.opacity(0.3))
+                                        .foregroundColor(isAgeVerified ? .white : .gray)
+                                        .cornerRadius(10)
+                                    }
+                                    .disabled(!isAgeVerified)
+                                }
+                                
+                                Divider()
+                                
+                                // Retailer Locator Link
+                                Link(destination: URL(string: "https://www.google.com/maps/search/lottery+retailer")!) {
+                                    HStack {
+                                        Image(systemName: "map.fill")
+                                        Text("Find Nearby Retailers")
+                                        Spacer()
+                                        Image(systemName: "arrow.up.right.square")
+                                    }
+                                    .font(.subheadline.bold())
+                                    .foregroundColor(deepPurple)
+                                    .padding(.vertical, 4)
+                                }
+                            }
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(16)
+                            .shadow(color: Color.black.opacity(0.03), radius: 5, x: 0, y: 2)
                         }
                         .padding()
                     }
@@ -903,6 +1002,67 @@ struct ResultView: View {
                 .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
                 .padding(24)
                 .transition(.scale.combined(with: .opacity))
+                
+                // QR Code Overlay
+                if showingQRModal {
+                    Color.black.opacity(0.6).ignoresSafeArea()
+                        .onTapGesture { withAnimation { showingQRModal = false } }
+                        .transition(.opacity)
+                        .zIndex(200)
+                    
+                    VStack(spacing: 20) {
+                        Text(currentQRLabel)
+                            .font(.headline)
+                            .foregroundColor(deepPurple)
+                            .padding(.top)
+                        
+                        if let image = currentQRImage {
+                            Image(uiImage: image)
+                                .interpolation(.none)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 220, height: 220)
+                                .padding()
+                                .background(Color.white)
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                                )
+                        }
+                        
+                        VStack(spacing: 4) {
+                            Text("Scan at Retailer Terminal")
+                                .font(.caption).foregroundColor(.gray)
+                            HStack {
+                                Text("SEED:")
+                                    .fontWeight(.bold)
+                                Text(currentQRSeed)
+                                    .fontDesign(.monospaced)
+                            }
+                            .font(.caption2)
+                            .foregroundColor(accentPurple)
+                        }
+                        
+                        Button(action: { withAnimation { showingQRModal = false } }) {
+                            Text("Close Slip")
+                                .fontWeight(.semibold)
+                                .foregroundColor(deepPurple)
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 10)
+                                .background(accentPurple.opacity(0.1))
+                                .cornerRadius(8)
+                        }
+                        .padding(.bottom)
+                    }
+                    .frame(maxWidth: 300)
+                    .background(Color.white)
+                    .cornerRadius(20)
+                    .shadow(radius: 20)
+                    .padding()
+                    .transition(.scale.combined(with: .opacity))
+                    .zIndex(201)
+                }
             }
             .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showPowerballModal)
         }
@@ -994,5 +1154,24 @@ struct ResultView_Previews: PreviewProvider {
             explanation: OmniLuckLogic.LuckExplanation(text: "Preview Text", traits: ["Bold", "Lucky"]),
             birthInfo: nil
         )
+    }
+}
+
+
+
+extension ResultView {
+    func generateQRCode(from string: String) -> UIImage {
+        let context = CIContext()
+        let filter = CIFilter.qrCodeGenerator()
+        filter.message = Data(string.utf8)
+
+        if let outputImage = filter.outputImage {
+            let transform = CGAffineTransform(scaleX: 10, y: 10)
+            let scaledImage = outputImage.transformed(by: transform)
+            if let cgImage = context.createCGImage(scaledImage, from: scaledImage.extent) {
+                return UIImage(cgImage: cgImage)
+            }
+        }
+        return UIImage()
     }
 }

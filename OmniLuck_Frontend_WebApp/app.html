@@ -5,7 +5,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        /* Flip Card Styles */
+        /* QR Code & Retailer Styles */
+        .qr-container {
+            display: none;
+            /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border: 2px dashed var(--accent-purple);
+            border-radius: 16px;
+        }
+
+        .retailer-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--deep-purple);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
         .flip-card {
             background-color: transparent;
             width: 100%;
@@ -207,6 +272,7 @@
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>">
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 
 <body>
@@ -621,18 +687,95 @@
                                     style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px;">
                                     <!-- White balls and powerball will be rendered here -->
                                 </div>
-                                <p
-                                    style="font-size: 0.75rem; color: var(--deep-purple); opacity: 0.7; text-align: center; margin: 0;">
-                                    Based on your birth chart - these numbers stay with you</p>
+                                Based on your birth chart - these numbers stay with you</p>
                             </div>
 
                             <!-- Daily Powerballs -->
                             <div id="daily-powerballs-section">
-                                <h4
-                                    style="color: var(--accent-purple); margin: 0 0 12px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
-                                    📅 Today's Top 10 Cosmic Combinations</h4>
+                                <div
+                                    style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 12px;">
+                                    <h4
+                                        style="color: var(--accent-purple); margin: 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
+                                        📅 Today's Cosmic Combinations
+                                    </h4>
+                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                        <span style="font-size: 0.8rem; color: #666;">Lines:</span>
+                                        <input type="number" id="pb-lines-input" value="5" min="1" max="50"
+                                            placeholder="Max 50"
+                                            style="width: 50px; padding: 6px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; text-align: center;">
+                                        <button id="pb-generate-btn"
+                                            style="background: var(--deep-purple); color: white; border: none; padding: 6px 16px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; flex: 1; font-weight: 500; font-family: inherit;">Generate
+                                            Request</button>
+                                    </div>
+                                </div>
                                 <div id="daily-powerballs-list">
                                     <!-- Daily combinations will be rendered here -->
+                                </div>
+                            </div>
+
+                            <!-- Retailer Bridge Section -->
+                            <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee;">
+                                <h4
+                                    style="color: var(--deep-purple); margin: 0 0 16px 0; font-size: 0.9rem; text-transform: uppercase;">
+                                    🏬 Retailer Bridge
+                                </h4>
+
+                                <!-- Scan & Pay Logic -->
+                                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="font-size: 0.85rem; font-weight: 500;">Verify Age (18+)</span>
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" id="age-verify-toggle">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div style="display: flex; gap: 8px;">
+                                        <button id="scan-pay-btn"
+                                            style="flex: 1; background: var(--accent-gold); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.5; pointer-events: none; transition: all 0.3s;">
+                                            <span style="font-size: 1.1rem;">📱</span> Scan Personal
+                                        </button>
+                                        <button id="scan-all-daily-btn"
+                                            style="flex: 1; background: var(--deep-purple); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.5; pointer-events: none; transition: all 0.3s;">
+                                            <span style="font-size: 1.1rem;">🎟️</span> Scan Daily
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- QR Container -->
+                                <div id="pb-qr-container" class="qr-container">
+                                    <h5 style="margin: 0 0 12px 0; color: var(--deep-purple);">Your Digital Play Slip
+                                    </h5>
+                                    <div id="qr-code-label"
+                                        style="font-size: 0.8rem; font-weight: 600; color: var(--accent-purple); margin-bottom: 8px;">
+                                        Personal Numbers</div>
+                                    <div id="pb-qr-code" style="margin-bottom: 12px;"></div>
+                                    <p
+                                        style="font-size: 0.75rem; color: #666; text-align: center; margin-bottom: 12px;">
+                                        Scan at authorized lottery terminal.<br>
+                                        Seed: <span id="qr-seed-hash"
+                                            style="font-family: monospace; color: var(--accent-purple);"></span>
+                                    </p>
+                                    <button id="save-qr-btn"
+                                        style="background: transparent; border: 1px solid #ddd; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem;">
+                                        💾 Save to Gallery
+                                    </button>
+                                </div>
+
+                                <!-- Retailer Locator -->
+                                <div style="margin-top: 24px;">
+                                    <h5 style="color: var(--deep-purple); margin: 0 0 12px 0;">📍 Nearby Retailers</h5>
+                                    <div id="retailer-list"
+                                        style="background: #f9f9f9; border-radius: 12px; overflow: hidden; min-height: 80px;">
+                                        <p style="padding: 16px; text-align: center; color: #999; font-size: 0.85rem;"
+                                            id="retailer-status-msg">
+                                            Enable location to see nearby stores.
+                                        </p>
+                                    </div>
+                                    <button id="find-retailers-btn"
+                                        style="width: 100%; margin-top: 10px; background: white; border: 1px solid var(--deep-purple); color: var(--deep-purple); padding: 10px; border-radius: 12px; font-weight: 600; cursor: pointer;">
+                                        Enable Location & Find Stores
+                                    </button>
                                 </div>
                             </div>
                         </div>

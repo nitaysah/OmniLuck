@@ -860,6 +860,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function renderPowerball(personalPB, dailyPBs) {
+        // Store for QR Generation
+        window.currentPowerballData = { personal: personalPB, daily: dailyPBs };
+
         const powerballBtn = document.getElementById('powerball-btn');
 
         // Only show if we have powerball data
@@ -972,6 +975,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 ballsContainer.appendChild(powerball);
 
                 comboDiv.appendChild(ballsContainer);
+
+                // Add Scan Button Row
+                const scanBtnRow = document.createElement('div');
+                scanBtnRow.style.cssText = 'display:flex; justify-content:flex-end; margin-top:8px;';
+
+                const dbScanBtn = document.createElement('button');
+                dbScanBtn.innerHTML = '<span>📱</span> Scan';
+                dbScanBtn.style.cssText = 'background:none; border:1px solid rgba(192, 153, 240, 0.4); border-radius:12px; padding:4px 10px; font-size:0.75rem; cursor:pointer; color:var(--deep-purple); display:flex; align-items:center; gap:4px; transition: background 0.2s;';
+                dbScanBtn.onmouseover = () => dbScanBtn.style.background = 'rgba(192, 153, 240, 0.1)';
+                dbScanBtn.onmouseout = () => dbScanBtn.style.background = 'none';
+
+                dbScanBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    if (window.generateQR) window.generateQR(combo, `Combination #${idx + 1}`);
+                };
+
+                scanBtnRow.appendChild(dbScanBtn);
+                comboDiv.appendChild(scanBtnRow);
                 dailyList.appendChild(comboDiv);
             });
         }
@@ -1065,10 +1086,275 @@ document.addEventListener('DOMContentLoaded', () => {
     tryAgainBtn.addEventListener('click', goBack);
 
     // Guest Home Button Logic
+    // Guest Home Button Logic
     const guestHomeBtn = document.getElementById('guest-home-btn');
     if (guestHomeBtn) {
         guestHomeBtn.addEventListener('click', () => {
             window.location.href = 'index.html';
+        });
+    }
+
+    // Powerball Manual Generation Logic
+    const pbGenBtn = document.getElementById('pb-generate-btn');
+    if (pbGenBtn) {
+        pbGenBtn.addEventListener('click', async () => {
+            const linesInput = document.getElementById('pb-lines-input');
+            const count = parseInt(linesInput.value) || 5;
+
+            // Validate count
+            if (count < 1 || count > 50) {
+                alert("Max 50 numbers can be generated.");
+                return;
+            }
+
+            const btnOriginalText = pbGenBtn.textContent;
+            pbGenBtn.textContent = "Generating...";
+            pbGenBtn.disabled = true;
+
+            try {
+                // Construct request data from current inputs
+                // Note: We access the DOM elements directly here to ensure freshness
+                const nInput = document.getElementById('name');
+                const dInput = document.getElementById('dob');
+                const tInput = document.getElementById('birth-time');
+                const pInput = document.getElementById('birth-place');
+                const tCheck = document.getElementById('tob-na'); // Checkbox
+
+                // Calculate current location (if available in global scope or re-fetch?)
+                // For now use defaults or stored values if available
+                let lat = null, lon = null;
+                // Try to find cached location from previous run?
+                // Alternatively, we can just omit current location as it's less critical for powerball strictly
+                // Or we can try to re-use the 'birthLocation' variable if it's in scope.
+                // 'birthLocation' is likely defined in the scope of 'revealBtn' listener, not here.
+                // So we'll have to rely on what we can get.
+
+                // Let's re-use the values from the input fields
+                const requestData = {
+                    uid: localStorage.getItem('currentUser') ? JSON.parse(localStorage.getItem('currentUser')).uid : "guest",
+                    name: nInput ? nInput.value : "User",
+                    dob: dInput ? dInput.value : new Date().toISOString().split('T')[0],
+                    birth_time: (tCheck && tCheck.checked) ? "12:00" : (tInput ? tInput.value : "12:00"),
+                    birth_place_name: pInput ? pInput.value : null,
+                    // If we don't have lat/lon, the backend might approximate or skip
+                    birth_lat: null,
+                    birth_lon: null,
+                    powerball_count: count
+                };
+
+                const response = await api.calculateLuck(requestData);
+
+                // Update only the powerball list
+                renderPowerball(response.personal_powerball, response.daily_powerballs);
+
+            } catch (error) {
+                console.error("Refresh Error:", error);
+                alert("Failed to refresh numbers.");
+            } finally {
+                pbGenBtn.textContent = btnOriginalText;
+                pbGenBtn.disabled = false;
+            }
+        });
+    }
+
+    // ============================================================================
+    // RETAILER BRIDGE LOGIC
+    // ============================================================================
+
+    // 1. Age Verification Toggle
+    const ageToggle = document.getElementById('age-verify-toggle');
+    const scanBtn = document.getElementById('scan-pay-btn');
+    const scanAllBtn = document.getElementById('scan-all-daily-btn');
+    const qrContainer = document.getElementById('pb-qr-container');
+
+    if (ageToggle && scanBtn) {
+        ageToggle.addEventListener('change', (e) => {
+            const btns = [scanBtn, scanAllBtn];
+            if (e.target.checked) {
+                btns.forEach(b => { if (b) { b.style.opacity = '1'; b.style.pointerEvents = 'auto'; } });
+            } else {
+                btns.forEach(b => { if (b) { b.style.opacity = '0.5'; b.style.pointerEvents = 'none'; } });
+                if (qrContainer) qrContainer.style.display = 'none';
+            }
+        });
+    }
+
+    // 2. Scan & Pay (Generate QR)
+    window.generateQR = function (targetData = null, labelText = "Personal Numbers") {
+        const qrContainer = document.getElementById('pb-qr-container');
+        const qrCodeDiv = document.getElementById('pb-qr-code');
+        const seedDisplay = document.getElementById('qr-seed-hash');
+        const labelDisplay = document.getElementById('qr-code-label');
+
+        const ageToggle = document.getElementById('age-verify-toggle');
+        if (ageToggle && !ageToggle.checked) {
+            if (confirm("Confirm 18+ to view Digital Play Slip?")) {
+                ageToggle.checked = true;
+                ageToggle.dispatchEvent(new Event('change'));
+            } else return;
+        }
+
+        if (qrContainer) {
+            qrContainer.style.display = 'flex';
+            if (qrContainer.style.display !== 'none') {
+                qrContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+        if (qrCodeDiv) qrCodeDiv.innerHTML = '';
+        if (labelDisplay) labelDisplay.textContent = labelText;
+
+        // Default to Personal if no target provided
+        if (!targetData) {
+            const data = window.currentPowerballData;
+            if (data && data.personal) targetData = data.personal;
+        }
+
+        if (!targetData) {
+            if (qrCodeDiv) qrCodeDiv.textContent = "No data available.";
+            return;
+        }
+
+        // Format: GAME:PB|W:01,02,03,04,05|P:06
+        const wb = targetData.white_balls.join(',');
+        const pb = targetData.powerball;
+        const qrString = `GAME:PB|W:${wb}|P:${pb}`;
+
+        try {
+            new QRCode(qrCodeDiv, {
+                text: qrString,
+                width: 160,
+                height: 160,
+                colorDark: "#4a148c",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            if (seedDisplay) seedDisplay.textContent = btoa(qrString).substring(0, 12).toUpperCase();
+        } catch (e) {
+            console.error(e);
+            if (qrCodeDiv) qrCodeDiv.textContent = "Error.";
+        }
+    }
+
+    if (scanBtn) {
+        scanBtn.addEventListener('click', () => window.generateQR(null, "Personal Numbers"));
+    }
+
+
+
+
+
+    // Bulk Scan Daily Button
+    if (scanAllBtn) {
+        scanAllBtn.addEventListener('click', () => {
+            const data = window.currentPowerballData;
+            if (!data || !data.daily || data.daily.length === 0) {
+                alert("No daily numbers to scan.");
+                return;
+            }
+
+            // Build Bulk String: GAME:PB|COUNT:N|1:W..P..|2:W..P..
+            let qrStr = `GAME:PB|COUNT:${data.daily.length}`;
+            data.daily.forEach((set, i) => {
+                qrStr += `|${i + 1}:W${set.white_balls.join(',')}P${set.powerball}`;
+            });
+
+            const qrContainer = document.getElementById('pb-qr-container');
+            const qrCodeDiv = document.getElementById('pb-qr-code');
+            const labelDisplay = document.getElementById('qr-code-label');
+            const seedDisplay = document.getElementById('qr-seed-hash');
+
+            if (qrContainer) {
+                qrContainer.style.display = 'flex';
+                qrContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            if (qrCodeDiv) qrCodeDiv.innerHTML = '';
+            if (labelDisplay) labelDisplay.textContent = `Daily Play Slip (${data.daily.length} Lines)`;
+
+            try {
+                new QRCode(qrCodeDiv, {
+                    text: qrStr,
+                    width: 220,
+                    height: 220,
+                    colorDark: "#4a148c",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.L // Low ECC for density
+                });
+                if (seedDisplay) seedDisplay.textContent = "BULK-" + btoa(qrStr).substring(0, 8);
+            } catch (e) {
+                console.error(e);
+                if (qrCodeDiv) qrCodeDiv.textContent = "Data too large for QR.";
+            }
+        });
+    }
+    const saveQrBtn = document.getElementById('save-qr-btn');
+    if (saveQrBtn) {
+        saveQrBtn.addEventListener('click', () => {
+            const img = document.querySelector('#pb-qr-code img');
+            if (img) {
+                const link = document.createElement('a');
+                link.download = 'omniluck-powerball-qr.png';
+                link.href = img.src;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                alert("Please generate a QR code first.");
+            }
+        });
+    }
+
+    // 4. Retailer Locator (Mocked for Demo)
+    const findRetailersBtn = document.getElementById('find-retailers-btn');
+    const retailerList = document.getElementById('retailer-list');
+
+    if (findRetailersBtn && retailerList) {
+        findRetailersBtn.addEventListener('click', () => {
+            retailerList.innerHTML = '<p style="padding:16px;text-align:center;">Locating nearby stores...</p>';
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
+
+                    // Specific Google Maps Search URL
+                    // uses 'lottery retailer' query near user location
+                    const mapsUrl = `https://www.google.com/maps/search/lottery+retailer/@${lat},${lon},14z`;
+
+                    // Mock API latency
+                    setTimeout(() => {
+                        retailerList.innerHTML = '';
+
+                        // Mock Data (In production, replace with Google Places API)
+                        const stores = [
+                            { name: "Quick Mart #101", dist: "0.3 mi" },
+                            { name: "Shell Station", dist: "0.6 mi" },
+                            { name: "7-Eleven", dist: "1.1 mi" }
+                        ];
+
+                        stores.forEach(store => {
+                            const item = document.createElement('div');
+                            item.className = 'retailer-item';
+                            item.innerHTML = `
+                                <div>
+                                    <div style="font-weight:600; font-size:0.9rem; color:var(--deep-purple);">${store.name}</div>
+                                    <div style="font-size:0.75rem; color:#666;">${store.dist} • Authorized</div>
+                                </div>
+                                <a href="${mapsUrl}" target="_blank" 
+                                   style="background:var(--accent-purple); color:white; text-decoration:none; padding:6px 12px; border-radius:8px; font-size:0.75rem; font-weight:600;">
+                                    Navigate
+                                </a>
+                            `;
+                            retailerList.appendChild(item);
+                        });
+                    }, 1500);
+
+                }, (err) => {
+                    console.error("Geo Error:", err);
+                    retailerList.innerHTML = '<p style="padding:16px;text-align:center;color:red;">Location access denied.</p>';
+                });
+            } else {
+                retailerList.innerHTML = '<p style="padding:16px;text-align:center;">Geolocation not supported.</p>';
+            }
         });
     }
 });

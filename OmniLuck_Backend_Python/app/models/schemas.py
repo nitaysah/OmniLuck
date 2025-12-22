@@ -109,6 +109,9 @@ class LuckCalculationRequest(BaseModel):
     sleep_quality: Optional[str] = Field(None, description="Deep, Restless, Vivid Dreams, etc")
     energy_level: Optional[str] = Field(None, description="High, Low, Scattered, Focused")
     
+    # Powerball Settings
+    powerball_count: Optional[int] = Field(5, ge=1, le=100, description="Number of Powerball lines to generate")
+    
     # Historical Luck Profile
     history_lottery: Optional[str] = Field(None, description="Experience with chance/lottery")
     history_games: Optional[str] = Field(None, description="Luck in board/digital games")

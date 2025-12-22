@@ -165,7 +165,8 @@ async def calculate_luck(request: LuckCalculationRequest):
             current_date=datetime.now().strftime("%Y-%m-%d"),
             luck_score=int(final_score),
             astro_score=astro_score,
-            natal_score=natal_score
+            natal_score=natal_score,
+            num_lines=request.powerball_count or 5
         )
         daily_powerballs = daily_pb_list
     except Exception as e:

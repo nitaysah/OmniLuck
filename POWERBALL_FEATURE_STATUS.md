@@ -35,7 +35,7 @@ The algorithm has been upgraded from simple numerology to a **Statistical-Cosmic
 - **File**: `OmniLuck_Backend_Python/app/services/powerball_service.py`
 - **PowerballService** class created with:
   - `generate_personal_powerball()` - Static lucky numbers based on user'sname + DOB
-  - `generate_daily_powerballs()` - 10 daily combinations based on daily transits
+  - `generate_daily_powerballs()` - 5 daily combinations by default (configurable 1-50) based on daily transits
   - Deterministic seeding using MD5 hashing for consistency
   - Numerology integration (name → number 1-9)
   - Birth date component extraction
@@ -46,7 +46,7 @@ The algorithm has been upgraded from simple numerology to a **Statistical-Cosmic
   - `white_balls`: List[int] - 5 white balls (1-69)
   - `powerball`: int - Red powerball (1-26)
   - `type`: str - 'personal' or 'daily'
-  - `index`: Optional[int] - For daily combos (1-10)
+  - `index`: Optional[int] - For daily combos (1-50)
 
 - Updated `LuckCalculationResponse`:
   - `personal_powerball`: PowerballNumbers - User's static lucky numbers
@@ -56,7 +56,7 @@ The algorithm has been upgraded from simple numerology to a **Statistical-Cosmic
 - **File**: `OmniLuck_Backend_Python/app/routes/luck.py`
 - `/api/luck/calculate` endpoint now generates:
   1. Personal powerball (consistent for user)
-  2. 10 daily powerballs (changes each day based on transits)
+  2. 5 daily powerballs (default) - changes each day based on transits, supports `powerball_count` param (1-50)
 - Error handling for powerball generation
 - Uses luck_score, astro_score, and natal_score as inputs
 
@@ -94,41 +94,16 @@ Need to add:
 
 4. **Pass data** from ContentView → ResultView
 
-### Web App
-Need to add to `app.html`:
-
-1. **Button** after 7-day forecast:
-   ```html
-   <button id="powerball-btn" class="section-button" onclick="openModal('powerball')">
-       <span>🎱 Lucky Powerball Numbers</span>
-       <span>→</span>
-   </button>
-   ```
-
-2. **Modal** structure:
-   ```html
-   <div id="powerball-modal" class="modal-overlay">
-       <div class="modal-card">
-           <div class="modal-header">
-               <h3>🎱 Lucky Powerball Numbers</h3>
-               <button class="modal-close-x">×</button>
-           </div>
-           <div class="modal-content" id="powerball-content">
-               <!-- Personal + Daily combos will be rendered here -->
-           </div>
-           <div class="modal-footer">
-               <button class="modal-close-btn">Close</button>
-           </div>
-       </div>
-   </div>
-   ```
-
-3. **JavaScript** in `script.js`:
-   - Store powerball data from API response
-   - Render function to display:
-     - Personal powerball (highlighted)
-     - 10 daily combinations
-     - Ball number styling (white circles + red powerball)
+### Web App (COMPLETED)
+1. **Button** added after 7-day forecast.
+2. **Modal** structure implemented with:
+   - Personal Powerball section
+   - Daily Powerball section
+   - **Manual Control**: Input box to generate 1-50 lines (Default 5).
+3. **JavaScript** implemented:
+   - `renderPowerball` function handles display
+   - `refreshPowerballs` handles manual generation requests
+   - Validation ensures 1-50 limit
 
 ---
 
@@ -141,14 +116,15 @@ Need to add to `app.html`:
 Based on your birth chart
 ```
 
-### Daily Lucky Combinations (10 sets)
+### Daily Lucky Combinations (Default 5, Max 50)
 ```
-📅 TODAY'S TOP 10 COMBINATIONS
+📅 TODAY'S COSMIC COMBINATIONS
+[Lines: 5] [Generate Request]
 
 #1  [03] [21] [45] [52] [68] 🔴[09]
-#2  [07] [14] [33] [41] [6 5] 🔴[22]
+#2  [07] [14] [33] [41] [65] 🔴[22]
 ...
-#10 [11] [29] [38] [56] [63] 🔴[18]
+#5  [11] [29] [38] [56] [63] 🔴[18]
 ```
 
 ---

@@ -112,16 +112,17 @@ class PowerballService:
 
     def generate_daily_powerballs(
         self, name: str, dob: str, current_date: str,
-        luck_score: int, astro_score: int = 50, natal_score: int = 50
+        luck_score: int, astro_score: int = 50, natal_score: int = 50,
+        num_lines: int = 5
     ) -> List[Dict]:
         """
-        Generate 10 daily combinations using Delta Strategy (Spacing) 
+        Generate daily combinations using Delta Strategy (Spacing) 
         and Planetary Territory Mapping.
         """
         combinations = []
         base_seed = self._get_seed_from_data(name, dob, current_date, luck_score)
         
-        for i in range(10):
+        for i in range(num_lines):
             for attempt in range(20):
                 combo_seed = base_seed + i * 1009 + attempt * 71
                 
