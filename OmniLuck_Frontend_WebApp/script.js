@@ -1363,6 +1363,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p style="margin:0; font-weight:500;">Locating nearby stores...</p>
                 </div>`;
 
+            // Auto-scroll to loader so user sees feedback immediately
+            retailerList.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
             // 1. Geocode Zip (Nominatim)
             const geoUrl = `https://nominatim.openstreetmap.org/search?postalcode=${zip}&country=USA&format=json&limit=1`;
 
@@ -1458,6 +1461,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                 `;
                                 retailerList.appendChild(item);
                             });
+
+                            // Auto-scroll to results to show stores immediately
+                            setTimeout(() => {
+                                retailerList.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            }, 100);
                         })
                         .catch(err => {
                             console.error("Overpass API Error:", err);
