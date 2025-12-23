@@ -167,6 +167,20 @@
             box-shadow: 0 0 30px rgba(191, 153, 242, 0.4);
         }
     </style>
+    <script>
+        // Auto-Redirect: If user is already logged in, send them to the app.
+        // This prevents the "Back Button" from showing the login screen.
+        (function () {
+            try {
+                const user = localStorage.getItem('currentUser');
+                if (user && JSON.parse(user).uid) {
+                    window.location.replace('app.html');
+                }
+            } catch (e) {
+                // Invalid session data, ignore.
+            }
+        })();
+    </script>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
 </head>
