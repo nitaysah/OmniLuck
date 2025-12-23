@@ -1,0 +1,55 @@
+name: Deploy Backend to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'OmniLuck_Backend_Python/**'
+      - '.github/workflows/deploy-backend.yml'
+
+env:
+  PROJECT_ID: celestial-fortune-7d9b4
+  REGION: us-central1
+  SERVICE_NAME: omniluck-backend
+  REPO_NAME: omniluck-repo
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Authenticate via the SAME Service Account Key used for Frontend
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CELESTIAL_FORTUNE_7D9B4 }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v1'
+
+      - name: 'Authorize Docker push'
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+      - name: 'Build and Push Container'
+        run: |
+          docker build -t us-central1-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$SERVICE_NAME:${{ github.sha }} ./OmniLuck_Backend_Python
+          docker push us-central1-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$SERVICE_NAME:${{ github.sha }}
+
+      - name: 'Deploy to Cloud Run'
+        uses: 'google-github-actions/deploy-cloudrun@v1'
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          flags: '--allow-unauthenticated --port 8000 --memory 1Gi'
+          env_vars: |
+            OPENWEATHER_API_KEY=${{ secrets.OPENWEATHER_API_KEY }}
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+            GOOGLE_GENAI_API_KEY=${{ secrets.GOOGLE_GENAI_API_KEY }}
+            ENVIRONMENT=production
