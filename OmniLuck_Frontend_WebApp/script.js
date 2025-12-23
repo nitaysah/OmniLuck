@@ -1013,16 +1013,32 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // Populate Top Stats
-        // Find best day
-        let best = data.trajectory[0];
-        data.trajectory.forEach(d => { if (d.luck_score > best.luck_score) best = d; });
+        // Populate Top Stats
+        // User Request: Start from next day (Tomorrow).
+        // Logic: Check if the first entry is Today (or past). If so, skip it. 
+        // If the first entry is already Tomorrow, keep it.
+        const todayStr = new Date().toISOString().split('T')[0];
+        let forecastSubset = data.trajectory;
+
+        if (data.trajectory.length > 0) {
+            // If first item date is today or earlier, skip it to ensure we start from "Tomorrow"
+            // Simple string comparison YYYY-MM-DD works well here
+            if (data.trajectory[0].date <= todayStr) {
+                forecastSubset = data.trajectory.slice(1);
+            }
+        }
+
+        // Find best day in the remaining forecast
+        let best = forecastSubset[0];
+        forecastSubset.forEach(d => { if (d.luck_score > best.luck_score) best = d; });
 
         document.getElementById('forecast-trend').textContent = data.trend_direction;
 
-        // Format date: YYYY-MM-DD -> MMM DD
+        // Format date: YYYY-MM-DD -> Day, MMM DD
         const formatDate = (ds) => {
             const d = new Date(ds);
-            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }); // Force UTC to avoid shift
+            // Include Weekday
+            return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
         };
 
         document.getElementById('forecast-best').textContent = `${formatDate(best.date)} (${best.luck_score}%)`;
@@ -1031,7 +1047,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const list = document.getElementById('forecast-list');
         list.innerHTML = '';
 
-        data.trajectory.forEach(day => {
+        forecastSubset.forEach(day => {
             // Day Name
             const dateObj = new Date(day.date);
             const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
