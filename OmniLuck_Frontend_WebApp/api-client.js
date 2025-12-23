@@ -13,7 +13,7 @@ class CelestialAPI {
             const isLocal = customHost === 'localhost' || customHost === '127.0.0.1' || window.location.protocol === 'file:';
 
             // TODO: Update this URL after Render deployment if different
-            const PROD_URL = "https://omniluck.onrender.com";
+            const PROD_URL = "https://omniluck-backend-134332367848.us-central1.run.app";
 
             this.baseURL = isLocal ? 'http://localhost:8000' : PROD_URL;
             console.log("🚀 CelestialAPI: Initialized with Base URL:", this.baseURL);
