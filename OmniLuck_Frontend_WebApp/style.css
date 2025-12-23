@@ -503,7 +503,7 @@ header p {
     /* Fix card width to match buttons */
     padding: 20px;
     /* Restored larger padding for card look */
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     /* Smooth resize animation */
 }
@@ -909,7 +909,8 @@ input[type="range"]::-webkit-slider-thumb {
     left: 50%;
     transform: translate(-50%, -50%);
     display: flex;
-    align-items: baseline;
+    align-items: center;
+    justify-content: center;
     flex-direction: column;
     text-align: center;
 }
