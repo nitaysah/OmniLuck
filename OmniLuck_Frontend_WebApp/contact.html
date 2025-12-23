@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Contact Us - OmniLuck</title>
+    <title>Contact Us - LuckDecode</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap"
         rel="stylesheet">
@@ -69,8 +69,8 @@
 
             <div style="margin-top: 30px; text-align: center;">
                 <p style="font-size: 0.9rem; color: var(--deep-purple);">Or email us directly:</p>
-                <a href="mailto:support@omniluck.app"
-                    style="color: var(--accent-purple); font-weight: 600; text-decoration: none;">support@omniluck.app</a>
+                <a href="mailto:support@luckdecode.com"
+                    style="color: var(--accent-purple); font-weight: 600; text-decoration: none;">support@luckdecode.com</a>
             </div>
         </div>
     </div>
@@ -90,13 +90,16 @@
                         alert("Please enter a message!");
                         return;
                     }
-                    // Mock send
-                    sendBtn.innerHTML = "✨ Sending...";
+                    const topic = document.getElementById('contact-topic').value;
+                    const subject = `[${topic}] Support Request`;
+                    const body = msgInput.value.trim();
+
+                    // Open email client
+                    window.location.href = `mailto:support@luckdecode.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
                     setTimeout(() => {
-                        alert("Message sent to the cosmos! (We'll get back to you soon).");
                         msgInput.value = "";
-                        sendBtn.innerHTML = "<span>✉️</span> Send Message";
-                    }, 1500);
+                    }, 1000);
                 });
             }
         });
