@@ -278,6 +278,46 @@
             letter-spacing: 1px;
             text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
         }
+
+        /* Responsive Fixes for Small Screens */
+        @media (max-width: 480px) {
+            .modal-card {
+                width: 95% !important;
+                max-width: 95% !important;
+                max-height: 90vh;
+                /* Allow taller on small screens */
+            }
+
+            .modal-content {
+                padding: 16px;
+                /* Reduce padding */
+            }
+
+            .modal-header {
+                padding: 12px 16px;
+            }
+
+            .section-button {
+                padding: 12px 14px;
+                font-size: 0.85rem;
+                /* Smaller text */
+            }
+
+            .flip-card {
+                height: auto;
+                /* Allow dynamic height */
+                min-height: 220px;
+            }
+
+            #result-caption {
+                font-size: 0.9rem !important;
+            }
+
+            /* Ensure Retailer List doesn't overflow */
+            #retailer-list {
+                font-size: 0.85rem;
+            }
+        }
     </style>
     <title>Discover Your Luck - OmniLuck</title>
     <meta name="description"
@@ -738,12 +778,45 @@
 
                             <!-- Retailer Bridge Section -->
                             <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee;">
+                                <!-- Retailer Locator -->
+                                <div style="margin-bottom: 32px;">
+                                    <h4
+                                        style="color: var(--deep-purple); margin: 0 0 12px 0; font-size: 0.9rem; text-transform: uppercase;">
+                                        📍 Nearby Retailers</h4>
+
+                                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                                        <input type="text" id="retailer-zip" placeholder="Zip Code"
+                                            style="width: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 12px; font-family: inherit; text-align: center; font-size: 1rem;">
+                                        <button id="find-retailers-btn"
+                                            style="flex: 1; background: white; border: 1px solid var(--deep-purple); color: var(--deep-purple); padding: 10px; border-radius: 12px; font-weight: 600; cursor: pointer;">
+                                            Search Nearby Stores
+                                        </button>
+                                    </div>
+
+                                    <div id="retailer-list"
+                                        style="background: #f9f9f9; border-radius: 12px; overflow: hidden; min-height: 0;">
+                                    </div>
+                                </div>
+
                                 <h4
                                     style="color: var(--deep-purple); margin: 0 0 16px 0; font-size: 0.9rem; text-transform: uppercase;">
                                     🏬 Retailer Bridge
                                 </h4>
 
-                                <!-- Scan & Pay Logic -->
+                                <!-- Digital Play Slip Coming Soon -->
+                                <div
+                                    style="background: rgba(128, 77, 179, 0.05); border: 1px dashed var(--accent-purple); border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 24px;">
+                                    <p
+                                        style="margin: 0; font-weight: 600; color: var(--deep-purple); font-size: 0.9rem;">
+                                        📱 Digital Play Slip & QR Scan
+                                    </p>
+                                    <p style="margin: 4px 0 0 0; font-size: 0.75rem; color: #666; font-style: italic;">
+                                        Coming Soon! Use this at supported retailers.
+                                    </p>
+                                </div>
+
+                                <!-- Scan & Pay Logic (DISABLED/BACKUP) -->
+                                <!--
                                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
                                     <div style="display: flex; justify-content: space-between; align-items: center;">
                                         <span style="font-size: 0.85rem; font-weight: 500;">Verify Age (18+)</span>
@@ -764,8 +837,10 @@
                                         </button>
                                     </div>
                                 </div>
+                                -->
 
-                                <!-- QR Container -->
+                                <!-- QR Container (DISABLED/BACKUP) -->
+                                <!--
                                 <div id="pb-qr-container" class="qr-container">
                                     <h5 style="margin: 0 0 12px 0; color: var(--deep-purple);">Your Digital Play Slip
                                     </h5>
@@ -784,24 +859,7 @@
                                         💾 Save to Gallery
                                     </button>
                                 </div>
-
-                                <!-- Retailer Locator -->
-                                <div style="margin-top: 24px;">
-                                    <h5 style="color: var(--deep-purple); margin: 0 0 12px 0;">📍 Nearby Retailers</h5>
-
-                                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                                        <input type="text" id="retailer-zip" placeholder="Zip Code"
-                                            style="width: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 12px; font-family: inherit; text-align: center; font-size: 1rem;">
-                                        <button id="find-retailers-btn"
-                                            style="flex: 1; background: white; border: 1px solid var(--deep-purple); color: var(--deep-purple); padding: 10px; border-radius: 12px; font-weight: 600; cursor: pointer;">
-                                            Search Nearby Stores
-                                        </button>
-                                    </div>
-
-                                    <div id="retailer-list"
-                                        style="background: #f9f9f9; border-radius: 12px; overflow: hidden; min-height: 0;">
-                                    </div>
-                                </div>
+                                -->
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -912,7 +970,7 @@
     <!-- API Client -->
     <script type="module" src="api-client.js?v=5"></script>
     <!-- Main Logic -->
-    <script type="module" src="script.js?v=11"></script>
+    <script type="module" src="script.js?v=12"></script>
 </body>
 
 </html>

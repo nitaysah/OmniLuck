@@ -976,7 +976,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 comboDiv.appendChild(ballsContainer);
 
-                // Add Scan Button Row
+                // Add Scan Button Row (DISABLED/BACKUP)
+                /*
                 const scanBtnRow = document.createElement('div');
                 scanBtnRow.style.cssText = 'display:flex; justify-content:flex-end; margin-top:8px;';
 
@@ -993,6 +994,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 scanBtnRow.appendChild(dbScanBtn);
                 comboDiv.appendChild(scanBtnRow);
+                */
                 dailyList.appendChild(comboDiv);
             });
         }
