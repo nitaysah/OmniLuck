@@ -74,12 +74,11 @@
         .flip-card {
             background-color: transparent;
             width: 100%;
-            height: 220px;
+            height: 340px;
             perspective: 1000px;
             cursor: pointer;
             margin-top: 0;
-            margin-bottom: 10px;
-            /* Gap 10px to Home Button */
+            margin-bottom: 20px;
         }
 
         .flip-card-inner {
@@ -113,6 +112,7 @@
             padding: 16px;
             display: flex;
             flex-direction: column;
+            overflow-y: auto;
         }
 
         /* Section Buttons */
@@ -301,12 +301,6 @@
                 padding: 12px 14px;
                 font-size: 0.85rem;
                 /* Smaller text */
-            }
-
-            .flip-card {
-                height: auto;
-                /* Allow dynamic height */
-                min-height: 220px;
             }
 
             #result-caption {
