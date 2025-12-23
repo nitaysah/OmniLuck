@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dashboardView) {
             dashboardView.classList.add('active');
             inputView.classList.remove('active');
+            history.replaceState({ view: 'dashboard' }, 'Dashboard', '#dashboard');
         }
 
 
@@ -279,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 inputView.classList.remove('active');
                 if (dashboardView) dashboardView.classList.remove('active');
                 resultView.classList.add('active');
+                history.pushState({ view: 'result' }, 'Result', '#result');
 
                 const userMenuContainer = document.getElementById('user-menu-container');
                 if (userMenuContainer) userMenuContainer.style.display = 'none';
@@ -578,6 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
             inputView.classList.remove('active');
             if (dashboardView) dashboardView.classList.remove('active');
             resultView.classList.add('active');
+            history.pushState({ view: 'result' }, 'Result', '#result');
 
             // Hide User Menu on Result Page (Focus on Result)
             const userMenuContainer = document.getElementById('user-menu-container');
@@ -1077,33 +1080,62 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function goBack() {
+    // === HISTORY API INTEGRATION ===
+
+    // 1. Handle UI Restoration (Formerly goBack)
+    function restoreDashboardUI() {
         resultView.classList.remove('active');
 
         const currentUser = localStorage.getItem('currentUser');
         if (currentUser && dashboardView) {
             dashboardView.classList.add('active');
-            // Show Menu again if logged in
             const userMenuContainer = document.getElementById('user-menu-container');
             if (userMenuContainer) userMenuContainer.style.display = 'block';
         } else {
             inputView.classList.add('active');
-            // Hide Menu if guest (should be handled by initUserSession but safe to ensure)
             const userMenuContainer = document.getElementById('user-menu-container');
             if (userMenuContainer) userMenuContainer.style.display = 'none';
         }
 
         const progressRing = document.querySelector('.progress-ring-fill');
         if (progressRing) {
-            progressRing.style.strokeDashoffset = 565.48; // Circumference
+            progressRing.style.strokeDashoffset = 565.48;
         }
         resultPercentage.textContent = '0';
     }
 
-    if (backBtn) backBtn.addEventListener('click', goBack);
-    tryAgainBtn.addEventListener('click', goBack);
+    // 2. Handle Browser Back/Forward
+    window.addEventListener('popstate', (event) => {
+        if (!event.state || event.state.view !== 'result') {
+            // If popping back to non-result state, restore dashboard
+            if (resultView.classList.contains('active')) {
+                restoreDashboardUI();
+            }
+        } else {
+            // User went FORWARD to result? (Optional: Restore Result UI if implicit)
+            // For now, we assume DOM is persistent. 
+            // If we needed to re-show result:
+            inputView.classList.remove('active');
+            if (dashboardView) dashboardView.classList.remove('active');
+            resultView.classList.add('active');
+            const userMenuContainer = document.getElementById('user-menu-container');
+            if (userMenuContainer) userMenuContainer.style.display = 'none';
+        }
+    });
 
-    // Guest Home Button Logic
+    // 3. Update Back/TryAgain Buttons to use History
+    const handleManualBack = () => {
+        if (history.state && history.state.view === 'result') {
+            history.back();
+        } else {
+            // Fallback if no history state (e.g. direct land)
+            restoreDashboardUI();
+        }
+    };
+
+    if (backBtn) backBtn.addEventListener('click', handleManualBack);
+    if (tryAgainBtn) tryAgainBtn.addEventListener('click', handleManualBack);
+
     // Guest Home Button Logic
     const guestHomeBtn = document.getElementById('guest-home-btn');
     if (guestHomeBtn) {

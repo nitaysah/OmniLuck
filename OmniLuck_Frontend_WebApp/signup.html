@@ -118,10 +118,7 @@
 
         <div class="form-container">
             <form id="signup-form">
-                <div class="input-row">
-                    <label>Username <span style="color: #ff4444;">*</span></label>
-                    <input type="text" id="username" required placeholder="Choose a unique username">
-                </div>
+
 
                 <div class="input-row">
                     <label>First Name <span style="color: #ff4444;">*</span></label>
@@ -340,7 +337,7 @@
             submitBtn.textContent = "Creating Account...";
             submitBtn.disabled = true;
 
-            const username = document.getElementById('username').value.trim();
+
             const fname = document.getElementById('fname').value.trim();
             const mname = document.getElementById('mname').value.trim();
             const lname = document.getElementById('lname').value.trim();
@@ -362,7 +359,7 @@
             }
 
             // Simple Validation
-            if (!username || !fname || !lname || !email || !password || !confirmPassword || !dob || !birthPlace || !birthTimeVal || !rawPhone) {
+            if (!fname || !lname || !email || !password || !confirmPassword || !dob || !birthPlace || !birthTimeVal || !rawPhone) {
                 alert('Please fill in all required fields.');
                 submitBtn.textContent = originalBtnText;
                 submitBtn.disabled = false;
@@ -388,13 +385,7 @@
                     return;
                 }
 
-                // 2. Check if Username is unique
-                const q = query(collection(db, "users"), where("username", "==", username));
-                const querySnapshot = await getDocs(q);
 
-                if (!querySnapshot.empty) {
-                    throw new Error("This username is already taken. Please choose another.");
-                }
 
                 // 3. Create Auth User
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -409,7 +400,7 @@
                 // 5. Save User Data to Firestore
                 const userData = {
                     uid: user.uid,
-                    username: username,
+
                     email: email,
                     name: fullName,
                     firstName: fname,

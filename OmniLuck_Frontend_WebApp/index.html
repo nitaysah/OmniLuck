@@ -227,7 +227,7 @@
 
         <!-- Manual Login Form -->
         <div style="width: 100%; max-width: 320px; text-align: left;">
-            <input type="text" id="email-input" placeholder="Email or Username"
+            <input type="email" id="email-input" placeholder="Email"
                 style="width: 100%; padding: 12px 16px; margin-bottom: 8px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.9);">
             <div class="password-container">
                 <input type="password" id="password-input" placeholder="Password"
@@ -255,7 +255,7 @@
 
             <div style="text-align: center; margin-bottom: 10px;">
                 <p style="color: var(--deep-purple); margin-bottom: 8px;">Don't have an account?</p>
-                <a href="signup.html" class="google-btn"
+                <a href="signup.html?v=2" class="google-btn"
                     style="background: white; color: var(--deep-purple); border: 1px solid var(--deep-purple); justify-content: center; text-decoration: none; display: flex; box-sizing: border-box;">
                     Get Started
                 </a>
@@ -351,74 +351,41 @@
             loading.classList.remove('active');
         }
 
-        // Helper: Resolve Username to Email (WITH CACHING & PROFILE DATA)
-        async function resolveEmail(input) {
-            if (input.includes('@')) return { email: input, userData: null };
-
-            // Check session cache first (fast!)
-            const cacheKey = `user_${input}`;
-            const cached = sessionStorage.getItem(cacheKey);
-            if (cached) return JSON.parse(cached);
-
-            // Query Firestore for username
-            const q = query(collection(db, "users"), where("username", "==", input));
-            const querySnapshot = await getDocs(q);
-
-            if (querySnapshot.empty) {
-                throw new Error("No account found with this username.");
-            }
-
-            const userData = querySnapshot.docs[0].data();
-            const result = { email: userData.email, userData };
-
-            // Cache it
-            sessionStorage.setItem(cacheKey, JSON.stringify(result));
-            return result;
-        }
-
         // Manual Auth Handler - LOGIN ONLY
         async function handleLogin() {
-            const loginInput = emailInput.value.trim();
+            const email = emailInput.value.trim();
             const password = passwordInput.value.trim();
 
-            if (!loginInput || !password) {
-                alert('Please enter your email/username and password');
+            if (!email || !password) {
+                alert('Please enter your email and password');
+                return;
+            }
+
+            if (!email.includes('@')) {
+                alert('Please enter a valid email address (not a username).');
                 return;
             }
 
             try {
-                showLoading('Verifying...');
-
-                // Resolve email (and get userData if username lookup)
-                const { email: emailToUse, userData: preloadedData } = await resolveEmail(loginInput);
-
                 showLoading('Signing In...');
 
                 // Sign In with Firebase Auth
-                const userCredential = await signInWithEmailAndPassword(auth, emailToUse, password);
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // Use preloaded data if available (SKIP second Firestore call!)
-                if (preloadedData && preloadedData.uid === user.uid) {
+                // Fetch User Profile
+                const docRef = doc(db, "users", user.uid);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const userData = docSnap.data();
                     const idToken = await user.getIdToken();
-                    const finalData = { ...preloadedData, idToken };
+                    const finalData = { ...userData, idToken };
                     localStorage.setItem('currentUser', JSON.stringify(finalData));
                     window.location.href = 'app.html';
                 } else {
-                    // Only fetch if we don't have it yet
-                    const docRef = doc(db, "users", user.uid);
-                    const docSnap = await getDoc(docRef);
-
-                    if (docSnap.exists()) {
-                        const userData = docSnap.data();
-                        const idToken = await user.getIdToken();
-                        const finalData = { ...userData, idToken };
-                        localStorage.setItem('currentUser', JSON.stringify(finalData));
-                        window.location.href = 'app.html';
-                    } else {
-                        alert("User profile not found. Please contact support.");
-                        hideLoading();
-                    }
+                    alert("User profile not found. Please contact support.");
+                    hideLoading();
                 }
 
             } catch (error) {
@@ -426,8 +393,8 @@
                 hideLoading();
 
                 let msg = error.message;
-                if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
-                    msg = "Incorrect username/email or password.";
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-email') {
+                    msg = "Incorrect email or password.";
                 }
 
                 alert(msg);
