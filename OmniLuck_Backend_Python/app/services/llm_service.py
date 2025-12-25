@@ -294,7 +294,7 @@ Fortune message:"""
                 contents=prompt,
                 config={
                     "temperature": 0.7,
-                    "max_output_tokens": 1500,
+                    "max_output_tokens": 4000,
                 }
             )
             else:
@@ -427,7 +427,7 @@ Fortune message:"""
         3. ENVIRONMENT: Moon: {lunar_phase}, Weather: {weather}
 
         **TASK:**
-        1. Explain the User's Fortune based on the overlapping Numerology and Astrology data (Concise).
+        1. Explain the User's Fortune based on the overlapping Numerology and Astrology data.
         2. Specifically, compare their Personal Day Number ({numero.get('personal_day_number') if numero else '?'}) with the Transit info.
         3. Create a unique "Luck Archetype" title for them today (e.g. "The Empire Builder", "The Mystic").
         4. Develop a "Strategy" to resolve any conflict between their Numbers (Internal) and Transits (External).
@@ -436,11 +436,11 @@ Fortune message:"""
         Output ONLY valid JSON:
         {{
             "score": <integer 0-100 (Suggestion based on explanation)>,
-            "caption": "<short headline (max 5 words)>",
-            "summary": "<simple explanation (1 sentence)>",
-            "explanation": "<reading blending the Life Path and Transits (max 3 sentences)>",
+            "caption": "<short headline>",
+            "summary": "<simple explanation of why numbers+stars matter today>",
+            "explanation": "<detailed reading blending the Life Path and Transits>",
             "archetype": "<Today's Persona Title>",
-            "strategy": "<Strategic advice (max 2 sentences)>",
+            "strategy": "<Strategic advice paragraph for handling conflicting energies>",
             "schedule": ["<Time Block 1>", "<Time Block 2>"],
             "actions": ["<action 1>", "<action 2>", "<action 3>"]
         }}
