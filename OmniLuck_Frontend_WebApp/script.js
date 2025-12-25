@@ -1471,7 +1471,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             // Guest result - no user menu
         } else if (hash === '#lucky-number-result') {
-            const lotteryResultView = document.getElementById('lottery-result-view');
+            const lotteryResultView = document.getElementById('lucky-number-result');
             if (lotteryResultView) {
                 lotteryResultView.style.display = 'block';
                 lotteryResultView.classList.add('active');
@@ -1836,9 +1836,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <div style="font-size:0.75rem; color:#666; margin-top:2px;">
                                             ${store.distStr} • <span style="font-weight:500;">${store.hours}</span>
                                         </div>
-                                        <div style="font-size:0.65rem; color:#888; margin-top:3px; font-style:italic;">
-                                            *Call to confirm QR acceptance
-                                        </div>
+
                                     </div>
                                     <a href="${navUrl}" target="_blank" 
                                        style="background:var(--accent-purple); color:white; text-decoration:none; padding:8px 12px; border-radius:8px; font-size:0.75rem; font-weight:600;">
@@ -2357,7 +2355,7 @@ window.handleLotteryClick = async () => {
             v.style.display = 'none';
             v.classList.remove('active');
         });
-        const lotteryResultView = document.getElementById('lottery-result-view');
+        const lotteryResultView = document.getElementById('lucky-number-result');
         if (lotteryResultView) {
             lotteryResultView.style.display = 'block';
             lotteryResultView.classList.add('active');
