@@ -355,17 +355,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (menuSettingsBtn) menuSettingsBtn.addEventListener('click', () => window.location.href = 'settings.html');
 
     // Connect Logouts
-    function handleLogout() {
+    // Logout Logic
+    window.confirmLogout = function () {
         localStorage.removeItem('currentUser');
         window.location.href = 'index.html';
+    };
+
+    // Dashboard Logout asks for confirmation
+    if (dashboardLogoutBtn) {
+        dashboardLogoutBtn.addEventListener('click', () => openModal('logout-confirm'));
     }
 
-    if (dashboardLogoutBtn) dashboardLogoutBtn.addEventListener('click', handleLogout);
-    if (menuLogoutBtn) menuLogoutBtn.addEventListener('click', handleLogout);
+    // Menu Logout (direct)
+    if (menuLogoutBtn) menuLogoutBtn.addEventListener('click', window.confirmLogout);
 
-    // Ensure the main entry logout button (visible to guests) also works
+    // Guest Home/Logout (direct)
     const logoutMainBtn = document.getElementById('logout-main-btn');
-    if (logoutMainBtn) logoutMainBtn.addEventListener('click', handleLogout);
+    if (logoutMainBtn) logoutMainBtn.addEventListener('click', window.confirmLogout);
 
     if (tryAgainBtn) {
         tryAgainBtn.addEventListener('click', () => {

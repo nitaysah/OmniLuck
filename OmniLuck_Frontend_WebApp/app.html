@@ -867,15 +867,21 @@
             </button>
 
             <!-- Decode Lucky Numbers (Guest - prompts signup) -->
-            <button id="guest-lucky-numbers-btn" class="primary-btn"
-                style="margin-top: 12px; box-shadow: 0 10px 25px rgba(124, 77, 255, 0.3);"
+            <button id="guest-lucky-numbers-btn" class="primary-btn" style="margin-top: 12px;"
                 onclick="window.showSignupPrompt()">
                 <span class="btn-text">Decode my Lucky Numbers</span>
-                <span class="pb-icon"></span>
+                <div class="wand-loading-container">
+                    <span class="magic-trail trail-1">✨</span>
+                    <span class="magic-trail trail-2">✨</span>
+                    <span class="magic-wand-icon">🎱</span>
+                    <span class="magic-trail trail-3">✨</span>
+                </div>
+                <span class="btn-icon">🎱</span>
             </button>
 
-            <button id="logout-main-btn" class="secondary-btn" style="margin-top: 16px;">
-                <span>🚪</span> Logout
+            <button id="logout-main-btn" class="primary-btn"
+                style="margin-top: 16px; background: linear-gradient(135deg, #FF8A80 0%, #FF5252 100%);">
+                <span>🏠</span> Home
             </button>
 
         </div>
@@ -1178,14 +1184,10 @@
                 </div>
 
                 <!-- Powerball Card -->
-                <div class="card"
-                    style="margin-top: 16px; background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%); border: 1px solid rgba(251, 191, 36, 0.3); padding: 16px;">
-                    <button class="primary-btn" onclick="openModal('lottery')"
-                        style="width: 100%; box-shadow: 0 10px 25px rgba(124, 77, 255, 0.3);">
-                        <span><span class="pb-icon"></span> View Lucky Powerball Numbers</span>
-                        <span style="color: var(--deep-purple);">→</span>
-                    </button>
-                </div>
+                <button class="section-button power-hours" onclick="openModal('lottery')" style="margin-top: 16px;">
+                    <span><span class="pb-icon"></span> View Lucky Powerball Numbers</span>
+                    <span style="color: var(--accent-gold);">→</span>
+                </button>
 
                 <!-- Home Button -->
                 <button id="lottery-home-btn" class="primary-btn"
@@ -1221,11 +1223,12 @@
                 </p>
             </div>
             <div class="modal-footer" style="display: flex; gap: 12px; justify-content: center;">
-                <button class="secondary-btn" style="padding: 12px 24px;" onclick="closeModal('signup-prompt')">
+                <button class="primary-btn"
+                    style="padding: 12px 24px; background: linear-gradient(135deg, #FF8A80 0%, #FF5252 100%); width: auto;"
+                    onclick="closeModal('signup-prompt')">
                     Cancel
                 </button>
-                <button class="primary-btn"
-                    style="padding: 12px 24px; background: linear-gradient(135deg, #FF8A80 0%, #FF5252 100%);"
+                <button class="secondary-btn" style="padding: 12px 24px; width: auto;"
                     onclick="window.location.href='signup.html'">
                     <span class="pb-icon"></span> Sign Up Now
                 </button>
@@ -1532,12 +1535,33 @@
         };
     </script>
 
+    <!-- Logout Confirmation Modal -->
+    <div id="logout-confirm-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'logout-confirm')">
+        <div class="modal-card" style="width: 320px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Log Out?</h3>
+                <button class="modal-close-x" onclick="closeModal('logout-confirm')">×</button>
+            </div>
+            <div class="modal-content" style="text-align: center; padding: 20px;">
+                <p style="color: var(--deep-purple); margin-bottom: 24px;">Are you sure you want to log out?</p>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button class="secondary-btn" onclick="closeModal('logout-confirm')"
+                        style="padding: 10px 20px;">Cancel</button>
+                    <button class="primary-btn" onclick="window.confirmLogout()"
+                        style="padding: 10px 20px; background: linear-gradient(135deg, #FF5252 0%, #D32F2F 100%); color: white; box-shadow: 0 4px 15px rgba(255, 82, 82, 0.4);">
+                        Log Out
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase Config -->
     <script type="module" src="firebase-config.js?v=5"></script>
     <!-- API Client -->
     <script type="module" src="api-client.js?v=5"></script>
     <!-- Main Logic -->
-    <script type="module" src="script.js?v=16"></script>
+    <script type="module" src="script.js?v=17"></script>
 </body>
 
 </html>
