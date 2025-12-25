@@ -275,8 +275,7 @@ async def calculate_lottery(request: LuckCalculationRequest):
                     "transits_score": transits_result.influence_score,
                     "aspects": transits_result.aspects
                 }
-            except Exception as e:
-                print(f"⚠️ Astrology Error: {e}")
+
         return astro_score, natal_score, astro_data
     
     async def calculate_numerology():
