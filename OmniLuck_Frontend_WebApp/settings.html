@@ -177,7 +177,7 @@
 
                 // Determine URL
                 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                const baseURL = isLocal ? 'http://localhost:8000' : 'https://omniluck.onrender.com';
+                const baseURL = isLocal ? 'http://localhost:8000' : 'https://omniluck-backend-134332367848.us-central1.run.app';
 
                 const response = await fetch(`${baseURL}/api/auth/delete`, {
                     method: 'POST',

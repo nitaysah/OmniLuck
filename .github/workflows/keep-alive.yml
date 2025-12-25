@@ -11,5 +11,5 @@ jobs:
       - name: Wake up the backend
         run: |
           echo "Pinging backend to keep it warm..."
-          curl -I https://omniluck.onrender.com/health
+          curl -I https://omniluck-backend-134332367848.us-central1.run.app/health
           echo "Ping complete."
