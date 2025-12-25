@@ -167,6 +167,21 @@ class CelestialAPI {
         return response.json();
     }
 
+    /**
+     * Calculate Lottery Numbers (Personal + Daily)
+     * @param {Object} request - Request object (same as luck calc) with optional provided_luck_score
+     * @returns {Promise<Object>} LotteryResponse { personal_powerball, daily_powerballs }
+     */
+    async calculateLottery(request) {
+        const response = await fetch(`${this.baseURL}/api/luck/lottery`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(request)
+        });
+        if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
+        return response.json();
+    }
+
     // ============================================================================
     // ML / PERSONALIZATION ENDPOINTS
     // ============================================================================

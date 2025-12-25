@@ -30,10 +30,15 @@ app = FastAPI(
 )
 
 # CORS middleware - allow webapp to make requests
+origins = [
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    "http://localhost:8000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    # Explicitly using * for now, falling back to config if needed
-    allow_origins=["*"], 
+    allow_origins=origins, 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

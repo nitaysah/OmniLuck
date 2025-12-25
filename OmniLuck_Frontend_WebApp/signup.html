@@ -88,6 +88,53 @@
             text-decoration: none;
             font-size: 0.9rem;
         }
+
+        /* Password Requirements Styles */
+        .password-requirements {
+            margin-top: 8px;
+            padding: 10px;
+            background: rgba(128, 77, 179, 0.05);
+            border-radius: 8px;
+            font-size: 0.75rem;
+        }
+
+        .password-requirements p {
+            margin: 0 0 6px 0;
+            font-weight: 600;
+            color: var(--deep-purple);
+            font-size: 0.8rem;
+        }
+
+        .requirement {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 4px 0;
+            color: #999;
+            transition: color 0.2s;
+        }
+
+        .requirement.met {
+            color: #22c55e;
+        }
+
+        .requirement .icon {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            background: #e5e5e5;
+            color: #999;
+            transition: all 0.2s;
+        }
+
+        .requirement.met .icon {
+            background: #22c55e;
+            color: white;
+        }
     </style>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -142,6 +189,8 @@
                             style="width: 90px; padding: 12px 8px; border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; background: rgba(255,255,255,0.9); font-size: 0.9rem;">
                             <option value="+1" selected>🇺🇸 +1</option>
                             <option value="+91">🇮🇳 +91</option>
+                            <option value="+977">🇳🇵 +977</option>
+                            <option value="+52">🇲🇽 +52</option>
                             <option value="+44">🇬🇧 +44</option>
                             <option value="+61">🇦🇺 +61</option>
                             <option value="+1">🇨🇦 +1</option>
@@ -166,6 +215,30 @@
                                 <circle cx="12" cy="12" r="3"></circle>
                             </svg>
                         </button>
+                    </div>
+                    <!-- Password Requirements Checklist -->
+                    <div class="password-requirements" id="password-requirements">
+                        <p>Password must contain:</p>
+                        <div class="requirement" id="req-length">
+                            <span class="icon">○</span>
+                            <span>At least 8 characters</span>
+                        </div>
+                        <div class="requirement" id="req-uppercase">
+                            <span class="icon">○</span>
+                            <span>Uppercase letter (A-Z)</span>
+                        </div>
+                        <div class="requirement" id="req-lowercase">
+                            <span class="icon">○</span>
+                            <span>Lowercase letter (a-z)</span>
+                        </div>
+                        <div class="requirement" id="req-number">
+                            <span class="icon">○</span>
+                            <span>Number (0-9)</span>
+                        </div>
+                        <div class="requirement" id="req-special">
+                            <span class="icon">○</span>
+                            <span>Special character (!@#$%^&*)</span>
+                        </div>
                     </div>
                 </div>
 
@@ -227,6 +300,21 @@
                         minutes. These details are vital for accurate daily insights and a truly personalized Luck
                         Score. If unknown, we apply the 12:00 PM Astrology standard to maximize planetary accuracy and
                         provide reliable guidance.
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label style="margin-bottom: 0;">Current Location <span style="color: #ff4444;">*</span></label>
+                        <button id="location-info-btn" type="button"
+                            style="background:none; border:1px solid var(--deep-purple); color:var(--deep-purple); border-radius:50%; width:16px; height:16px; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;">i</button>
+                    </div>
+                    <input type="text" id="current-location" placeholder="City, Country (e.g. Dallas, USA)" required>
+                    <div id="location-explainer"
+                        style="display: none; font-size: 0.75rem; color: var(--deep-purple); background: rgba(128,77,179,0.1); padding: 8px; border-radius: 8px; margin-top: 4px; line-height: 1.4;">
+                        Your current location is used to fetch local weather data and cosmic signals (moon phase,
+                        geomagnetic activity) for more accurate daily luck predictions.
                     </div>
                 </div>
 
@@ -300,6 +388,59 @@
             });
         }
 
+        // Toggle Location Info
+        const locationInfoBtn = document.getElementById('location-info-btn');
+        const locationExplainer = document.getElementById('location-explainer');
+        if (locationInfoBtn && locationExplainer) {
+            locationInfoBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                locationExplainer.style.display = locationExplainer.style.display === 'none' ? 'block' : 'none';
+            });
+        }
+
+        // Password Validation Logic
+        const passwordInput = document.getElementById('password');
+        const reqLength = document.getElementById('req-length');
+        const reqUppercase = document.getElementById('req-uppercase');
+        const reqLowercase = document.getElementById('req-lowercase');
+        const reqNumber = document.getElementById('req-number');
+        const reqSpecial = document.getElementById('req-special');
+
+        function validatePassword(password) {
+            const checks = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /[0-9]/.test(password),
+                special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+            };
+
+            // Update UI
+            updateRequirement(reqLength, checks.length);
+            updateRequirement(reqUppercase, checks.uppercase);
+            updateRequirement(reqLowercase, checks.lowercase);
+            updateRequirement(reqNumber, checks.number);
+            updateRequirement(reqSpecial, checks.special);
+
+            return checks.length && checks.uppercase && checks.lowercase && checks.number && checks.special;
+        }
+
+        function updateRequirement(element, isMet) {
+            if (isMet) {
+                element.classList.add('met');
+                element.querySelector('.icon').textContent = '✓';
+            } else {
+                element.classList.remove('met');
+                element.querySelector('.icon').textContent = '○';
+            }
+        }
+
+        if (passwordInput) {
+            passwordInput.addEventListener('input', () => {
+                validatePassword(passwordInput.value);
+            });
+        }
+
         const tobNaCheckbox = document.getElementById('tob-na-checkbox');
         const timeContainer = document.getElementById('time-inputs-container');
         const naMessage = document.getElementById('tob-na-message');
@@ -366,6 +507,14 @@
                 return;
             }
 
+            // Password Complexity Validation
+            if (!validatePassword(password)) {
+                alert('Password does not meet requirements. Please ensure it has:\n• At least 8 characters\n• Uppercase letter (A-Z)\n• Lowercase letter (a-z)\n• Number (0-9)\n• Special character (!@#$%^&*)');
+                submitBtn.textContent = originalBtnText;
+                submitBtn.disabled = false;
+                return;
+            }
+
             // Check if passwords match
             if (password !== confirmPassword) {
                 alert('Passwords do not match. Please try again.');
@@ -379,13 +528,24 @@
                 const coords = await geocodeCity(birthPlace);
 
                 if (!coords) {
-                    alert("Could not find location '" + birthPlace + "'. Please validate the city and country name (e.g. Dallas, USA).");
+                    alert("Could not find birth location '" + birthPlace + "'. Please validate the city and country name (e.g. Dallas, USA).");
                     submitBtn.textContent = originalBtnText;
                     submitBtn.disabled = false;
                     return;
                 }
 
-
+                // 2. Geocode Current Location
+                const currentLocation = document.getElementById('current-location').value.trim();
+                let currentCoords = null;
+                if (currentLocation) {
+                    currentCoords = await geocodeCity(currentLocation);
+                    if (!currentCoords) {
+                        alert("Could not find current location '" + currentLocation + "'. Please validate the city and country name (e.g. Dallas, USA).");
+                        submitBtn.textContent = originalBtnText;
+                        submitBtn.disabled = false;
+                        return;
+                    }
+                }
 
                 // 3. Create Auth User
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -412,6 +572,9 @@
                     birth_time: birthTimeVal,
                     lat: coords ? coords.lat : 0.0,
                     lon: coords ? coords.lon : 0.0,
+                    current_location: currentLocation || birthPlace,
+                    current_lat: currentCoords ? currentCoords.lat : (coords ? coords.lat : 0.0),
+                    current_lon: currentCoords ? currentCoords.lon : (coords ? coords.lon : 0.0),
                     createdAt: new Date().toISOString()
                 };
 

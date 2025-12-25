@@ -32,8 +32,8 @@ class LLMService:
                 try:
                     from google import genai
                     self.gemini_client = genai.Client(api_key=self.gemini_key)
-                    self.gemini_model_id = 'gemini-1.5-flash'
-                    print("✅ Google Gemini 1.5 Flash configured (Optimized for Speed)")
+                    self.gemini_model_id = 'gemini-2.5-flash'
+                    print("✅ Google Gemini 2.5 Flash configured (Latest Model)")
                 except Exception as e:
                     print(f"❌ Gemini configuration failed: {e}")
                     self.gemini_client = None

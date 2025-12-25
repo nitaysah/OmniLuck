@@ -1,6 +1,7 @@
 """
 Powerball Lucky Number Generator Service.
 Generates personalized powerball numbers based on astrology, numerology, and daily transits.
+Now uses LIVE hot/cold numbers from lottery_stats_service!
 """
 from datetime import datetime, date
 from typing import List, Dict
@@ -15,13 +16,33 @@ class PowerballService:
         self.white_ball_max = 69
         self.powerball_max = 26
         
-        # Statistical Intelligence Data (Historical frequent balls)
-        self.hot_numbers = [61, 32, 63, 21, 69, 36, 62, 39, 37, 23, 10, 24, 59, 20, 3, 27]
-        self.cold_numbers = [13, 34, 4, 46, 51, 26, 60, 16, 35, 29]
+        # DEFAULT Statistical Intelligence Data (Fallback if live fetch fails)
+        self._default_hot = [61, 32, 63, 21, 69, 36, 62, 39, 37, 23, 10, 24, 59, 20, 3, 27]
+        self._default_cold = [13, 34, 4, 46, 51, 26, 60, 16, 35, 29]
         
         # Statistical Harmonic Sum Range (Most common sums for winning 5-ball sets)
         self.min_harmonic_sum = 130
         self.max_harmonic_sum = 220
+    
+    @property
+    def hot_numbers(self) -> List[int]:
+        """Get hot numbers - uses live data if available, else fallback."""
+        try:
+            from app.services.lottery_stats_service import get_hot_cold_numbers
+            hot, cold = get_hot_cold_numbers()
+            return hot
+        except Exception:
+            return self._default_hot
+    
+    @property
+    def cold_numbers(self) -> List[int]:
+        """Get cold numbers - uses live data if available, else fallback."""
+        try:
+            from app.services.lottery_stats_service import get_hot_cold_numbers
+            hot, cold = get_hot_cold_numbers()
+            return cold
+        except Exception:
+            return self._default_cold
 
     def _get_seed_from_data(self, *args) -> int:
         """Create a deterministic seed from input data."""

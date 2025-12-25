@@ -1,9 +1,12 @@
 import CelestialAPI from './api-client.js?v=5';
 import { initUserSession } from './user-session.js';
+import { db } from './firebase-config.js';
+import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize API Client
     const api = new CelestialAPI();
+    window.celestialAPI = api;
 
     // Elements
     const nameInput = document.getElementById('name');
@@ -25,6 +28,17 @@ document.addEventListener('DOMContentLoaded', () => {
             tobExplainer.style.display = tobExplainer.style.display === 'none' ? 'block' : 'none';
         });
     }
+
+    // Toggle Location Explainer
+    const locationInfoBtn = document.getElementById('location-info-btn');
+    const locationExplainer = document.getElementById('location-explainer');
+    if (locationInfoBtn && locationExplainer) {
+        locationInfoBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            locationExplainer.style.display = locationExplainer.style.display === 'none' ? 'block' : 'none';
+        });
+    }
+
     const backBtn = document.getElementById('back-btn');
     const tryAgainBtn = document.getElementById('try-again-btn');
     const resultPercentage = document.getElementById('result-percentage');
@@ -62,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // State
     const inputView = document.getElementById('input-view');
-    const resultView = document.getElementById('result-view');
+    const resultView = document.getElementById('daily-luck-result-view');
     const dashboardView = document.getElementById('dashboard-view');
 
     // Dashboard Elements
@@ -145,14 +159,27 @@ document.addEventListener('DOMContentLoaded', () => {
             if (birthPlaceEl) birthPlaceEl.value = user.birth_place;
             if (dPlace) dPlace.textContent = user.birth_place;
         }
+        // Phone
+        const dPhone = document.getElementById('dashboard-phone-display');
+        if (dPhone && user.phoneNumber) dPhone.textContent = user.phoneNumber;
+
+        // Current Location
+        const dLocation = document.getElementById('dashboard-location-display');
+        if (dLocation) {
+            dLocation.textContent = user.current_location || user.birth_place || '--';
+        }
+
         if (user.birth_time) {
             if (birthTimeInput) birthTimeInput.value = user.birth_time;
             if (dTime) {
-                // Format 14:30 -> 2:30 PM
+                // Format 01:30 -> 01:30 AM
                 try {
                     const [h, m] = user.birth_time.split(':');
-                    const d = new Date(); d.setHours(h); d.setMinutes(m);
-                    dTime.textContent = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                    const hour = parseInt(h);
+                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+                    const formattedHour = displayHour.toString().padStart(2, '0');
+                    dTime.textContent = `${formattedHour}:${m} ${ampm}`;
                 } catch (e) { dTime.textContent = user.birth_time; }
 
                 // If time is 12:00, it's likely an unknown time (Astrology standard)
@@ -169,6 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Ensure Input View is Active (Default)
         if (dashboardView) dashboardView.classList.remove('active');
         inputView.classList.add('active');
+        history.replaceState({ view: 'guest' }, 'Guest', '#guest');
+
+        // Clear any existing guest session data
+        sessionStorage.removeItem('guestSession');
 
         // Update Logout Button to Home Button for Guests
         const logoutMainBtn = document.getElementById('logout-main-btn');
@@ -207,15 +238,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     birthLocation = await geocodeCity(birthPlaceVal);
                 }
 
-                // Current location fallback to null if no birth location found
-                const currentLat = birthLocation ? birthLocation.lat : null;
-                const currentLon = birthLocation ? birthLocation.lon : null;
+                // Use current location from profile if available, otherwise fall back to birth location
+                let currentLat = user.current_lat || (birthLocation ? birthLocation.lat : null);
+                let currentLon = user.current_lon || (birthLocation ? birthLocation.lon : null);
 
                 const requestData = {
                     uid: user.uid || "guest",
                     name: user.name || name,
                     dob: user.dob || dob,
-                    birth_time: user.birthTime || "12:00",
+                    birth_time: user.birthTime || user.birth_time || "12:00",
                     birth_place_name: birthPlaceVal || null,
                     birth_lat: birthLocation ? birthLocation.lat : null,
                     birth_lon: birthLocation ? birthLocation.lon : null,
@@ -274,16 +305,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('forecast-flip-card').style.display = 'none';
                 }
 
-                renderPowerball(response.personal_powerball, response.daily_powerballs);
+                // Store score for lottery
+                window.currentLuckScore = percentage;
+
+                // renderPowerball(response.personal_powerball, response.daily_powerballs); // REMOVED
 
                 // Switch Views
-                inputView.classList.remove('active');
-                if (dashboardView) dashboardView.classList.remove('active');
+                // Switch Views
+                document.querySelectorAll('.view').forEach(v => {
+                    v.style.display = 'none';
+                    v.classList.remove('active');
+                });
+
+                resultView.style.display = 'block';
                 resultView.classList.add('active');
-                history.pushState({ view: 'result' }, 'Result', '#result');
+                history.pushState({ view: 'daily-luck-result' }, 'Daily Luck Result', '#daily-luck-result');
 
                 const userMenuContainer = document.getElementById('user-menu-container');
-                if (userMenuContainer) userMenuContainer.style.display = 'none';
+                if (userMenuContainer) userMenuContainer.style.display = 'flex';
+
+                // Show global back button
+                const resultBackBtnContainer = document.getElementById('result-back-btn-container');
+                if (resultBackBtnContainer) resultBackBtnContainer.style.display = 'block';
 
                 setTimeout(() => {
                     animatePercentage(percentage);
@@ -324,12 +367,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutMainBtn = document.getElementById('logout-main-btn');
     if (logoutMainBtn) logoutMainBtn.addEventListener('click', handleLogout);
 
-    // Set default date to 25 years ago ONLY if empty
-    if (!dobInput.value) {
-        const defaultDate = new Date();
-        defaultDate.setFullYear(defaultDate.getFullYear() - 25);
-        dobInput.valueAsDate = defaultDate;
+    if (tryAgainBtn) {
+        tryAgainBtn.addEventListener('click', () => {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (user && window.showDashboardView) {
+                window.showDashboardView();
+            } else if (user) {
+                // Manual Dashboard Switch
+                document.querySelectorAll('.view').forEach(v => {
+                    v.style.display = 'none';
+                    v.classList.remove('active');
+                });
+                const dl = document.getElementById('dashboard-view');
+                if (dl) {
+                    dl.style.display = 'block';
+                    dl.classList.add('active');
+                }
+                const um = document.getElementById('user-menu-container');
+                if (um) um.style.display = 'block';
+            } else {
+                window.location.reload();
+            }
+        });
     }
+
 
     // Initial check to enable button/update zodiac
     checkInputs();
@@ -470,12 +531,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // REVEAL BUTTON - CONNECTED TO BACKEND API
     // ==========================================
     revealBtn.addEventListener('click', async () => {
+        // Read directly from form inputs to ensure fresh values
+        const currentName = document.getElementById('name').value.trim();
+        const currentDob = document.getElementById('dob').value;
         const birthPlaceVal = document.getElementById('birth-place').value.trim();
 
-        if (!name || !dob || !birthPlaceVal) {
+        if (!currentName || !currentDob || !birthPlaceVal) {
             alert("Please enter your Name, Date of Birth, and Place of Birth to reveal your fortune!");
             return;
         }
+
+        // Update the closure variables
+        name = currentName;
+        dob = currentDob;
 
         // UI Loading State
         revealBtn.disabled = true;
@@ -499,9 +567,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // 2. Determine "Current" Location for Weather
-            let currentLat = birthLocation ? birthLocation.lat : null;
-            let currentLon = birthLocation ? birthLocation.lon : null;
+            // 2. Geocode Current Location (for weather/cosmic signals)
+            const currentLocationInput = document.getElementById('current-location');
+            const currentLocationVal = currentLocationInput ? currentLocationInput.value.trim() : null;
+            let currentLocation = null;
+
+            if (currentLocationVal) {
+                currentLocation = await geocodeCity(currentLocationVal);
+                if (!currentLocation) {
+                    alert("Could not find current location '" + currentLocationVal + "'. Please validate the city and country name (e.g. Dallas, USA).");
+                    revealBtn.disabled = false;
+                    revealBtn.classList.remove('loading');
+                    btnText.style.display = 'inline-block';
+                    return;
+                }
+            }
+
+            // Use current location if provided, otherwise fall back to birth location
+            let currentLat = currentLocation ? currentLocation.lat : (birthLocation ? birthLocation.lat : null);
+            let currentLon = currentLocation ? currentLocation.lon : (birthLocation ? birthLocation.lon : null);
 
             // Update request
             const requestData = {
@@ -534,6 +618,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Process Luck Response
             const percentage = response.luck_score || 0;
             const explanation = response.explanation || "The stars are silent today...";
+
+            // Store for Lottery View
+            window.currentLuckScore = percentage;
 
             // Display Zodiac
             displayZodiacResult();
@@ -573,16 +660,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('forecast-flip-card').style.display = 'none';
             }
 
-            // Render Powerball Numbers
-            renderPowerball(response.personal_powerball, response.daily_powerballs);
+            // Render Powerball Numbers (Moved to dedicated view)
+            // renderPowerball(response.personal_powerball, response.daily_powerballs);
 
             // Switch Views
             inputView.classList.remove('active');
             if (dashboardView) dashboardView.classList.remove('active');
             resultView.classList.add('active');
-            history.pushState({ view: 'result' }, 'Result', '#result');
+            history.pushState({ view: 'guest-daily-luck-result' }, 'Guest Daily Luck Result', '#guest-daily-luck-result');
 
-            // Hide User Menu on Result Page (Focus on Result)
+            // Hide User Menu on Guest Result Page
             const userMenuContainer = document.getElementById('user-menu-container');
             if (userMenuContainer) userMenuContainer.style.display = 'none';
 
@@ -708,6 +795,251 @@ document.addEventListener('DOMContentLoaded', () => {
             if (modalName === 'astro-insights') {
                 loadAstroInsights();
             }
+
+            // Special handling for Comparison modal - analyze combos against history
+            if (modalName === 'comparison') {
+                loadComparisonAnalysis();
+            }
+        }
+    };
+
+    // Load comparison analysis - fetch history and analyze all combos
+    async function loadComparisonAnalysis() {
+        const combosDiv = document.getElementById('comparison-all-combos');
+        if (!combosDiv) return;
+
+        combosDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;"><span style="font-size: 1.5rem;">⏳</span><p style="margin: 8px 0 0 0; font-size: 0.85rem;">Analyzing your numbers...</p></div>';
+
+        try {
+            // Fetch historical drawings from cached backend API (last 100 drawings)
+            const response = await fetch(window.celestialAPI.baseURL + '/api/luck/lottery/history?limit=100');
+            const result = await response.json();
+            const historicalDrawings = result.drawings || [];
+
+            // Get user's generated numbers
+            const cachedData = localStorage.getItem('lastLotteryData');
+            if (!cachedData) {
+                combosDiv.innerHTML = '<div style="text-align: center; padding: 30px; color: #666;"><span style="font-size: 2rem;">🎲</span><p style="margin: 12px 0 0 0;">Generate your lucky numbers first!</p></div>';
+                return;
+            }
+
+            const data = JSON.parse(cachedData);
+            const allCombos = [];
+
+            // Add personal numbers
+            if (data.personal_powerball) {
+                allCombos.push({
+                    type: 'personal',
+                    label: '✨ Personal Numbers',
+                    white_balls: data.personal_powerball.white_balls,
+                    powerball: data.personal_powerball.powerball
+                });
+            }
+
+            // Add daily combos
+            (data.daily_powerballs || []).forEach((combo, idx) => {
+                allCombos.push({
+                    type: 'daily',
+                    label: `#${idx + 1} Daily Combo`,
+                    white_balls: combo.white_balls,
+                    powerball: combo.powerball
+                });
+            });
+
+            if (allCombos.length === 0) {
+                combosDiv.innerHTML = '<div style="text-align: center; padding: 30px; color: #666;"><span style="font-size: 2rem;">🎲</span><p style="margin: 12px 0 0 0;">No combinations generated yet.</p></div>';
+                return;
+            }
+
+            // Analyze each combo against historical drawings
+            let totalMatches = 0;
+            let bestComboMatches = 0;
+            let bestComboLabel = '';
+            let combosWithMatches = 0;
+
+            let html = '';
+
+            allCombos.forEach(combo => {
+                // Find all matches with historical drawings
+                let comboTotalMatches = 0;
+                let matchingDraws = [];
+
+                // Track how many times each number matched
+                const numberMatchCounts = {};
+                combo.white_balls.forEach(n => numberMatchCounts[n] = 0);
+                numberMatchCounts['pb_' + combo.powerball] = 0;
+
+                historicalDrawings.forEach(draw => {
+                    const whiteMatches = combo.white_balls.filter(n => draw.white_balls.includes(n));
+                    const pbMatch = combo.powerball === draw.powerball;
+                    const matchCount = whiteMatches.length + (pbMatch ? 1 : 0);
+
+                    // Count individual number matches
+                    whiteMatches.forEach(n => numberMatchCounts[n]++);
+                    if (pbMatch) numberMatchCounts['pb_' + combo.powerball]++;
+
+                    if (matchCount > 0) {
+                        comboTotalMatches += matchCount;
+                        matchingDraws.push({
+                            date: draw.date,
+                            matches: matchCount,
+                            whiteMatches,
+                            pbMatch
+                        });
+                    }
+                });
+
+                totalMatches += comboTotalMatches;
+                if (comboTotalMatches > 0) combosWithMatches++;
+                if (comboTotalMatches > bestComboMatches) {
+                    bestComboMatches = comboTotalMatches;
+                    bestComboLabel = combo.label;
+                }
+
+                // Build HTML for this combo
+                const isPersonal = combo.type === 'personal';
+                html += `
+                    <div style="padding: 16px; border-bottom: 2px solid #eee; ${isPersonal ? 'background: rgba(99, 102, 241, 0.05);' : ''}">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-weight: 700; font-size: 0.85rem; color: ${isPersonal ? '#6366f1' : 'var(--deep-purple)'};">${combo.label}</span>
+                            <span style="background: ${comboTotalMatches >= 10 ? '#22c55e' : comboTotalMatches >= 5 ? '#fbbf24' : '#e5e7eb'}; color: ${comboTotalMatches >= 5 ? 'white' : '#666'}; padding: 4px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600;">
+                                ${comboTotalMatches} total hits
+                            </span>
+                        </div>
+                        <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px;">
+                            ${combo.white_balls.map(num => {
+                    const matchCount = numberMatchCounts[num];
+                    const isHot = matchCount > 0;
+                    return `<div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: ${isHot ? '#22c55e' : 'white'}; border: 2px solid ${isHot ? '#22c55e' : 'var(--deep-purple)'}; border-radius: 50%; font-weight: 700; font-size: 0.85rem; color: ${isHot ? 'white' : 'var(--deep-purple)'};">${num}</span>
+                                    ${matchCount > 1 ? `<span style="font-size: 0.6rem; color: #22c55e; font-weight: 600;">×${matchCount}</span>` : matchCount === 1 ? `<span style="font-size: 0.6rem; color: #888;">×1</span>` : ''}
+                                </div>`;
+                }).join('')}
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                                <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: ${numberMatchCounts['pb_' + combo.powerball] > 0 ? '#22c55e' : 'linear-gradient(135deg, #FF5252, #D32F2F)'}; border-radius: 50%; font-weight: 700; font-size: 0.85rem; color: white;">${combo.powerball}</span>
+                                ${numberMatchCounts['pb_' + combo.powerball] > 1 ? `<span style="font-size: 0.6rem; color: #22c55e; font-weight: 600;">×${numberMatchCounts['pb_' + combo.powerball]}</span>` : numberMatchCounts['pb_' + combo.powerball] === 1 ? `<span style="font-size: 0.6rem; color: #888;">×1</span>` : ''}
+                            </div>
+                        </div>
+                        ${matchingDraws.length > 0 ? `
+                            <div style="font-size: 0.7rem; color: #666; text-align: center;">
+                                Matched in ${matchingDraws.length} of 100 drawings
+                            </div>
+                        ` : '<div style="font-size: 0.7rem; color: #999; text-align: center;">No matches in 100 drawings</div>'}
+                    </div>
+                `;
+            });
+
+            combosDiv.innerHTML = html;
+
+            // Update statistics card - hit rate = % of drawings with at least 1 match
+            const drawingsWithAnyMatch = new Set();
+            allCombos.forEach(combo => {
+                historicalDrawings.forEach((draw, idx) => {
+                    const hasMatch = combo.white_balls.some(n => draw.white_balls.includes(n)) || combo.powerball === draw.powerball;
+                    if (hasMatch) drawingsWithAnyMatch.add(idx);
+                });
+            });
+            const hitRate = historicalDrawings.length > 0 ? Math.round((drawingsWithAnyMatch.size / historicalDrawings.length) * 100) : 0;
+
+            document.getElementById('stat-total-matches').textContent = totalMatches;
+            document.getElementById('stat-best-line').textContent = bestComboMatches > 0 ? bestComboMatches : '--';
+            document.getElementById('stat-match-rate').textContent = `${hitRate}%`;
+
+            // Update trust badge
+            const trustBadge = document.getElementById('trust-badge');
+            if (hitRate >= 80) {
+                trustBadge.textContent = '🔥 Strong Alignment';
+                trustBadge.style.background = 'rgba(34, 197, 94, 0.4)';
+            } else if (hitRate >= 50) {
+                trustBadge.textContent = '✨ Good Patterns';
+                trustBadge.style.background = 'rgba(251, 191, 36, 0.4)';
+            } else {
+                trustBadge.textContent = '📊 Analyzed';
+                trustBadge.style.background = 'rgba(255,255,255,0.2)';
+            }
+
+        } catch (error) {
+            console.error('Failed to load comparison analysis:', error);
+            combosDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc2626;"><span style="font-size: 1.5rem;">⚠️</span><p style="margin: 8px 0 0 0; font-size: 0.85rem;">Failed to analyze. Try again.</p></div>';
+        }
+    }
+
+    // Load Historical Powerball Drawings (Using Cached Backend API)
+    window.loadHistoricalDrawings = async function () {
+        const listDiv = document.getElementById('historical-drawings-list');
+        if (!listDiv) return;
+
+        listDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;"><span style="font-size: 1.5rem;">⏳</span><p style="margin: 8px 0 0 0; font-size: 0.85rem;">Loading recent drawings...</p></div>';
+
+        try {
+            // Fetch from our cached backend API (refreshes only after new drawings)
+            const response = await fetch(window.celestialAPI.baseURL + '/api/luck/lottery/history?limit=20');
+            const result = await response.json();
+            const drawings = result.drawings || [];
+
+            // Get user's personal numbers for comparison
+            const cachedData = localStorage.getItem('lastLotteryData');
+            let userNumbers = [];
+            let userPowerball = null;
+
+            if (cachedData) {
+                const data = JSON.parse(cachedData);
+                if (data.personal_powerball) {
+                    userNumbers = data.personal_powerball.white_balls || [];
+                    userPowerball = data.personal_powerball.powerball;
+                }
+            }
+
+            let html = '';
+
+            // Show cache status
+            if (result.cached) {
+                html += `<div style="padding: 8px 12px; background: rgba(99, 102, 241, 0.1); border-radius: 8px; margin-bottom: 12px; font-size: 0.75rem; color: #6366f1;">
+                    💾 Using cached data • Next refresh: ${new Date(result.next_refresh).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                </div>`;
+            }
+
+            drawings.forEach(draw => {
+                const dateStr = new Date(draw.date).toLocaleDateString('en-US', {
+                    weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
+                });
+                const whiteBalls = draw.white_balls;
+                const powerball = draw.powerball;
+
+                // Count matches
+                let matchCount = 0;
+                const matchedBalls = whiteBalls.map(num => {
+                    const isMatch = userNumbers.includes(num);
+                    if (isMatch) matchCount++;
+                    return { num, isMatch };
+                });
+                const pbMatch = powerball === userPowerball;
+                if (pbMatch) matchCount++;
+
+                html += `
+                    <div style="padding: 12px; border-bottom: 1px solid #eee; ${matchCount > 0 ? 'background: rgba(34, 197, 94, 0.05);' : ''}">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 0.75rem; color: #666;">${dateStr}</span>
+                            ${matchCount > 0 ? `<span style="background: #22c55e; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 600;">${matchCount} match${matchCount > 1 ? 'es' : ''}</span>` : ''}
+                        </div>
+                        <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
+                            ${matchedBalls.map(b => `
+                                <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; font-weight: 600; font-size: 0.7rem; ${b.isMatch ? 'background: #22c55e; color: white;' : 'background: #f3f4f6; color: #374151;'}">${b.num}</span>
+                            `).join('')}
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; font-weight: 600; font-size: 0.7rem; ${pbMatch ? 'background: #22c55e; color: white;' : 'background: linear-gradient(135deg, #FF5252, #D32F2F); color: white;'}">${powerball}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            listDiv.innerHTML = html || '<p style="text-align: center; color: #666;">No drawings found</p>';
+
+            // Calculate and update smart statistics
+            updateComparisonStats(drawings);
+
+        } catch (error) {
+            console.error('Failed to load historical drawings:', error);
+            listDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc2626;"><span style="font-size: 1.5rem;">⚠️</span><p style="margin: 8px 0 0 0; font-size: 0.85rem;">Failed to load drawings. Try again.</p></div>';
         }
     };
 
@@ -866,15 +1198,22 @@ document.addEventListener('DOMContentLoaded', () => {
         // Store for QR Generation
         window.currentPowerballData = { personal: personalPB, daily: dailyPBs };
 
+        // Save to localStorage for comparison modal
+        localStorage.setItem('lastLotteryData', JSON.stringify({
+            personal_powerball: personalPB,
+            daily_powerballs: dailyPBs,
+            generated_at: new Date().toISOString()
+        }));
+
         const powerballBtn = document.getElementById('powerball-btn');
 
         // Only show if we have powerball data
         if (!personalPB && (!dailyPBs || dailyPBs.length === 0)) {
-            powerballBtn.style.display = 'none';
+            if (powerballBtn) powerballBtn.style.display = 'none';
             return;
         }
 
-        powerballBtn.style.display = 'flex';
+        if (powerballBtn) powerballBtn.style.display = 'flex';
 
         // Helper function to create a ball element
         function createBall(number, isRed = false) {
@@ -1002,6 +1341,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
+    window.renderPowerball = renderPowerball;
 
     function renderForecast(data) {
         const card = document.getElementById('forecast-flip-card');
@@ -1106,31 +1446,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Handle Browser Back/Forward
     window.addEventListener('popstate', (event) => {
-        if (!event.state || event.state.view !== 'result') {
-            // If popping back to non-result state, restore dashboard
-            if (resultView.classList.contains('active')) {
-                restoreDashboardUI();
+        const hash = window.location.hash;
+
+        // Hide all views first
+        document.querySelectorAll('.view').forEach(v => {
+            v.style.display = 'none';
+            v.classList.remove('active');
+        });
+
+        // Show the correct view based on hash
+        if (hash === '#daily-luck-result') {
+            const dailyLuckView = document.getElementById('daily-luck-result-view');
+            if (dailyLuckView) {
+                dailyLuckView.style.display = 'block';
+                dailyLuckView.classList.add('active');
             }
-        } else {
-            // User went FORWARD to result? (Optional: Restore Result UI if implicit)
-            // For now, we assume DOM is persistent. 
-            // If we needed to re-show result:
-            inputView.classList.remove('active');
-            if (dashboardView) dashboardView.classList.remove('active');
-            resultView.classList.add('active');
             const userMenuContainer = document.getElementById('user-menu-container');
-            if (userMenuContainer) userMenuContainer.style.display = 'none';
+            if (userMenuContainer) userMenuContainer.style.display = 'flex';
+        } else if (hash === '#guest-daily-luck-result') {
+            const dailyLuckView = document.getElementById('daily-luck-result-view');
+            if (dailyLuckView) {
+                dailyLuckView.style.display = 'block';
+                dailyLuckView.classList.add('active');
+            }
+            // Guest result - no user menu
+        } else if (hash === '#lucky-number-result') {
+            const lotteryResultView = document.getElementById('lottery-result-view');
+            if (lotteryResultView) {
+                lotteryResultView.style.display = 'block';
+                lotteryResultView.classList.add('active');
+            }
+            const userMenuContainer = document.getElementById('user-menu-container');
+            if (userMenuContainer) userMenuContainer.style.display = 'flex';
+        } else if (hash === '#guest') {
+            const inputView = document.getElementById('input-view');
+            if (inputView) {
+                inputView.style.display = 'block';
+                inputView.classList.add('active');
+            }
+            // Guest flow - no user menu
+        } else {
+            // Default to dashboard
+            const dashboardView = document.getElementById('dashboard-view');
+            if (dashboardView) {
+                dashboardView.style.display = 'block';
+                dashboardView.classList.add('active');
+            }
+            const userMenuContainer = document.getElementById('user-menu-container');
+            if (userMenuContainer) userMenuContainer.style.display = 'flex';
         }
     });
 
-    // 3. Update Back/TryAgain Buttons to use History
+    // 3. Update Back/TryAgain Buttons to use smart goBack
     const handleManualBack = () => {
-        if (history.state && history.state.view === 'result') {
-            history.back();
-        } else {
-            // Fallback if no history state (e.g. direct land)
-            restoreDashboardUI();
-        }
+        window.goBack();
     };
 
     if (backBtn) backBtn.addEventListener('click', handleManualBack);
@@ -1162,41 +1531,8 @@ document.addEventListener('DOMContentLoaded', () => {
             pbGenBtn.disabled = true;
 
             try {
-                // Construct request data from current inputs
-                // Note: We access the DOM elements directly here to ensure freshness
-                const nInput = document.getElementById('name');
-                const dInput = document.getElementById('dob');
-                const tInput = document.getElementById('birth-time');
-                const pInput = document.getElementById('birth-place');
-                const tCheck = document.getElementById('tob-na'); // Checkbox
-
-                // Calculate current location (if available in global scope or re-fetch?)
-                // For now use defaults or stored values if available
-                let lat = null, lon = null;
-                // Try to find cached location from previous run?
-                // Alternatively, we can just omit current location as it's less critical for powerball strictly
-                // Or we can try to re-use the 'birthLocation' variable if it's in scope.
-                // 'birthLocation' is likely defined in the scope of 'revealBtn' listener, not here.
-                // So we'll have to rely on what we can get.
-
-                // Let's re-use the values from the input fields
-                const requestData = {
-                    uid: localStorage.getItem('currentUser') ? JSON.parse(localStorage.getItem('currentUser')).uid : "guest",
-                    name: nInput ? nInput.value : "User",
-                    dob: dInput ? dInput.value : new Date().toISOString().split('T')[0],
-                    birth_time: (tCheck && tCheck.checked) ? "12:00" : (tInput ? tInput.value : "12:00"),
-                    birth_place_name: pInput ? pInput.value : null,
-                    // If we don't have lat/lon, the backend might approximate or skip
-                    birth_lat: null,
-                    birth_lon: null,
-                    powerball_count: count
-                };
-
-                const response = await api.calculateLuck(requestData);
-
-                // Update only the powerball list
-                renderPowerball(response.personal_powerball, response.daily_powerballs);
-
+                // Force refresh to generate NEW numbers (bypass 1-hour cache)
+                await window.fetchLotteryNumbers(count, true);
             } catch (error) {
                 console.error("Refresh Error:", error);
                 alert("Failed to refresh numbers.");
@@ -1530,6 +1866,191 @@ document.addEventListener('DOMContentLoaded', () => {
 
         });
     }
+    // --- Edit Profile Logic ---
+    const openEditBtn = document.getElementById('open-edit-profile-btn');
+    const editModal = document.getElementById('edit-modal');
+    const saveProfileBtn = document.getElementById('save-profile-btn');
+
+    // Edit Modal Elements
+    const editTobNaCheckbox = document.getElementById('edit-tob-na-checkbox');
+    const editTimeContainer = document.getElementById('edit-time-container');
+    const editTobNaMessage = document.getElementById('edit-tob-na-message');
+    const editTimeInput = document.getElementById('edit-time');
+
+    // Toggle Edit "Don't Know" Logic
+    if (editTobNaCheckbox) {
+        editTobNaCheckbox.addEventListener('change', (e) => {
+            const isChecked = e.target.checked;
+            if (isChecked) {
+                editTimeContainer.style.display = 'none';
+                editTobNaMessage.style.display = 'block';
+                editTimeInput.value = '';
+            } else {
+                editTimeContainer.style.display = 'block';
+                editTobNaMessage.style.display = 'none';
+            }
+        });
+    }
+
+    if (openEditBtn) {
+        openEditBtn.addEventListener('click', () => {
+            const userStr = localStorage.getItem('currentUser');
+            if (!userStr) return;
+            const user = JSON.parse(userStr);
+
+            document.getElementById('edit-firstname').value = user.firstName || "";
+            document.getElementById('edit-middlename').value = user.middleName || "";
+            document.getElementById('edit-lastname').value = user.lastName || "";
+
+            // Phone Populate
+            const fullPhone = user.phoneNumber || "";
+            const spaceIdx = fullPhone.indexOf(' ');
+            const codeEl = document.getElementById('edit-country-code');
+            const phoneEl = document.getElementById('edit-phone');
+
+            if (spaceIdx > 0 && fullPhone.startsWith('+')) {
+                if (codeEl) codeEl.value = fullPhone.substring(0, spaceIdx);
+                if (phoneEl) phoneEl.value = fullPhone.substring(spaceIdx + 1);
+            } else {
+                if (phoneEl) phoneEl.value = fullPhone;
+            }
+
+            document.getElementById('edit-dob').value = user.dob || "";
+            document.getElementById('edit-place').value = user.birth_place || "";
+
+            // Smart Time Populate
+            if (user.birth_time) {
+                editTimeInput.value = user.birth_time;
+                if (editTobNaCheckbox) editTobNaCheckbox.checked = false;
+                if (editTimeContainer) editTimeContainer.style.display = 'block';
+                if (editTobNaMessage) editTobNaMessage.style.display = 'none';
+            } else {
+                editTimeInput.value = '';
+                if (editTobNaCheckbox) editTobNaCheckbox.checked = true;
+                if (editTimeContainer) editTimeContainer.style.display = 'none';
+                if (editTobNaMessage) editTobNaMessage.style.display = 'block';
+            }
+
+            // Current Location
+            const editCurrentLocation = document.getElementById('edit-current-location');
+            if (editCurrentLocation) {
+                editCurrentLocation.value = user.current_location || user.birth_place || '';
+            }
+
+            if (editModal) editModal.style.display = 'flex';
+        });
+    }
+
+    // Toggle Edit Location Info
+    const editLocationInfoBtn = document.getElementById('edit-location-info-btn');
+    const editLocationExplainer = document.getElementById('edit-location-explainer');
+    if (editLocationInfoBtn && editLocationExplainer) {
+        editLocationInfoBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            editLocationExplainer.style.display = editLocationExplainer.style.display === 'none' ? 'block' : 'none';
+        });
+    }
+
+    if (saveProfileBtn) {
+        saveProfileBtn.addEventListener('click', async () => {
+            const userStr = localStorage.getItem('currentUser');
+            if (!userStr) return;
+            const currentUser = JSON.parse(userStr);
+
+            const newFirst = document.getElementById('edit-firstname').value.trim();
+            const newMiddle = document.getElementById('edit-middlename').value.trim();
+            const newLast = document.getElementById('edit-lastname').value.trim();
+
+            const phoneCode = document.getElementById('edit-country-code').value;
+            const phoneNum = document.getElementById('edit-phone').value.trim();
+            const newPhone = phoneNum ? `${phoneCode} ${phoneNum}` : "";
+
+            const newDob = document.getElementById('edit-dob').value;
+            let newTime = document.getElementById('edit-time').value;
+            const newPlace = document.getElementById('edit-place').value.trim();
+            const newCurrentLocation = document.getElementById('edit-current-location')?.value.trim() || '';
+
+            // Respect Checkbox
+            const isNa = document.getElementById('edit-tob-na-checkbox')?.checked;
+            if (isNa) newTime = "";
+
+            if (!newFirst || !newDob) {
+                alert("First Name and Date of Birth are valid required fields.");
+                return;
+            }
+
+            saveProfileBtn.textContent = "Saving...";
+            saveProfileBtn.disabled = true;
+
+            try {
+                // Geocode Current Location if provided
+                let currentCoords = null;
+                if (newCurrentLocation) {
+                    currentCoords = await geocodeCity(newCurrentLocation);
+                    if (!currentCoords) {
+                        alert("Could not find current location '" + newCurrentLocation + "'. Please validate the city and country name.");
+                        saveProfileBtn.textContent = "Save Changes";
+                        saveProfileBtn.disabled = false;
+                        return;
+                    }
+                }
+
+                // Update Firestore
+                const userRef = doc(db, "users", currentUser.uid);
+                const fullName = `${newFirst} ${newMiddle ? newMiddle + ' ' : ''}${newLast}`.trim();
+
+                const updates = {
+                    firstName: newFirst,
+                    middleName: newMiddle,
+                    lastName: newLast,
+                    name: fullName,
+                    phoneNumber: newPhone,
+                    dob: newDob,
+                    birth_time: newTime, // Note: Schema uses 'birth_time'
+                    birth_place: newPlace, // Note: Schema uses 'birth_place'
+                    current_location: newCurrentLocation,
+                    current_lat: currentCoords ? currentCoords.lat : currentUser.current_lat,
+                    current_lon: currentCoords ? currentCoords.lon : currentUser.current_lon
+                };
+
+                await updateDoc(userRef, updates);
+
+                // Update Local Storage
+                const updatedUser = { ...currentUser, ...updates };
+                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+
+                // Update Dashboard UI Immediately
+                const dashName = document.getElementById('dashboard-name-display');
+                const dashDob = document.getElementById('dashboard-dob-display');
+                const dashTime = document.getElementById('dashboard-time-display');
+                const dashPlace = document.getElementById('dashboard-place-display');
+                const dashPhone = document.getElementById('dashboard-phone-display');
+                const dashLocation = document.getElementById('dashboard-location-display');
+                const dashUserHeader = document.getElementById('dashboard-user-name');
+                const greeting = document.getElementById('user-greeting');
+
+                if (dashName) dashName.textContent = fullName;
+                if (dashPhone) dashPhone.textContent = newPhone;
+                if (dashDob) dashDob.textContent = new Date(newDob).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+                if (dashTime) dashTime.textContent = newTime ? newTime : "--";
+                if (dashPlace) dashPlace.textContent = newPlace;
+                if (dashLocation) dashLocation.textContent = newCurrentLocation || "--";
+                if (dashUserHeader) dashUserHeader.textContent = newFirst;
+                if (greeting) greeting.textContent = "Hi, " + newFirst;
+
+                alert("Profile Updated Successfully!");
+                if (editModal) editModal.style.display = 'none';
+
+            } catch (error) {
+                console.error("Update failed:", error);
+                alert("Failed to update profile: " + error.message);
+            } finally {
+                saveProfileBtn.textContent = "Save Changes";
+                saveProfileBtn.disabled = false;
+            }
+        });
+    }
+
 });
 
 // Helper: Haversine Distance (Km)
@@ -1575,6 +2096,26 @@ function getPlanetKeyword(planet) {
     return keywords[planet] || 'cosmic';
 }
 
+// --- Profile Card Collapse Logic ---
+const profileHeader = document.getElementById('profile-card-header');
+if (profileHeader) {
+    profileHeader.addEventListener('click', (e) => {
+        // Don't toggle if edit button was clicked
+        if (e.target.closest('#open-edit-profile-btn')) return;
+
+        const content = document.getElementById('profile-card-content');
+        const arrow = document.getElementById('profile-card-arrow');
+
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            if (arrow) arrow.style.transform = 'rotate(0deg)';
+        } else {
+            content.style.display = 'none';
+            if (arrow) arrow.style.transform = 'rotate(-90deg)';
+        }
+    });
+}
+
 // 4. Cosmic Countdown
 function startCosmicCountdown() {
     const timerEl = document.getElementById('cosmic-countdown');
@@ -1603,7 +2144,440 @@ function startCosmicCountdown() {
     setInterval(update, 1000);
 }
 
-// Start countdown on load (or safely check)
-// We can call this immediately as it looks for element by ID
+// --- Lottery View Logic ---
+// Cache duration: 1 hour (in milliseconds)
+const LOTTERY_CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+
+window.fetchLotteryNumbers = async (count = 5, forceRefresh = false) => {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user) {
+        console.error("No user found for lottery fetch");
+        return;
+    }
+
+    // Check if we have cached lottery data that's still valid (less than 1 hour old)
+    const cachedData = localStorage.getItem('lastLotteryData');
+    if (cachedData && !forceRefresh) {
+        const data = JSON.parse(cachedData);
+        const generatedAt = new Date(data.generated_at);
+        const now = new Date();
+        const ageMs = now - generatedAt;
+
+        if (ageMs < LOTTERY_CACHE_DURATION && data.personal_powerball) {
+            console.log(`📊 Using cached lottery numbers (${Math.round(ageMs / 60000)} min old)`);
+            // Render cached data
+            if (window.renderPowerball) window.renderPowerball(data.personal_powerball, data.daily_powerballs);
+            return;
+        } else {
+            console.log(`🔄 Cache expired (${Math.round(ageMs / 60000)} min old), fetching new numbers...`);
+        }
+    }
+
+    console.log("Fetching Lottery Numbers for:", user.name);
+    // UI Loading
+    const list = document.getElementById('daily-powerballs-list');
+    if (list) list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--deep-purple);">🔮 Decoding Cosmic Numbers...</div>';
+
+    // Prepare Request
+    const req = {
+        name: user.name,
+        dob: user.dob,
+        birth_time: user.birth_time || "12:00",
+        birth_place_name: user.birth_place || "Unknown",
+        birth_lat: user.birth_lat,
+        birth_lon: user.birth_lon,
+        timezone: user.timezone || "UTC",
+        uid: user.uid || "guest",
+        date: new Date().toISOString().split('T')[0],
+        provided_luck_score: window.currentLuckScore, // Ensure consistency
+        powerball_count: count // Add count
+    };
+
+    try {
+        const result = await window.celestialAPI.calculateLottery(req);
+        if (window.renderPowerball) window.renderPowerball(result.personal_powerball, result.daily_powerballs);
+    } catch (e) {
+        console.error("Lottery Fetch Error:", e);
+        if (list) list.innerHTML = '<div style="text-align:center; color:red; padding:20px;">Failed to decode numbers. Try again.</div>';
+    }
+};
+
+// ============================================================================
+// LUCKY NUMBERS CALCULATION (Numerology-based)
+// ============================================================================
+
+function calculateAndDisplayLuckyNumbers() {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user) return;
+
+    const dob = user.dob || '2000-01-01';
+    const name = user.name || 'User';
+
+    // Calculate permanent numbers (based on birth date & name)
+    const lifePathNumber = calculateLifePathNumber(dob);
+    const soulNumber = calculateSoulNumber(name);
+    const destinyNumber = calculateDestinyNumber(name);
+    const masterNumber = calculateMasterNumber(dob, name);
+
+    // Calculate daily lucky numbers (changes each day)
+    const dailyNumbers = calculateDailyLuckyNumbers(dob, name);
+
+    // Update permanent numbers display
+    const permanentDiv = document.getElementById('permanent-lucky-numbers');
+    if (permanentDiv) {
+        permanentDiv.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                <span style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #8b5cf6, #6366f1); border-radius: 50%; font-weight: 700; font-size: 1.1rem; color: white; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);">${lifePathNumber}</span>
+                <span style="font-size: 0.6rem; color: #888;">Life Path</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                <span style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #8b5cf6, #6366f1); border-radius: 50%; font-weight: 700; font-size: 1.1rem; color: white; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);">${soulNumber}</span>
+                <span style="font-size: 0.6rem; color: #888;">Soul</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                <span style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #8b5cf6, #6366f1); border-radius: 50%; font-weight: 700; font-size: 1.1rem; color: white; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);">${destinyNumber}</span>
+                <span style="font-size: 0.6rem; color: #888;">Destiny</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                <span style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #8b5cf6, #6366f1); border-radius: 50%; font-weight: 700; font-size: 1.1rem; color: white; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);">${masterNumber}</span>
+                <span style="font-size: 0.6rem; color: #888;">Master</span>
+            </div>
+        `;
+    }
+
+    // Update daily numbers display
+    const dailyDiv = document.getElementById('daily-lucky-numbers');
+    if (dailyDiv) {
+        dailyDiv.innerHTML = dailyNumbers.map(num => `
+            <span style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 50%; font-weight: 700; font-size: 0.95rem; color: white; box-shadow: 0 3px 10px rgba(251, 191, 36, 0.3);">${num}</span>
+        `).join('');
+    }
+
+    // Update date display
+    const dateSpan = document.getElementById('lucky-numbers-date');
+    if (dateSpan) {
+        dateSpan.textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+}
+
+// Reduce number to single digit (except master numbers 11, 22, 33)
+function reduceToSingleDigit(num, keepMaster = false) {
+    while (num > 9) {
+        if (keepMaster && (num === 11 || num === 22 || num === 33)) return num;
+        num = String(num).split('').reduce((a, b) => a + parseInt(b), 0);
+    }
+    return num;
+}
+
+// Life Path Number: Sum of all birth date digits
+function calculateLifePathNumber(dob) {
+    const digits = dob.replace(/-/g, '').split('').map(Number);
+    const sum = digits.reduce((a, b) => a + b, 0);
+    return reduceToSingleDigit(sum, true);
+}
+
+// Soul Number: Sum of vowels in name
+function calculateSoulNumber(name) {
+    const vowels = 'aeiouAEIOU';
+    const letterValues = { a: 1, e: 5, i: 9, o: 6, u: 3 };
+    let sum = 0;
+    for (const char of name) {
+        if (vowels.includes(char)) {
+            sum += letterValues[char.toLowerCase()] || 0;
+        }
+    }
+    return reduceToSingleDigit(sum) || 1;
+}
+
+// Destiny Number: Sum of consonants in name
+function calculateDestinyNumber(name) {
+    const vowels = 'aeiouAEIOU';
+    let sum = 0;
+    for (const char of name) {
+        if (/[a-zA-Z]/.test(char) && !vowels.includes(char)) {
+            sum += (char.toLowerCase().charCodeAt(0) - 96) % 9 || 9;
+        }
+    }
+    return reduceToSingleDigit(sum) || 1;
+}
+
+// Master Number: Special calculation combining birth and name energy
+function calculateMasterNumber(dob, name) {
+    const lifePathNum = calculateLifePathNumber(dob);
+    const nameSum = name.split('').reduce((sum, char) => {
+        if (/[a-zA-Z]/.test(char)) {
+            return sum + ((char.toLowerCase().charCodeAt(0) - 96) % 9 || 9);
+        }
+        return sum;
+    }, 0);
+    const combined = lifePathNum + reduceToSingleDigit(nameSum);
+    return reduceToSingleDigit(combined, true);
+}
+
+// Daily Lucky Numbers: 4 numbers based on today's date + user's birth energy
+function calculateDailyLuckyNumbers(dob, name) {
+    const today = new Date();
+    const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+    const lifePathNum = calculateLifePathNumber(dob);
+    const nameValue = name.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+
+    // Generate 4 unique numbers between 1-99 based on seed
+    const seed = (dayOfYear * 1000 + lifePathNum * 100 + nameValue) % 10000;
+    const numbers = [];
+    let seedVal = seed;
+
+    while (numbers.length < 4) {
+        seedVal = (seedVal * 9301 + 49297) % 233280; // LCG for pseudo-random
+        const num = (seedVal % 69) + 1; // 1-69 range for Powerball compatibility
+        if (!numbers.includes(num)) {
+            numbers.push(num);
+        }
+    }
+
+    return numbers.sort((a, b) => a - b);
+}
+
+// Handler for Lottery Button Click (with Animation)
+window.handleLotteryClick = async () => {
+    const btn = document.getElementById('lottery-reveal-btn');
+    const btnText = btn ? btn.querySelector('.btn-text') : null;
+
+    if (btn) {
+        btn.disabled = true;
+        btn.classList.add('loading');
+        if (btnText) btnText.style.display = 'none';
+    }
+
+    try {
+        // Fetch lottery numbers
+        await window.fetchLotteryNumbers();
+
+        // Navigate to Lottery Result View
+        document.querySelectorAll('.view').forEach(v => {
+            v.style.display = 'none';
+            v.classList.remove('active');
+        });
+        const lotteryResultView = document.getElementById('lottery-result-view');
+        if (lotteryResultView) {
+            lotteryResultView.style.display = 'block';
+            lotteryResultView.classList.add('active');
+        }
+        history.pushState({ view: 'lucky-number-result' }, 'Lucky Number Result', '#lucky-number-result');
+
+        // Calculate and display lucky numbers
+        calculateAndDisplayLuckyNumbers();
+
+        // Show user menu
+        const userMenuContainer = document.getElementById('user-menu-container');
+        if (userMenuContainer) userMenuContainer.style.display = 'flex';
+
+        // Show global back button
+        const resultBackBtnContainer = document.getElementById('result-back-btn-container');
+        if (resultBackBtnContainer) resultBackBtnContainer.style.display = 'block';
+
+    } catch (error) {
+        console.error("Lottery Click Error:", error);
+        alert("Failed to decode lucky numbers. Please try again.");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('loading');
+            if (btnText) btnText.style.display = 'inline-block';
+        }
+    }
+};
+
+// Toggle Powerball Card
+window.togglePowerballCard = () => {
+    const content = document.getElementById('powerball-content');
+    const arrow = document.getElementById('pb-card-arrow');
+    if (content && arrow) {
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            arrow.textContent = '▲';
+        } else {
+            content.style.display = 'none';
+            arrow.textContent = '▼';
+        }
+    }
+};
+
+
+// === Modal Listeners ===
+
+// Generate Request Button - Event listener is already set in the DOMContentLoaded block above
+// Removed duplicate listener to prevent double API calls
+
+// Retailer Search Logic
+const findRetailersBtn = document.getElementById('find-retailers-btn');
+if (findRetailersBtn) {
+    findRetailersBtn.addEventListener('click', () => {
+        const zip = document.getElementById('retailer-zip').value;
+        const list = document.getElementById('retailer-list');
+        if (!list) return;
+
+        if (!zip) {
+            list.style.padding = '15px';
+            list.innerHTML = '<span style="color:red; font-size:0.8rem;">Please enter a Zip Code</span>';
+            return;
+        }
+
+        // Mock Data
+        list.innerHTML = `
+                <div style="padding: 15px; border-bottom: 1px solid #eee;">
+                     <div style="display:flex; justify-content:space-between;">
+                        <strong>Lucky Market</strong>
+                        <span style="font-size: 0.8rem; color: #666;">1.2 mi</span>
+                     </div>
+                     <div style="font-size:0.75rem; color:#888;">123 Star Ave</div>
+                </div>
+                <div style="padding: 15px; border-bottom: 1px solid #eee;">
+                     <div style="display:flex; justify-content:space-between;">
+                        <strong>Corner Store</strong>
+                        <span style="font-size: 0.8rem; color: #666;">2.5 mi</span>
+                     </div>
+                     <div style="font-size:0.75rem; color:#888;">456 Moon St</div>
+                </div>
+             `;
+    });
+}
+
+// Lottery Home Button
+const lotteryHomeBtn = document.getElementById('lottery-home-btn');
+if (lotteryHomeBtn) {
+    lotteryHomeBtn.addEventListener('click', () => {
+        // Navigate back to dashboard
+        document.querySelectorAll('.view').forEach(v => {
+            v.style.display = 'none';
+            v.classList.remove('active');
+        });
+        const dashboardView = document.getElementById('dashboard-view');
+        if (dashboardView) {
+            dashboardView.style.display = 'block';
+            dashboardView.classList.add('active');
+        }
+        history.pushState({ view: 'dashboard' }, 'Dashboard', '#dashboard');
+    });
+}
+
+// Animate Lottery Percentage (gold ring)
+window.animateLotteryPercentage = (percentage) => {
+    const ring = document.querySelector('.lottery-ring-fill');
+    const percentEl = document.getElementById('lottery-result-percentage');
+    if (!ring || !percentEl) return;
+
+    const circumference = 2 * Math.PI * 90;
+    ring.style.strokeDasharray = circumference;
+    ring.style.strokeDashoffset = circumference;
+    ring.style.stroke = '#f59e0b'; // Gold color
+
+    // Animate ring
+    setTimeout(() => {
+        const offset = circumference - (percentage / 100) * circumference;
+        ring.style.transition = 'stroke-dashoffset 1.5s ease-out';
+        ring.style.strokeDashoffset = offset;
+    }, 100);
+
+    // Animate number
+    let current = 0;
+    const duration = 1500;
+    const step = percentage / (duration / 16);
+    const interval = setInterval(() => {
+        current += step;
+        if (current >= percentage) {
+            current = percentage;
+            clearInterval(interval);
+        }
+        percentEl.textContent = Math.round(current);
+    }, 16);
+};
+
 startCosmicCountdown();
 
+// Global Back Button Handler
+const globalBackBtn = document.getElementById('global-back-btn');
+if (globalBackBtn) {
+    globalBackBtn.addEventListener('click', () => {
+        history.back();
+    });
+}
+
+// Global function to navigate to dashboard
+window.goToDashboard = function () {
+    // Hide all views
+    document.querySelectorAll('.view').forEach(v => {
+        v.style.display = 'none';
+        v.classList.remove('active');
+    });
+
+    // Show dashboard
+    const dashboardView = document.getElementById('dashboard-view');
+    if (dashboardView) {
+        dashboardView.style.display = 'block';
+        dashboardView.classList.add('active');
+    }
+
+    // Show user menu
+    const userMenuContainer = document.getElementById('user-menu-container');
+    if (userMenuContainer) userMenuContainer.style.display = 'flex';
+
+    // Update URL
+    history.pushState({ view: 'dashboard' }, 'Dashboard', '#dashboard');
+};
+
+// Global function to navigate to guest input
+window.goToGuestInput = function () {
+    // Hide all views
+    document.querySelectorAll('.view').forEach(v => {
+        v.style.display = 'none';
+        v.classList.remove('active');
+    });
+
+    // Show guest input view
+    const inputView = document.getElementById('input-view');
+    if (inputView) {
+        inputView.style.display = 'block';
+        inputView.classList.add('active');
+    }
+
+    // Clear guest session data and form fields
+    sessionStorage.removeItem('guestSession');
+
+    const nameInput = document.getElementById('name');
+    const dobInput = document.getElementById('dob');
+    const placeInput = document.getElementById('birth-place');
+    const timeInput = document.getElementById('birth-time');
+    const tobCheckbox = document.getElementById('tob-na-checkbox');
+    const timeContainer = document.getElementById('time-inputs-container');
+    const naMessage = document.getElementById('tob-na-message');
+
+    if (nameInput) nameInput.value = '';
+    if (dobInput) dobInput.value = '';
+    if (placeInput) placeInput.value = '';
+    if (timeInput) timeInput.value = '';
+    if (tobCheckbox) tobCheckbox.checked = false;
+    if (timeContainer) timeContainer.style.display = 'block';
+    if (naMessage) naMessage.style.display = 'none';
+
+    // Hide user menu (guest flow)
+    const userMenuContainer = document.getElementById('user-menu-container');
+    if (userMenuContainer) userMenuContainer.style.display = 'none';
+
+    // Update URL
+    history.pushState({ view: 'guest' }, 'Guest', '#guest');
+};
+
+// Smart back function - checks if guest or logged in
+window.goBack = function () {
+    const hash = window.location.hash;
+    if (hash === '#guest-daily-luck-result') {
+        window.goToGuestInput();
+    } else {
+        window.goToDashboard();
+    }
+};
+
+// Show signup prompt for guest users trying to access lucky numbers
+window.showSignupPrompt = function () {
+    openModal('signup-prompt');
+};

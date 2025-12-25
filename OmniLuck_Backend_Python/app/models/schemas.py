@@ -119,6 +119,9 @@ class LuckCalculationRequest(BaseModel):
     current_lat: Optional[float] = None
     current_lon: Optional[float] = None
     date: Optional[str] = None  # Defaults to today
+    provided_luck_score: Optional[int] = Field(None, description="Pre-calculated luck score for consistency")
+    powerball_count: Optional[int] = Field(5, ge=1, le=50, description="Number of Powerball lines to generate")
+
 
 
 class LuckComponents(BaseModel):
@@ -137,6 +140,12 @@ class PowerballNumbers(BaseModel):
     powerball: int = Field(..., description="Red powerball (1-26)")
     type: str = Field(..., description="'personal' or 'daily'")
     index: Optional[int] = Field(None, description="For daily numbers, which combo (1-10)")
+
+
+class LotteryResponse(BaseModel):
+    """Response for lottery numbers endpoint"""
+    personal_powerball: Optional[PowerballNumbers] = Field(None, description="User's personal lucky powerball")
+    daily_powerballs: List[PowerballNumbers] = Field(default_factory=list, description="10 daily powerball combinations")
 
 
 class LuckCalculationResponse(BaseModel):
