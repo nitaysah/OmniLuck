@@ -93,4 +93,4 @@ watchfiles==1.1.1
 websockets==15.0.1
 yarl==1.22.0
 sendgrid==6.11.0
-timezonefinder==6.6.2
+timezonefinder~=6.0
