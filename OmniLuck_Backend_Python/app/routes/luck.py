@@ -45,9 +45,14 @@ async def calculate_luck(request: LuckCalculationRequest):
         if request.birth_lat and request.birth_lon:
             try:
                 # Infer timezone from birth coordinates
-                from timezonefinder import TimezoneFinder
-                tf = TimezoneFinder()
-                birth_timezone = tf.timezone_at(lat=request.birth_lat, lng=request.birth_lon)
+                try:
+                    from timezonefinder import TimezoneFinder
+                    tf = TimezoneFinder()
+                    birth_timezone = tf.timezone_at(lat=request.birth_lat, lng=request.birth_lon)
+                except Exception as e:
+                    print(f"⚠️ Timezone detection failed (fallback to UTC): {e}")
+                    birth_timezone = "UTC"
+                
                 if not birth_timezone:
                     birth_timezone = "UTC"  # Fallback
                 print(f"📍 Birth timezone inferred: {birth_timezone}")
@@ -243,7 +248,6 @@ async def calculate_lottery(request: LuckCalculationRequest):
         birth_time = request.birth_time or "12:00"
         
         if request.birth_lat and request.birth_lon:
-            try:
                 # Infer timezone from birth coordinates
                 from timezonefinder import TimezoneFinder
                 tf = TimezoneFinder()
@@ -426,9 +430,15 @@ async def get_forecast(request: LuckCalculationRequest):
     birth_time = request.birth_time or "12:00"
 
     # Infer timezone from birth coordinates
+    # Infer timezone from birth coordinates
     from timezonefinder import TimezoneFinder
     tf = TimezoneFinder()
     birth_timezone = tf.timezone_at(lat=request.birth_lat, lng=request.birth_lon)
+    if not birth_timezone:
+        birth_timezone = request.timezone or "UTC"
+    
+    if not birth_timezone:
+        birth_timezone = request.timezone or "UTC"
     if not birth_timezone:
         birth_timezone = request.timezone or "UTC"
 
