@@ -52,4 +52,5 @@ jobs:
             OPENWEATHER_API_KEY=${{ secrets.OPENWEATHER_API_KEY }}
             GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
             GEMINI_API_KEY=${{ secrets.GOOGLE_GENAI_API_KEY }}
+            GOOGLE_API_KEY=${{ secrets.GOOGLE_GENAI_API_KEY }}
             ENVIRONMENT=production
