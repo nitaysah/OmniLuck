@@ -15,9 +15,8 @@ class LLMService:
     
     def __init__(self):
         self.use_local = settings.USE_LOCAL_LLM
-        # Try Settings first, falback to direct Environment Variables
-        self.gemini_key = settings.GEMINI_API_KEY or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-        self.groq_key = settings.GROQ_API_KEY or os.environ.get("GROQ_API_KEY")
+        self.gemini_key = settings.GEMINI_API_KEY
+        self.groq_key = settings.GROQ_API_KEY
         self.gemini_client = None
         self.gemini_model_id = None
         self.groq_client = None
@@ -295,7 +294,7 @@ Fortune message:"""
                 contents=prompt,
                 config={
                     "temperature": 0.7,
-                    "max_output_tokens": 4000,
+                    "max_output_tokens": 1500,
                 }
             )
             else:
@@ -428,7 +427,7 @@ Fortune message:"""
         3. ENVIRONMENT: Moon: {lunar_phase}, Weather: {weather}
 
         **TASK:**
-        1. Explain the User's Fortune based on the overlapping Numerology and Astrology data.
+        1. Explain the User's Fortune based on the overlapping Numerology and Astrology data (Concise).
         2. Specifically, compare their Personal Day Number ({numero.get('personal_day_number') if numero else '?'}) with the Transit info.
         3. Create a unique "Luck Archetype" title for them today (e.g. "The Empire Builder", "The Mystic").
         4. Develop a "Strategy" to resolve any conflict between their Numbers (Internal) and Transits (External).
@@ -437,11 +436,11 @@ Fortune message:"""
         Output ONLY valid JSON:
         {{
             "score": <integer 0-100 (Suggestion based on explanation)>,
-            "caption": "<short headline>",
-            "summary": "<simple explanation of why numbers+stars matter today>",
-            "explanation": "<detailed reading blending the Life Path and Transits>",
+            "caption": "<short headline (max 5 words)>",
+            "summary": "<simple explanation (1 sentence)>",
+            "explanation": "<reading blending the Life Path and Transits (max 3 sentences)>",
             "archetype": "<Today's Persona Title>",
-            "strategy": "<Strategic advice paragraph for handling conflicting energies>",
+            "strategy": "<Strategic advice (max 2 sentences)>",
             "schedule": ["<Time Block 1>", "<Time Block 2>"],
             "actions": ["<action 1>", "<action 2>", "<action 3>"]
         }}

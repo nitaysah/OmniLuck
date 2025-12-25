@@ -1,0 +1,15 @@
+name: Keep Backend Alive
+
+on:
+  schedule:
+    - cron: '*/14 * * * *'  # Runs every 14 minutes to prevent Render/Cloud Run from sleeping
+
+jobs:
+  ping_backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake up the backend
+        run: |
+          echo "Pinging backend to keep it warm..."
+          curl -I https://omniluck.onrender.com/health
+          echo "Ping complete."
