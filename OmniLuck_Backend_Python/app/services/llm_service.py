@@ -15,8 +15,9 @@ class LLMService:
     
     def __init__(self):
         self.use_local = settings.USE_LOCAL_LLM
-        self.gemini_key = settings.GEMINI_API_KEY
-        self.groq_key = settings.GROQ_API_KEY
+        # Try Settings first, falback to direct Environment Variables
+        self.gemini_key = settings.GEMINI_API_KEY or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+        self.groq_key = settings.GROQ_API_KEY or os.environ.get("GROQ_API_KEY")
         self.gemini_client = None
         self.gemini_model_id = None
         self.groq_client = None
