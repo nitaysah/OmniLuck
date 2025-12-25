@@ -282,9 +282,10 @@ Fortune message:"""
         try:
             import json
 
-            
-            # Use SDK to generate content
-            response = self.gemini_client.models.generate_content(
+            # Try Gemini first if available
+            if self.gemini_client:
+                # Use SDK to generate content
+                response = self.gemini_client.models.generate_content(
                 model=self.gemini_model_id,
                 contents=prompt,
                 config={
@@ -292,6 +293,8 @@ Fortune message:"""
                     "max_output_tokens": 4000,
                 }
             )
+            else:
+                raise ValueError("Gemini client not initialized")
             
             text_response = response.text
             if not text_response:
