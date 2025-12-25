@@ -25,6 +25,10 @@ class LLMService:
         self._response_cache = {}
         
         print(f"🔧 LLM Service: use_local={self.use_local}, has_gemini={bool(self.gemini_key)}, has_groq={bool(self.groq_key)}")
+        
+        # DEBUG: Print environment keys to verify injection
+        import os
+        print(f"🔍 Environment Keys Available: {[k for k in os.environ.keys() if 'KEY' in k or 'GEMINI' in k]}")
 
         if not self.use_local:
             # Initialize Gemini
