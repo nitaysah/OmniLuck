@@ -2,14 +2,23 @@ name: Keep Backend Alive
 
 on:
   schedule:
-    - cron: '*/14 * * * *'  # Runs every 14 minutes to prevent Render/Cloud Run from sleeping
+    - cron: '*/10 * * * *'  # Runs every 10 minutes to prevent Cloud Run sleep
+  workflow_dispatch:        # allows manual runs for testing
 
 jobs:
   ping_backend:
     runs-on: ubuntu-latest
     steps:
+      - name: Show runner time (UTC)
+        run: date -u
+
       - name: Wake up the backend
         run: |
           echo "Pinging backend to keep it warm..."
-          curl -I https://omniluck-backend-134332367848.us-central1.run.app/health
+          # Use a short timeout and print status code for debugging
+          status=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 10 "https://omniluck-backend-134332367848.us-central1.run.app/health" || echo "000")
+          echo "HTTP status: $status"
+          # Print response headers/body for a quick debug if helpful (uncomment if needed)
+          # curl -v --max-time 10 "https://omniluck-backend-134332367848.us-central1.run.app/health" || true
           echo "Ping complete."
+        continue-on-error: true
