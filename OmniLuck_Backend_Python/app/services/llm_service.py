@@ -286,10 +286,56 @@ Fortune message:"""
         try:
             import json
 
-            # --- GROQ PRIMARY (For Speed Testing) ---
+            # Try Gemini first if available
+            if self.gemini_client:
+                # Use SDK to generate content
+                response = self.gemini_client.models.generate_content(
+                model=self.gemini_model_id,
+                contents=prompt,
+                config={
+                    "temperature": 0.7,
+                    "max_output_tokens": 4000,
+                }
+            )
+            else:
+                raise ValueError("Gemini client not initialized")
+            
+            text_response = response.text
+            if not text_response:
+                print(f"⚠️ Gemini connected but returned no text. Response candidates: {response.candidates}")
+                raise ValueError("Empty response from Gemini")
+
+            # Clean and parse JSON from Markdown response
+            clean_json = text_response.replace("```json", "").replace("```", "").strip()
+            parsed_data = json.loads(clean_json)
+            
+            result = {
+                "score": max(0, min(100, parsed_data.get("score", 75))),
+                "explanation": parsed_data.get("explanation", "The stars are aligning for you."),
+                "actions": parsed_data.get("actions", ["Seize the day", "Reflect inward", "Smile often"]),
+                "caption": f"{parsed_data.get('archetype', 'Cosmic Traveler')} | {parsed_data.get('caption', 'Cosmic Alignment')}",
+                "summary": parsed_data.get("summary", "Your chart is balanced today."),
+                "strategic_advice": parsed_data.get("strategy", "Balance your internal drive with external patience."),
+                "lucky_time_slots": parsed_data.get("schedule", [])
+            }
+            
+            # Cache the successful result
+            uid = user_data.get("uid", "guest")
+            today = datetime.now().strftime("%Y-%m-%d")
+            cache_key = f"{uid}_{today}"
+            self._response_cache[cache_key] = result
+            
+            return result
+            
+        except Exception as e:
+            print(f"⚠️ Gemini Analysis error: {e}")
+            
+            # Try Groq Fallback
             if self.groq_client:
                 try:
-                    print("🔄 Using Groq (Llama 3) as Primary...")
+                    import json
+                    print("🔄 Falling back to Groq (Analysis)...")
+                    
                     chat_completion = self.groq_client.chat.completions.create(
                         messages=[
                             {
@@ -332,42 +378,7 @@ Fortune message:"""
                     self._response_cache[f"{uid}_{today}"] = result
                     return result
                 except Exception as groq_e:
-                    print(f"⚠️ Groq failed, trying Gemini: {groq_e}")
-
-            # --- GEMINI FALLBACK ---
-            if self.gemini_client:
-                # Use SDK to generate content
-                response = self.gemini_client.models.generate_content(
-                model=self.gemini_model_id,
-                contents=prompt,
-                config={
-                    "temperature": 0.7,
-                    "max_output_tokens": 4000,
-                }
-            )
-                text_response = response.text
-                if not text_response:
-                    raise ValueError("Empty response from Gemini")
-
-                # Clean and parse JSON from Markdown response
-                clean_json = text_response.replace("```json", "").replace("```", "").strip()
-                parsed_data = json.loads(clean_json)
-                
-                result = {
-                    "score": max(0, min(100, parsed_data.get("score", 75))),
-                    "explanation": parsed_data.get("explanation", "The stars are aligning for you."),
-                    "actions": parsed_data.get("actions", ["Seize the day", "Reflect inward", "Smile often"]),
-                    "caption": f"{parsed_data.get('archetype', 'Cosmic Traveler')} | {parsed_data.get('caption', 'Cosmic Alignment')}",
-                    "summary": parsed_data.get("summary", "Your chart is balanced today."),
-                    "strategic_advice": parsed_data.get("strategy", "Balance your internal drive with external patience."),
-                    "lucky_time_slots": parsed_data.get("schedule", [])
-                }
-                
-                # Cache and return
-                uid = user_data.get("uid", "guest")
-                today = datetime.now().strftime("%Y-%m-%d")
-                self._response_cache[f"{uid}_{today}"] = result
-                return result
+                    print(f"❌ Groq failed: {groq_e}")
             
         except Exception as e:
             print(f"⚠️ Combined AI Analysis error: {e}")
